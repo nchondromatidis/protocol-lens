@@ -1,0 +1,20 @@
+@layer starlight, nextjs, custom;
+
+@layer custom {
+    :root {
+        --sl-nav-pad-x: 1.5rem;
+        --sidebar-margin-left: 0rem;
+
+        .right-sidebar-container {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .right-sidebar {
+            width: auto;
+        }
+        .right-sidebar-panel {
+            padding-right: 0;
+        }
+
+    }
+}
