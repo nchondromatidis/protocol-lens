@@ -1,36 +1,23 @@
 import { expect, test } from 'vitest';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { createMemoryClient, parseEther } from 'tevm';
-import { type Hex } from 'viem';
-import UniswapV2Factory from '@definest/protocols/artifacts/contracts/uniswap-v2/v2-core/contracts/UniswapV2Factory.sol/UniswapV2Factory.json';
-import { iUniswapV2FactoryAbi } from '@definest/protocols/artifacts/types/uniswap-v2/v2-core.ts';
+import {  parseEther } from 'tevm';
+import {buildTevmClient} from "../src/adapters/vm";
+import {deployUniswapV2} from "../src/adapters/uniswap-v2";
 
 const ETHER_1 = parseEther('1');
 
 test('deploy', async () => {
+  // arrange
   const deployerAccount = privateKeyToAccount(generatePrivateKey());
   const feeToSetAccount = privateKeyToAccount(generatePrivateKey());
 
-  const client = createMemoryClient({
-    account: deployerAccount,
-    miningConfig: {
-      type: 'auto',
-    },
-  });
-
+  const client = await buildTevmClient(deployerAccount);
   await client.setBalance({ address: deployerAccount.address, value: ETHER_1 });
+  const {factory} = await deployUniswapV2(client, feeToSetAccount.address)
 
-  const deployment = await client.tevmDeploy({
-    abi: UniswapV2Factory.abi,
-    bytecode: UniswapV2Factory.bytecode as Hex,
-    args: [feeToSetAccount.address],
-  });
+  // act
+  const result = await factory.read.feeToSetter()
 
-  const result = await client.readContract({
-    abi: iUniswapV2FactoryAbi,
-    functionName: 'feeToSetter',
-    address: deployment.createdAddress!,
-  });
-
+  // assert
   expect(result).toEqual(feeToSetAccount.address);
 });
