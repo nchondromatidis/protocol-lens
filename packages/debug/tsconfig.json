@@ -1,0 +1,3 @@
+{
+  "extends": "@defi-notes/config/tsconfig.json"
+}
