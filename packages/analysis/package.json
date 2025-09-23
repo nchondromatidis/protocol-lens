@@ -11,13 +11,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@definest/protocols": "^1.0.0",
+    "@definest/protocols": "1.0.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "tevm": "^1.0.0-next.147"
   },
   "devDependencies": {
-    "@defi-notes/config": "^1.0.0",
+    "@defi-notes/config": "1.0.0",
     "@eslint/js": "^9.33.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
