@@ -1,5 +1,5 @@
 {
-  "name": "@defi-notes/debug",
+  "name": "@defi-notes/tevm-tx-lens",
   "private": true,
   "version": "0.0.0",
   "type": "module",
