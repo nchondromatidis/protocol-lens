@@ -1,5 +1,5 @@
 import "./tasks/inject-sourcemaps";
-import {HardhatUserConfig} from "hardhat/config";
+import type {HardhatUserConfig} from "hardhat/config";
 import {configVariable} from "hardhat/config";
 
 

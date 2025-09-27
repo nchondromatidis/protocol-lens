@@ -1,8 +1,8 @@
 import {task} from "hardhat/config";
-import {HardhatRuntimeEnvironment} from "hardhat/types/hre";
+import type {HardhatRuntimeEnvironment} from "hardhat/types/hre";
 import path from "node:path";
 import fs from "node:fs";
-import {LazyActionObject, NewTaskActionFunction} from "hardhat/types/tasks";
+import type {LazyActionObject, NewTaskActionFunction} from "hardhat/types/tasks";
 import * as url from "node:url";
 import {fileURLToPath} from "node:url";
 
@@ -38,7 +38,7 @@ export function injectSourceMaps(artifactsPath: string)  {
 
 }
 
-const injectSourceMapsAction: NewTaskActionFunction<{}> = async (taskArguments: {}, hre: HardhatRuntimeEnvironment) =>  {
+const injectSourceMapsAction: NewTaskActionFunction<{}> = async (_: {}, hre: HardhatRuntimeEnvironment) =>  {
   injectSourceMaps(hre.config.paths.artifacts);
 }
 
