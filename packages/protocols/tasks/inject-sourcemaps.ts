@@ -46,14 +46,11 @@ function lazy<T>(fn: T): LazyActionObject<T> {
   return () => Promise.resolve({ default: fn });
 }
 
-// TODO: cannot make this task to register in Hardhat v3, so I ran it as a standalone script
+// TODO: this does not register the task
 task("inject-sourcemaps" , "Add sourceMap into contract artifacts").setAction(lazy(injectSourceMapsAction));
 
-export default {};
-
-
+// TODO: cannot make this task to register in Hardhat v3, so I ran it as a standalone script
 if (import.meta.url === url.pathToFileURL(process.argv[1]).href) {
-  // TODO: fix that
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const hardCodedArtifactsPath = path.join(__dirname, "..", "artifacts");
   injectSourceMaps(hardCodedArtifactsPath);

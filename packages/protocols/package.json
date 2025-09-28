@@ -7,7 +7,8 @@
     "hardhat:build": "hardhat build --show-stack-traces",
     "wagmi:generate": "wagmi generate",
     "hardhat:tasks:source-maps": "tsx tasks/inject-sourcemaps.ts",
-    "build": "npm run hardhat:clear && npm run hardhat:build && npm run wagmi:generate && npm run hardhat:tasks:source-maps"
+    "hardhat:tasks:filter-contracts": "tsx tasks/filter-contracts.ts",
+    "build": "npm run hardhat:clear && npm run hardhat:tasks:filter-contracts && npm run hardhat:build && npm run wagmi:generate && npm run hardhat:tasks:source-maps"
   },
   "devDependencies": {
     "@types/node": "^24.5.2",

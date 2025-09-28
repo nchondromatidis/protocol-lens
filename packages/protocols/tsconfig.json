@@ -1,4 +1,4 @@
 {
   "extends": "@defi-notes/config/tsconfig.json",
-  "exclude": ["contracts"]
+  "exclude": ["lib", "contracts"]
 }
