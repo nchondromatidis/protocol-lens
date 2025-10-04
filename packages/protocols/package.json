@@ -2,11 +2,6 @@
   "name": "@defi-notes/protocols",
   "version": "1.0.0",
   "type": "module",
-  "exports": {
-    "./artifacts/contracts/*": "./artifacts/contracts/*",
-    "./artifacts/types/*": "./artifacts/types/*",
-    "./contracts-map.json": "./contracts-map.json"
-  },
   "scripts": {
     "hardhat:clear": "hardhat clean",
     "hardhat:build": "hardhat build --show-stack-traces",
@@ -16,6 +11,7 @@
     "build": "npm run hardhat:clear && npm run hardhat:tasks:filter-contracts && npm run hardhat:build && npm run wagmi:generate && npm run hardhat:tasks:source-maps"
   },
   "devDependencies": {
+    "@defi-notes/config": "*",
     "@types/node": "^24.5.2",
     "@wagmi/cli": "^2.5.1",
     "forge-std": "github:foundry-rs/forge-std#v1.9.4",

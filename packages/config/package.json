@@ -6,12 +6,6 @@
   "description": "",
   "private": true,
   "type": "module",
-  "exports": {
-    "./eslint.config": "./eslint.config.js",
-    "./prettier.config": "./prettier.config.js",
-    "./vite.config": "./vite.config.js",
-    "./tsconfig.json": "./tsconfig.json"
-  },
   "peerDependencies": {
     "@eslint/js": "^9.36.0",
     "@types/react": "^19.1.13",
@@ -22,6 +16,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.21",
+    "globals": "^16.4.0",
     "prettier": "3.6.2",
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.44.1",
