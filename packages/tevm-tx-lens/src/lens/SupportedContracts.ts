@@ -11,7 +11,7 @@ export class SupportedContracts {
   public async register(artifacts: Array<ProtocolArtifact>) {
     artifacts.forEach((it) => {
       const contractFQN = (it.sourceName + ':' + it.contractName) as ContractFQN;
-      this.bytecodeToContractFqnIndex.set(it.deployedBytecode, contractFQN);
+      this.bytecodeToContractFqnIndex.set(it.bytecode, contractFQN);
       this.contractFqnToArtifactIndex.set(contractFQN, it as ProtocolArtifact);
     });
   }

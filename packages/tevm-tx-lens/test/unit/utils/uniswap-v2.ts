@@ -37,5 +37,3 @@ export async function deployUniswapV2(lensClient: LensClient, feeToSetAddress: A
     router,
   };
 }
-
-// export async function getUniswapContractFQNs(): Promise<ContractFQN[]> {}

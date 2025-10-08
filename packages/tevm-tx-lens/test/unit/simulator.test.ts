@@ -27,21 +27,31 @@ test('uniswap v2', async () => {
 
   const deployedContracts = new DeployedContracts();
 
-  const simulator = new LensClient(client, supportedContracts, deployedContracts);
+  const lensClient = new LensClient(client, supportedContracts, deployedContracts);
 
   const uniswapV2Artifacts = await resourceLoader.getProtocolArtifacts('uniswap-v2');
   await supportedContracts.register(uniswapV2Artifacts);
 
-  await tevmSetAccount(simulator.client, {
+  await tevmSetAccount(lensClient.client, {
     address: deployerAccount.address,
     balance: ETHER_1,
   });
 
-  const { factory } = await deployUniswapV2(simulator, feeToSetAccount.address);
+  const { factory } = await deployUniswapV2(lensClient, feeToSetAccount.address);
+
+  const token1 = await lensClient.deploy(
+    'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
+    []
+  );
+
+  const token2 = await lensClient.deploy(
+    'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
+    []
+  );
 
   // act
-  const result = await simulator.tevmContract(factory, 'feeToSetter', []);
+  await lensClient.contract(factory, 'createPair', [token1.createdAddress!, token2.createdAddress!]);
 
   // assert
-  expect(result.data).toEqual(feeToSetAccount.address);
+  expect(deployedContracts.deployedContracts.size).toEqual(6);
 });

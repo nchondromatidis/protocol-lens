@@ -1,4 +1,4 @@
-import type { ContractFunctionName, TevmTransport } from 'tevm';
+import { type ContractFunctionName, type TevmTransport } from 'tevm';
 import { tevmContract, tevmDeploy } from 'tevm';
 import type {
   Abi,
@@ -38,7 +38,7 @@ export class LensClient {
     return deployResult;
   }
 
-  async tevmContract<
+  async contract<
     TAbi extends Abi,
     TFunctionName extends ContractFunctionName<TAbi>,
     TArgs extends ContractFunctionArgs<TAbi, AbiStateMutability, TFunctionName>,
@@ -48,11 +48,14 @@ export class LensClient {
     args: TArgs
   ): Promise<ContractResult<TAbi, TFunctionName>> {
     return await tevmContract(this.client, {
-      abi: contract.abi,
       to: contract.address,
-      functionName,
-      args,
+      code: undefined,
+      deployedBytecode: undefined,
+      abi: contract.abi,
+      functionName: functionName,
+      args: args,
       onNewContract: (data: NewContractEvent, next?: Next) => {
+        console.log('New contract:', data.address.toString());
         const contractFQN = this.supportedContracts.getContractFqnFrom(bytesToHex(data.code));
         this.deployedContracts.register(data.address.toString(), contractFQN, true);
         next?.();
@@ -73,6 +76,6 @@ export class LensClient {
         });
         next?.();
       },
-    } as never); // TODO: fix casting to never
+    });
   }
 }
