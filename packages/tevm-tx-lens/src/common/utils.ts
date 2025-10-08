@@ -6,5 +6,4 @@ export type ArtifactName = keyof ArtifactMap;
 type ContractFQNPattern = `${string}.sol:${string}`;
 export type ContractFQN = Extract<ArtifactName, ContractFQNPattern>;
 
-
 export type Option<T> = T | undefined;

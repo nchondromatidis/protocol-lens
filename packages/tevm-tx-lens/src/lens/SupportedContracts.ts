@@ -1,20 +1,19 @@
-import type { IResourceLoader } from './IResourceLoader.ts';
 import type { ContractFQN, Option } from '../common/utils.ts';
 import { GenericError } from '../common/errors.ts';
+import type { ProtocolArtifact } from '@defi-notes/protocols/types';
 
 export class SupportedContracts {
-  constructor(private readonly resourceLoader: IResourceLoader) {}
+  constructor() {}
 
   protected bytecodeToContractFqnIndex: Map<string, ContractFQN> = new Map();
+  protected contractFqnToArtifactIndex: Map<ContractFQN, ProtocolArtifact> = new Map();
 
-  public async register(contractFQN: Array<ContractFQN>) {
-    const fetchedArtifacts = await this.resourceLoader.getContractArtifacts(contractFQN);
-
-    const fetchedArtifactsFilter = fetchedArtifacts.map((it) => ({
-      deployedBytecode: it.deployedBytecode,
-      fqn: it.sourceName as ContractFQN,
-    }));
-    fetchedArtifactsFilter.forEach((it) => this.bytecodeToContractFqnIndex.set(it.deployedBytecode, it.fqn));
+  public async register(artifacts: Array<ProtocolArtifact>) {
+    artifacts.forEach((it) => {
+      const contractFQN = (it.sourceName + ':' + it.contractName) as ContractFQN;
+      this.bytecodeToContractFqnIndex.set(it.deployedBytecode, contractFQN);
+      this.contractFqnToArtifactIndex.set(contractFQN, it as ProtocolArtifact);
+    });
   }
 
   public getContractFqnFrom(bytecode: string): Option<ContractFQN> {
@@ -22,9 +21,9 @@ export class SupportedContracts {
   }
 
   public async getContractArtifact(contractFQN: ContractFQN) {
-    if (!this.bytecodeToContractFqnIndex.has(contractFQN)) {
-      throw new GenericError('Contract not supported', { name: contractFQN });
+    if (this.contractFqnToArtifactIndex.has(contractFQN)) {
+      return this.contractFqnToArtifactIndex.get(contractFQN)!;
     }
-    return await this.resourceLoader.getContractArtifact(contractFQN);
+    throw new GenericError('Contract not supported', { name: contractFQN });
   }
 }

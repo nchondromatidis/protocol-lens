@@ -8,7 +8,6 @@ import { TestResourceLoader } from './utils/TestResourceLoader.ts';
 import * as path from 'node:path';
 import { DeployedContracts } from '../../src/lens/DeployedContracts.ts';
 import { SupportedContracts } from '../../src/lens/SupportedContracts.ts';
-import type { ContractFQN } from '../../src/common/utils.ts';
 
 const __dirname = import.meta.dirname;
 
@@ -23,14 +22,15 @@ test('uniswap v2', async () => {
 
   const basePath = path.join(__dirname, '..', '..', '..', 'protocols', 'artifacts');
   const resourceLoader = new TestResourceLoader(basePath);
-  const supportedContracts = new SupportedContracts(resourceLoader);
 
-  const uniswapV2Contracts: ContractFQN[] = [];
-  await supportedContracts.register(uniswapV2Contracts);
+  const supportedContracts = new SupportedContracts();
 
   const deployedContracts = new DeployedContracts();
 
   const simulator = new LensClient(client, supportedContracts, deployedContracts);
+
+  const uniswapV2Artifacts = await resourceLoader.getProtocolArtifacts('uniswap-v2');
+  await supportedContracts.register(uniswapV2Artifacts);
 
   await tevmSetAccount(simulator.client, {
     address: deployerAccount.address,
