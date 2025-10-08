@@ -1,10 +1,9 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { glob } from 'glob';
-import { fileURLToPath } from 'node:url';
 import * as url from 'node:url';
 import { minimatch } from 'minimatch';
-import { excludeFolders, includeFolders } from '../filter-contracts-config.ts';
+import { contractsPath, excludeFolders, includeFolders, libPath } from '../tasks-config.ts';
 
 async function copySymlinkRecursive(src: string, dest: string, include: string[], exclude: string[]) {
   await fs.rm(dest, { recursive: true, force: true });
@@ -35,10 +34,5 @@ async function copySymlinkRecursive(src: string, dest: string, include: string[]
 }
 
 if (import.meta.url === url.pathToFileURL(process.argv[1]).href) {
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-  const sourcePath = path.join(__dirname, '..', 'lib');
-  const destinationPath = path.join(__dirname, '..', 'contracts');
-
-  copySymlinkRecursive(sourcePath, destinationPath, includeFolders, excludeFolders).catch(console.error);
+  copySymlinkRecursive(libPath, contractsPath, includeFolders, excludeFolders).catch(console.error);
 }
