@@ -20,7 +20,7 @@ test('uniswap v2', async () => {
 
   const client = await buildClient(deployerAccount);
 
-  const basePath = path.join(__dirname, '..', '..', '..', 'protocols', 'artifacts');
+  const basePath = path.join(__dirname, '..', '..', 'protocols', 'artifacts');
   const resourceLoader = new TestResourceLoader(basePath);
 
   const supportedContracts = new SupportedContracts();

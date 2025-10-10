@@ -3,18 +3,15 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deps:list": "npx syncpack@alpha list",
-    "deps:list:verbose": "npx syncpack@alpha list --show instances",
-    "deps:fix": "npx syncpack@alpha fix",
-    "deps:update:patch": "npx syncpack@alpha update --target patch",
-    "unsafe:deps:update:latest": "npx syncpack@alpha update --target latest"
+    "deps:list": "pnpm dlx syncpack@alpha list",
+    "deps:list:verbose": "pnpm dlx syncpack@alpha list --show instances",
+    "deps:fix": "pnpm dlx syncpack@alpha fix",
+    "deps:update:patch": "pnpm dlx syncpack@alpha update --target patch",
+    "unsafe:deps:update:latest": "pnpm dlx syncpack@alpha update --target latest"
   },
   "author": "",
   "license": "ISC",
-  "description": "",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+  "description": ""
 }

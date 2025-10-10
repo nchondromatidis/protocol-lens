@@ -12,13 +12,13 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "@defi-notes/protocols": "*",
-    "tevm": "^1.0.0-next.147"
+    "@defi-notes/protocols": "workspace:*",
+    "tevm": "^1.0.0-next.147",
+    "viem": "^2.38.0"
   },
   "devDependencies": {
-    "@defi-notes/config": "*",
+    "@defi-notes/config": "workspace:*",
     "@eslint/js": "^9.36.0",
-    "abitype": "^1.1.1",
     "eslint": "^9.36.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",

@@ -13,7 +13,7 @@
     "map": "tsx tasks/map-protocols-contracts.ts"
   },
   "devDependencies": {
-    "@defi-notes/config": "*",
+    "@defi-notes/config": "workspace:*",
     "@types/node": "^24.5.2",
     "ctix": "^2.7.1",
     "forge-std": "github:foundry-rs/forge-std#v1.9.4",
@@ -21,7 +21,6 @@
     "minimatch": "^10.0.3",
     "quicktype": "^23.2.6",
     "tsx": "^4.20.5",
-    "typescript": "~5.9.2",
-    "viem": "^2.37.8"
+    "typescript": "~5.9.2"
   }
 }

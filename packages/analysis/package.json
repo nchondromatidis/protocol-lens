@@ -11,13 +11,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@defi-notes/protocols": "1.0.0",
+    "@defi-notes/protocols": "workspace:*",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "tevm": "^1.0.0-next.147"
   },
   "devDependencies": {
-    "@defi-notes/config": "1.0.0",
+    "@defi-notes/config": "workspace:*",
     "@eslint/js": "^9.36.0",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
