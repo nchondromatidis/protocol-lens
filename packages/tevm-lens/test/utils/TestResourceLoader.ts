@@ -1,7 +1,7 @@
-import type { ContractFQN } from '../../../src/common/utils.ts';
+import type { ContractFQN } from '../../src/common/utils.ts';
 import type { ProtocolArtifact } from '@defi-notes/protocols/types';
 import { promises as fs } from 'fs';
-import type { IResourceLoader } from '../../../src/lens/IResourceLoader.ts';
+import type { IResourceLoader } from '../../src/adapters/IResourceLoader.ts';
 import * as path from 'node:path';
 import type { ProtocolsContractsMapD } from '@defi-notes/protocols/artifacts/protocols-contracts-map.d.ts';
 import protocolsContractsMap from '@defi-notes/protocols/artifacts/protocols-contracts-map.json' assert { type: 'json' };

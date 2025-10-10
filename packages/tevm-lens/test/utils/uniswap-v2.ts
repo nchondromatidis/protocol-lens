@@ -1,7 +1,7 @@
 import { type Address, getContract } from 'viem';
 import UniswapV2Factory from '@defi-notes/protocols/artifacts/contracts/uniswap-v2/v2-core/contracts/UniswapV2Factory.sol/UniswapV2Factory.json' assert { type: 'json' };
 import UniswapV2Router02 from '@defi-notes/protocols/artifacts/contracts/uniswap-v2/v2-periphery/contracts/UniswapV2Router02.sol/UniswapV2Router02.json' assert { type: 'json' };
-import type { LensClient } from '../../../src/lens/LensClient.ts';
+import type { LensClient } from '../../src/lens/LensClient.ts';
 import type { UniswapV2Factory$Type, UniswapV2Router02$Type } from '@defi-notes/protocols/types';
 
 export async function deployUniswapV2(lensClient: LensClient, feeToSetAddress: Address) {

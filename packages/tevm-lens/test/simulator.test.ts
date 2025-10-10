@@ -2,12 +2,12 @@ import { expect, test } from 'vitest';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { parseEther, tevmSetAccount } from 'tevm';
 import { deployUniswapV2 } from './utils/uniswap-v2.ts';
-import { LensClient } from '../../src/lens/LensClient.ts';
-import { buildClient } from '../../src/lens/client.ts';
+import { LensClient } from '../src/lens/LensClient.ts';
+import { buildClient } from '../src/lens/client.ts';
 import { TestResourceLoader } from './utils/TestResourceLoader.ts';
 import * as path from 'node:path';
-import { DeployedContracts } from '../../src/lens/DeployedContracts.ts';
-import { SupportedContracts } from '../../src/lens/SupportedContracts.ts';
+import { DeployedContracts } from '../src/lens/DeployedContracts.ts';
+import { SupportedContracts } from '../src/lens/SupportedContracts.ts';
 
 const __dirname = import.meta.dirname;
 

@@ -10,7 +10,7 @@ import type {
   Hex,
 } from 'viem';
 import { bytesToHex } from 'viem';
-import type { ContractResult, Message, NewContractEvent } from '@tevm/actions';
+import type { ContractResult, Message, NewContractEvent } from 'tevm/actions';
 import type { EvmResult } from '@tevm/evm';
 import type { ArtifactMap } from '@defi-notes/protocols/types';
 import { type ContractFQN, type Next } from '../common/utils.ts';
@@ -28,7 +28,7 @@ export class LensClient {
     contractFQN: ContractFQNT,
     args: ContractConstructorArgs<ArtifactMap[ContractFQNT]['abi']>
   ) {
-    const artifact = await this.supportedContracts.getContractArtifact(contractFQN);
+    const artifact = await this.supportedContracts.getArtifactFrom(contractFQN);
     const deployResult = await tevmDeploy(this.client, {
       abi: artifact.abi as Abi,
       bytecode: artifact.bytecode as Hex,
@@ -55,25 +55,18 @@ export class LensClient {
       functionName: functionName,
       args: args,
       onNewContract: (data: NewContractEvent, next?: Next) => {
-        console.log('New contract:', data.address.toString());
+        console.debug('onNewContract:NewContractEvent', data);
         const contractFQN = this.supportedContracts.getContractFqnFrom(bytesToHex(data.code));
-        this.deployedContracts.register(data.address.toString(), contractFQN, true);
+        if (contractFQN) this.deployedContracts.register(data.address.toString(), contractFQN, true);
         next?.();
       },
       onBeforeMessage: (data: Message, next?: Next) => {
-        console.log('Executing message:', {
-          to: data.to?.toString(),
-          value: data.value.toString(),
-          delegatecall: data.delegatecall,
-        });
+        console.debug('onBeforeMessage:Message', data);
+        //const contractFQN = this.deployedContracts.getContractFrom(data.to);
         next?.();
       },
       onAfterMessage: (data: EvmResult, next?: Next) => {
-        console.log('Message result:', {
-          gasUsed: data.execResult.executionGasUsed.toString(),
-          returnValue: data.execResult.returnValue.toString(),
-          error: data.execResult.exceptionError?.error,
-        });
+        console.log('onAfterMessage:EvmResult', data);
         next?.();
       },
     });
