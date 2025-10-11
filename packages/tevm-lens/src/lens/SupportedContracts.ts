@@ -8,7 +8,7 @@ export class SupportedContracts {
   protected bytecodeToContractFqnIndex: Map<string, ContractFQN> = new Map();
   protected contractFqnToArtifactIndex: Map<ContractFQN, ProtocolArtifact> = new Map();
 
-  public async register(artifacts: Array<ProtocolArtifact>) {
+  public async registerArtifacts(artifacts: Array<ProtocolArtifact>) {
     artifacts.forEach((it) => {
       const contractFQN = (it.sourceName + ':' + it.contractName) as ContractFQN;
       this.bytecodeToContractFqnIndex.set(it.bytecode, contractFQN);
@@ -16,7 +16,9 @@ export class SupportedContracts {
     });
   }
 
-  public getContractFqnFrom(bytecode: string) {
+  public async registerContractSources() {}
+
+  public async getContractFqnFrom(bytecode: string) {
     return this.bytecodeToContractFqnIndex.get(bytecode);
   }
 

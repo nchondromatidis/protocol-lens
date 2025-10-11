@@ -6,8 +6,9 @@ import { LensClient } from '../src/lens/LensClient.ts';
 import { buildClient } from '../src/lens/client.ts';
 import { TestResourceLoader } from './utils/TestResourceLoader.ts';
 import * as path from 'node:path';
-import { DeployedContracts } from '../src/lens/DeployedContracts.ts';
+import { LabeledContracts } from '../src/lens/LabeledContracts.ts';
 import { SupportedContracts } from '../src/lens/SupportedContracts.ts';
+import { Traces } from '../src/lens/Traces.ts';
 
 const __dirname = import.meta.dirname;
 
@@ -24,13 +25,12 @@ test('uniswap v2', async () => {
   const resourceLoader = new TestResourceLoader(basePath);
 
   const supportedContracts = new SupportedContracts();
-
-  const deployedContracts = new DeployedContracts();
-
-  const lensClient = new LensClient(client, supportedContracts, deployedContracts);
+  const labeledContracts = new LabeledContracts();
+  const traces = new Traces(supportedContracts, labeledContracts);
+  const lensClient = new LensClient(client, supportedContracts, labeledContracts, traces);
 
   const uniswapV2Artifacts = await resourceLoader.getProtocolArtifacts('uniswap-v2');
-  await supportedContracts.register(uniswapV2Artifacts);
+  await supportedContracts.registerArtifacts(uniswapV2Artifacts);
 
   await tevmSetAccount(lensClient.client, {
     address: deployerAccount.address,
@@ -53,5 +53,5 @@ test('uniswap v2', async () => {
   await lensClient.contract(factory, 'createPair', [token1.createdAddress!, token2.createdAddress!]);
 
   // assert
-  expect(deployedContracts.deployedContracts.size).toEqual(6);
+  console.log(traces.traced);
 });

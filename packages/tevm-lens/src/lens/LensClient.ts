@@ -1,27 +1,26 @@
 import { type ContractFunctionName, type TevmTransport } from 'tevm';
 import { tevmContract, tevmDeploy } from 'tevm';
-import type {
-  Abi,
-  AbiStateMutability,
-  Address,
-  Client,
-  ContractConstructorArgs,
-  ContractFunctionArgs,
-  Hex,
+import {
+  type Abi,
+  type AbiStateMutability,
+  type Client,
+  type ContractConstructorArgs,
+  type ContractFunctionArgs,
 } from 'viem';
-import { bytesToHex } from 'viem';
 import type { ContractResult, Message, NewContractEvent } from 'tevm/actions';
-import type { EvmResult } from '@tevm/evm';
+import type { EvmResult } from 'tevm/evm';
 import type { ArtifactMap } from '@defi-notes/protocols/types';
-import { type ContractFQN, type Next } from '../common/utils.ts';
+import { type Address, type ContractFQN, type Hex, type Next, randomId } from '../common/utils.ts';
 import { SupportedContracts } from './SupportedContracts.ts';
-import { DeployedContracts } from './DeployedContracts.ts';
+import { LabeledContracts } from './LabeledContracts.ts';
+import { Traces } from './Traces.ts';
 
 export class LensClient {
   constructor(
     public readonly client: Client<TevmTransport>,
     private readonly supportedContracts: SupportedContracts,
-    private readonly deployedContracts: DeployedContracts
+    private readonly labeledContracts: LabeledContracts,
+    private readonly traces: Traces
   ) {}
 
   async deploy<ContractFQNT extends ContractFQN>(
@@ -34,7 +33,8 @@ export class LensClient {
       bytecode: artifact.bytecode as Hex,
       args: args as unknown[],
     });
-    this.deployedContracts.register(deployResult.createdAddress!, contractFQN);
+    console.debug('deploy:', deployResult.createdAddress!, contractFQN);
+    this.labeledContracts.labelAddress(deployResult.createdAddress!, contractFQN);
     return deployResult;
   }
 
@@ -47,28 +47,32 @@ export class LensClient {
     functionName: TFunctionName,
     args: TArgs
   ): Promise<ContractResult<TAbi, TFunctionName>> {
-    return await tevmContract(this.client, {
+    const tempId = randomId();
+    const deployedResult = await tevmContract(this.client, {
       to: contract.address,
       code: undefined,
       deployedBytecode: undefined,
       abi: contract.abi,
       functionName: functionName,
       args: args,
-      onNewContract: (data: NewContractEvent, next?: Next) => {
-        console.debug('onNewContract:NewContractEvent', data);
-        const contractFQN = this.supportedContracts.getContractFqnFrom(bytesToHex(data.code));
-        if (contractFQN) this.deployedContracts.register(data.address.toString(), contractFQN, true);
+      onNewContract: async (event: NewContractEvent, next?: Next) => {
+        console.debug('onNewContract:NewContractEvent', event.address.toString());
+        await this.traces.handleNewContract(event, tempId);
         next?.();
       },
-      onBeforeMessage: (data: Message, next?: Next) => {
-        console.debug('onBeforeMessage:Message', data);
-        //const contractFQN = this.deployedContracts.getContractFrom(data.to);
+      onBeforeMessage: async (event: Message, next?: Next) => {
+        console.debug('onBeforeMessage:Message', event.to?.toString(), event.depth);
+        await this.traces.handleFunctionCall(event, tempId);
         next?.();
       },
-      onAfterMessage: (data: EvmResult, next?: Next) => {
-        console.log('onAfterMessage:EvmResult', data);
+      onAfterMessage: async (event: EvmResult, next?: Next) => {
+        console.log('onAfterMessage:EvmResult', event.createdAddress?.toString());
+        await this.traces.handleFunctionReturn(event, tempId);
         next?.();
       },
     });
+    await this.traces.handleTxFinished(deployedResult, tempId);
+
+    return deployedResult;
   }
 }
