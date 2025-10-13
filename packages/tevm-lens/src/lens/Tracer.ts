@@ -76,14 +76,12 @@ export class Tracer {
   }
 
   public async handleFunctionResult(event: EvmResult, tempId: string) {
-    // TODO: continue here
     const functionResultEvent: FunctionResultEvent = { ...event, type: 'FunctionResultEvent' };
 
     // new contract deployment
     if (functionResultEvent.createdAddress) {
       const deployedByteCode = event.execResult.returnValue;
       if (!deployedByteCode) throw new InvariantError('DeployedByteCode missing');
-      console.log(bytesToHex(deployedByteCode));
       const contractFQN = await this.supportedContracts.getContractFqnFromDeployedBytecode(
         bytesToHex(deployedByteCode)
       );
@@ -96,11 +94,10 @@ export class Tracer {
     }
     this.addToTrace(tempId, functionResultEvent);
 
-    // success
+    // TODO: continue here
+    // success (logs, events)
     // error
 
-    // logs
-    // events
     return;
   }
 

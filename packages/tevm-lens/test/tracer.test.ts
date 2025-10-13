@@ -1,4 +1,4 @@
-import { test } from 'vitest';
+import { test, beforeEach } from 'vitest';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { parseEther, tevmSetAccount } from 'tevm';
 import { deployUniswapV2 } from './utils/uniswap-v2.ts';
@@ -9,14 +9,16 @@ import * as path from 'node:path';
 import { DeployedContracts } from '../src/lens/DeployedContracts.ts';
 import { SupportedContracts } from '../src/lens/SupportedContracts.ts';
 import { Tracer } from '../src/lens/Tracer.ts';
-import * as util from 'node:util';
+import { inspect } from './utils/inspect.ts';
 
 const __dirname = import.meta.dirname;
 
 const ETHER_1 = parseEther('1');
 
-test('tracer test', async () => {
-  // arrange
+let lensClient: LensClient;
+let factory: Awaited<ReturnType<typeof deployUniswapV2>>['factory'];
+
+beforeEach(async () => {
   const deployerAccount = privateKeyToAccount(generatePrivateKey());
   const feeToSetAccount = privateKeyToAccount(generatePrivateKey());
 
@@ -28,7 +30,7 @@ test('tracer test', async () => {
   const supportedContracts = new SupportedContracts();
   const labeledContracts = new DeployedContracts();
   const tracer = new Tracer(supportedContracts, labeledContracts);
-  const lensClient = new LensClient(client, supportedContracts, labeledContracts, tracer);
+  lensClient = new LensClient(client, supportedContracts, labeledContracts, tracer);
 
   const uniswapV2Artifacts = await resourceLoader.getProtocolArtifacts('uniswap-v2');
   await supportedContracts.registerArtifacts(uniswapV2Artifacts);
@@ -38,8 +40,12 @@ test('tracer test', async () => {
     balance: ETHER_1,
   });
 
-  const { factory } = await deployUniswapV2(lensClient, feeToSetAccount.address);
+  const deployment = await deployUniswapV2(lensClient, feeToSetAccount.address);
+  factory = deployment.factory;
+});
 
+test('tracer deploy test', async () => {
+  // arrange
   const token1 = await lensClient.deploy(
     'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
     []
@@ -54,14 +60,5 @@ test('tracer test', async () => {
   await lensClient.contract(factory, 'createPair', [token1.createdAddress!, token2.createdAddress!]);
 
   // assert
-  Uint8Array.prototype[util.inspect.custom] = function () {
-    return `0x${Buffer.from(this).toString('hex')}`;
-  };
-  console.log(util.inspect(tracer.tracedTx, { depth: 4, colors: true }));
+  inspect(lensClient.tracer.tracedTx);
 });
-
-declare global {
-  interface Uint8Array {
-    [util.inspect.custom]: () => string;
-  }
-}

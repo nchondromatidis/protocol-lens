@@ -21,7 +21,7 @@ export class LensClient {
     public readonly client: Client<TevmTransport>,
     private readonly supportedContracts: SupportedContracts,
     private readonly deployedContracts: DeployedContracts,
-    private readonly tracer: Tracer
+    public readonly tracer: Tracer
   ) {}
 
   async deploy<ContractFQNT extends ContractFQN>(
