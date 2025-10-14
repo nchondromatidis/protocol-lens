@@ -1,6 +1,6 @@
 import type { ContractFQN } from '../common/utils.ts';
 import { GenericError } from '../common/errors.ts';
-import type { ProtocolArtifact } from '@defi-notes/protocols/types';
+import type { ArtifactMap, ProtocolArtifact } from '@defi-notes/protocols/types';
 
 export class SupportedContracts {
   constructor() {}
@@ -14,7 +14,7 @@ export class SupportedContracts {
       const contractFQN = (it.sourceName + ':' + it.contractName) as ContractFQN;
       this.deployedBytecodeToContractFqnIndex.set(it.deployedBytecode, contractFQN);
       this.bytecodeToContractFqnIndex.set(it.bytecode, contractFQN);
-      this.contractFqnToArtifactIndex.set(contractFQN, it as ProtocolArtifact);
+      this.contractFqnToArtifactIndex.set(contractFQN, it);
     });
   }
 
@@ -27,10 +27,12 @@ export class SupportedContracts {
     return this.deployedBytecodeToContractFqnIndex.get(bytecode);
   }
 
-  public async getArtifactFrom(contractFQN: ContractFQN) {
+  public async getArtifactFrom<ContractFqnT extends ContractFQN>(
+    contractFQN: ContractFqnT
+  ): Promise<ArtifactMap[ContractFqnT]> {
     if (!this.contractFqnToArtifactIndex.has(contractFQN)) {
       throw new GenericError('Contract not supported', { name: contractFQN });
     }
-    return this.contractFqnToArtifactIndex.get(contractFQN)!;
+    return this.contractFqnToArtifactIndex.get(contractFQN)! as ArtifactMap[ContractFqnT];
   }
 }

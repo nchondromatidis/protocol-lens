@@ -6,6 +6,7 @@ import {
   type Client,
   type ContractConstructorArgs,
   type ContractFunctionArgs,
+  getContract,
 } from 'viem';
 import type { ContractResult, Message } from 'tevm/actions';
 import type { EvmResult } from 'tevm/evm';
@@ -30,12 +31,11 @@ export class LensClient {
   ) {
     const artifact = await this.supportedContracts.getArtifactFrom(contractFQN);
     const deployResult = await tevmDeploy(this.client, {
-      abi: artifact.abi as Abi,
-      bytecode: artifact.bytecode as Hex,
+      abi: artifact.abi,
+      bytecode: artifact.bytecode,
       args: args as unknown[],
     });
     if (!deployResult.createdAddress) throw new InvariantError('createdAddress missing after deploy');
-    console.debug('deploy:', deployResult.createdAddress, contractFQN);
     this.deployedContracts.markContractAddress(deployResult.createdAddress, contractFQN);
     return deployResult;
   }
@@ -63,7 +63,7 @@ export class LensClient {
         next?.();
       },
       onAfterMessage: async (event: EvmResult, next?: Next) => {
-        console.log('onAfterMessage:EvmResult', event.createdAddress?.toString());
+        console.log('onAfterMessage:EvmResult', event.execResult.returnValue);
         await this.tracer.handleFunctionResult(event, tempId);
         next?.();
       },
@@ -71,5 +71,14 @@ export class LensClient {
     await this.tracer.handleTxFinished(deployedResult, tempId);
 
     return deployedResult;
+  }
+
+  async getContract<ContractFqnT extends ContractFQN>(address: Hex, contractFQN: ContractFqnT) {
+    const contractArtifact = await this.supportedContracts.getArtifactFrom(contractFQN);
+    return getContract({
+      address: address,
+      abi: contractArtifact.abi as ArtifactMap[ContractFqnT]['abi'],
+      client: this.client,
+    });
   }
 }

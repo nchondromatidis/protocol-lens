@@ -1,4 +1,5 @@
 import type { ArtifactMap } from '@defi-notes/protocols/types';
+import { isHex } from 'viem';
 
 export type Next = () => void;
 
@@ -16,4 +17,9 @@ export function randomId(length = 6) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return result;
+}
+
+export function safeCastToHex(value: string): Hex {
+  if (!isHex(value)) throw new Error(`Invalid hex string: ${value}`);
+  return value;
 }

@@ -80,25 +80,21 @@ export class Tracer {
 
     // new contract deployment
     if (functionResultEvent.createdAddress) {
-      const deployedByteCode = event.execResult.returnValue;
-      if (!deployedByteCode) throw new InvariantError('DeployedByteCode missing');
-      const contractFQN = await this.supportedContracts.getContractFqnFromDeployedBytecode(
-        bytesToHex(deployedByteCode)
-      );
-      if (contractFQN) {
-        this.deployedContracts.markContractAddress(functionResultEvent.createdAddress.toString(), contractFQN);
-        functionResultEvent.createdContractFQN = contractFQN;
-      }
       this.addToTrace(tempId, functionResultEvent);
       return;
     }
-    this.addToTrace(tempId, functionResultEvent);
 
-    // TODO: continue here
-    // success (logs, events)
     // error
 
-    return;
+    // TODO: continue here
+    // decodeFunctionResult({
+    //   abi: yourContractAbi,
+    //   functionName: 'balanceOf',
+    //   data: '0x000000000000000000000000000000000000000000000000000000000000002a', // raw return data
+    // });
+    // success (logs, events)
+
+    this.addToTrace(tempId, functionResultEvent);
   }
 
   async handleTxFinished(result: ContractResult, tempId: string) {

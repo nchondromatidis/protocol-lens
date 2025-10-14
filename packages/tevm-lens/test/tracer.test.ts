@@ -11,6 +11,9 @@ import { DeployedContracts } from '../src/lens/DeployedContracts.ts';
 import { SupportedContracts } from '../src/lens/SupportedContracts.ts';
 import { Tracer } from '../src/lens/Tracer.ts';
 import { inspect } from './utils/inspect.ts';
+import { getContractAddress, encodePacked, keccak256 } from 'viem';
+import type { IResourceLoader } from '../src/adapters/IResourceLoader.ts';
+import { safeCastToHex } from '../src/common/utils.ts';
 
 const __dirname = import.meta.dirname;
 
@@ -20,6 +23,7 @@ let lensClient: LensClient;
 let factory: Awaited<ReturnType<typeof deployUniswapV2>>['factory'];
 let vm: Vm;
 let client: Awaited<ReturnType<typeof buildClient>>;
+let resourceLoader: IResourceLoader;
 
 beforeAll(async () => {
   const deployerAccount = privateKeyToAccount(generatePrivateKey());
@@ -28,7 +32,7 @@ beforeAll(async () => {
   client = await buildClient(deployerAccount);
 
   const basePath = path.join(__dirname, '..', '..', 'protocols', 'artifacts');
-  const resourceLoader = new TestResourceLoader(basePath);
+  resourceLoader = new TestResourceLoader(basePath);
 
   const supportedContracts = new SupportedContracts();
   const labeledContracts = new DeployedContracts();
@@ -71,4 +75,40 @@ test('tracer deploy test', async () => {
 
   // assert
   inspect(lensClient.tracer.tracedTx);
+});
+
+test('tracer interaction test', async () => {
+  // arrange
+  const token1 = await lensClient.deploy(
+    'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
+    []
+  );
+  const token2 = await lensClient.deploy(
+    'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
+    []
+  );
+  await lensClient.contract(factory, 'createPair', [token1.createdAddress!, token2.createdAddress!]);
+
+  const pairArtifact = await resourceLoader.getArtifact(
+    'contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair'
+  );
+
+  const salt = keccak256(encodePacked(['address', 'address'], [token1.createdAddress!, token2.createdAddress!]));
+  const pairAddress = getContractAddress({
+    bytecode: safeCastToHex(pairArtifact.bytecode),
+    from: factory.address,
+    opcode: 'CREATE2',
+    salt: salt,
+  });
+
+  const pairContract = await lensClient.getContract(
+    pairAddress,
+    'contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair'
+  );
+
+  // act
+  const result = await lensClient.contract(pairContract, 'getReserves', []);
+
+  // assert
+  console.log(result);
 });
