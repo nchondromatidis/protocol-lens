@@ -87,7 +87,7 @@ test('tracer interaction test', async () => {
     'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
     []
   );
-  await lensClient.contract(factory, 'createPair', [token1.createdAddress!, token2.createdAddress!]);
+  await lensClient.contract(factory, 'createPair', [token1.createdAddress!, token2.createdAddress!], false);
 
   const pairArtifact = await resourceLoader.getArtifact(
     'contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair'
@@ -101,14 +101,19 @@ test('tracer interaction test', async () => {
     salt: salt,
   });
 
+  lensClient.deployedContracts.markContractAddress(
+    pairAddress,
+    'contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair'
+  );
+
   const pairContract = await lensClient.getContract(
     pairAddress,
     'contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair'
   );
 
   // act
-  const result = await lensClient.contract(pairContract, 'getReserves', []);
+  await lensClient.contract(pairContract, 'getReserves', []);
 
   // assert
-  console.log(result);
+  inspect(lensClient.tracer.tracedTx);
 });

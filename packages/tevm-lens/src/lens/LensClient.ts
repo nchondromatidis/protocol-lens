@@ -20,8 +20,8 @@ import { InvariantError } from '../common/errors.ts';
 export class LensClient {
   constructor(
     public readonly client: Client<TevmTransport>,
-    private readonly supportedContracts: SupportedContracts,
-    private readonly deployedContracts: DeployedContracts,
+    public readonly supportedContracts: SupportedContracts,
+    public readonly deployedContracts: DeployedContracts,
     public readonly tracer: Tracer
   ) {}
 
@@ -47,9 +47,11 @@ export class LensClient {
   >(
     contract: { abi: TAbi; address: Address },
     functionName: TFunctionName,
-    args: TArgs
+    args: TArgs,
+    traceTx = true
   ): Promise<ContractResult<TAbi, TFunctionName>> {
     const tempId = randomId();
+    if (traceTx) this.tracer.startTxTrace(tempId);
     const deployedResult = await tevmContract(this.client, {
       to: contract.address,
       code: undefined,
@@ -59,16 +61,16 @@ export class LensClient {
       args: args,
       onBeforeMessage: async (event: Message, next?: Next) => {
         console.debug('onBeforeMessage:Message', event.to?.toString(), event.depth);
-        await this.tracer.handleFunctionCall(event, tempId);
+        if (traceTx) await this.tracer.handleFunctionCall(event, tempId);
         next?.();
       },
       onAfterMessage: async (event: EvmResult, next?: Next) => {
         console.log('onAfterMessage:EvmResult', event.execResult.returnValue);
-        await this.tracer.handleFunctionResult(event, tempId);
+        if (traceTx) await this.tracer.handleFunctionResult(event, tempId);
         next?.();
       },
     });
-    await this.tracer.handleTxFinished(deployedResult, tempId);
+    if (traceTx) this.tracer.stopTxTrace(deployedResult.txHash, tempId);
 
     return deployedResult;
   }
