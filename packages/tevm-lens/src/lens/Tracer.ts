@@ -1,4 +1,3 @@
-import { type Hex } from '../common/utils.ts';
 import { SupportedContracts } from './SupportedContracts.ts';
 import { DeployedContracts } from './DeployedContracts.ts';
 import type { Message } from 'tevm/actions';
@@ -6,6 +5,7 @@ import type { EvmResult } from 'tevm/evm';
 import { bytesToHex, decodeFunctionData, toHex } from 'viem';
 import { InvariantError } from '../common/errors.ts';
 import { type FunctionCallEvent, type FunctionResultEvent, TxTrace } from './TxTrace.ts';
+import type { Hex } from './artifact.ts';
 
 export class Tracer {
   public readonly tracedTx: Map<Hex, TxTrace> = new Map();

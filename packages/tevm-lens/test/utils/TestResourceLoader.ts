@@ -1,11 +1,8 @@
-import type { ContractFQN } from '../../src/common/utils.ts';
-import type { ProtocolArtifact } from '@defi-notes/protocols/types';
+import type { ProtocolArtifact, ArtifactMap, ContractFQN, ProtocolsContractsMapD } from '../../src/lens/artifact.ts';
+import { protocolsContractsMap } from '../../src/lens/artifact.ts' with { type: 'json' };
 import { promises as fs } from 'fs';
 import type { IResourceLoader } from '../../src/adapters/IResourceLoader.ts';
 import * as path from 'node:path';
-import type { ProtocolsContractsMapD } from '@defi-notes/protocols/artifacts/protocols-contracts-map.d.ts';
-import protocolsContractsMap from '@defi-notes/protocols/artifacts/protocols-contracts-map.json' assert { type: 'json' };
-import type { ArtifactMap } from '@defi-notes/protocols/types';
 
 export class TestResourceLoader implements IResourceLoader {
   constructor(private readonly basePath: string) {}
@@ -19,6 +16,14 @@ export class TestResourceLoader implements IResourceLoader {
     } catch (error) {
       throw new Error(`Failed to load artifact from ${contractFQN}: ${error}`);
     }
+  }
+
+  async getArtifactPart<ContractFqnT extends ContractFQN, ArtifactPartT extends keyof ArtifactMap[ContractFqnT]>(
+    contractFQN: ContractFqnT,
+    artifactPartT: ArtifactPartT
+  ): Promise<ArtifactMap[ContractFqnT][ArtifactPartT]> {
+    const artifact = await this.getArtifact(contractFQN);
+    return artifact[artifactPartT] as ArtifactMap[ContractFqnT][ArtifactPartT];
   }
 
   async getArtifacts(contractFQN: ContractFQN[]): Promise<ProtocolArtifact[]> {

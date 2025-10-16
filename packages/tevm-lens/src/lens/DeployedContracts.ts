@@ -1,4 +1,4 @@
-import type { Address, ContractFQN } from '../common/utils.ts';
+import type { Address, ContractFQN } from './artifact.ts';
 
 type DeployedContract = { name: ContractFQN; isDeployedByCA: boolean };
 

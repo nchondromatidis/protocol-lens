@@ -1,6 +1,5 @@
-import type { ContractFQN } from '../common/utils.ts';
 import { GenericError } from '../common/errors.ts';
-import type { ArtifactMap, ProtocolArtifact } from '@defi-notes/protocols/types';
+import type { ContractFQN, ArtifactMap, ProtocolArtifact } from './artifact.ts';
 
 export class SupportedContracts {
   constructor() {}

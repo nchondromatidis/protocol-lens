@@ -13,7 +13,8 @@ import { Tracer } from '../src/lens/Tracer.ts';
 import { inspect } from './utils/inspect.ts';
 import { getContractAddress, encodePacked, keccak256 } from 'viem';
 import type { IResourceLoader } from '../src/adapters/IResourceLoader.ts';
-import { safeCastToHex } from '../src/common/utils.ts';
+
+import { safeCastToHex } from '../src/lens/artifact.ts';
 
 const __dirname = import.meta.dirname;
 
@@ -47,7 +48,7 @@ beforeAll(async () => {
     balance: ETHER_1,
   });
 
-  const deployment = await deployUniswapV2(lensClient, feeToSetAccount.address);
+  const deployment = await deployUniswapV2(lensClient, feeToSetAccount.address, resourceLoader);
   factory = deployment.factory;
 
   vm = await client.transport.tevm.getVm();

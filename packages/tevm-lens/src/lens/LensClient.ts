@@ -10,12 +10,14 @@ import {
 } from 'viem';
 import type { ContractResult, Message } from 'tevm/actions';
 import type { EvmResult } from 'tevm/evm';
-import type { ArtifactMap } from '@defi-notes/protocols/types';
-import { type Address, type ContractFQN, type Hex, type Next, randomId } from '../common/utils.ts';
+import { randomId } from '../common/utils.ts';
 import { SupportedContracts } from './SupportedContracts.ts';
 import { DeployedContracts } from './DeployedContracts.ts';
 import { Tracer } from './Tracer.ts';
 import { InvariantError } from '../common/errors.ts';
+import type { Address, ContractFQN, Hex, ArtifactMap } from './artifact.ts';
+
+export type Next = () => void;
 
 export class LensClient {
   constructor(

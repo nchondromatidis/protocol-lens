@@ -1,15 +1,3 @@
-import type { ArtifactMap } from '@defi-notes/protocols/types';
-import { isHex } from 'viem';
-
-export type Next = () => void;
-
-export type ArtifactName = keyof ArtifactMap;
-type ContractFQNPattern = `${string}.sol:${string}`;
-export type ContractFQN = Extract<ArtifactName, ContractFQNPattern>;
-
-export type Address = `0x${string}`;
-export type Hex = `0x${string}`;
-
 export function randomId(length = 6) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
@@ -17,9 +5,4 @@ export function randomId(length = 6) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return result;
-}
-
-export function safeCastToHex(value: string): Hex {
-  if (!isHex(value)) throw new Error(`Invalid hex string: ${value}`);
-  return value;
 }
