@@ -2,10 +2,11 @@ import { SupportedContracts } from './SupportedContracts.ts';
 import { DeployedContracts } from './DeployedContracts.ts';
 import type { Message } from 'tevm/actions';
 import type { EvmResult } from 'tevm/evm';
-import { bytesToHex, decodeFunctionData, toHex } from 'viem';
+import { type Abi, bytesToHex, decodeEventLog, decodeFunctionData, toEventSignature, toHex } from 'viem';
 import { InvariantError } from '../common/errors.ts';
-import { type FunctionCallEvent, type FunctionResultEvent, TxTrace } from './TxTrace.ts';
+import { type FunctionCallEvent, type FunctionResultEvent, type LensLog, TxTrace } from './TxTrace.ts';
 import type { Hex } from './artifact.ts';
+import type { AbiEvent } from 'tevm';
 
 export class Tracer {
   public readonly tracedTx: Map<Hex, TxTrace> = new Map();
@@ -83,13 +84,18 @@ export class Tracer {
 
     // new contract deployment
     if (functionResultEvent.createdAddress) {
-      const hexDeployedBytecode = bytesToHex(event.execResult.returnValue);
-      // TODO: maybe access function call ande node decode again
-      const contractFQN = await this.supportedContracts.getContractFqnFromDeployedBytecode(hexDeployedBytecode);
-      if (contractFQN) {
-        functionResultEvent.createdContractFQN = contractFQN;
-        this.deployedContracts.markContractAddress(functionResultEvent.createdAddress.toString(), contractFQN);
+      functionResultEvent.isCreate = true;
+      const createdContractFQN = tempIdTxTrace.getCurrentFunctionCallEvent().createdContractFQN;
+      if (createdContractFQN) {
+        functionResultEvent.createdContractFQN = createdContractFQN;
+        this.deployedContracts.markContractAddress(functionResultEvent.createdAddress.toString(), createdContractFQN);
       }
+    }
+
+    const contractFQN = tempIdTxTrace.getCurrentFunctionCallEvent().contractFQN;
+    let contractAbi = undefined;
+    if (contractFQN) {
+      contractAbi = await this.supportedContracts.getArtifactPart(contractFQN, 'abi');
     }
 
     // function result with error
@@ -109,6 +115,20 @@ export class Tracer {
     }
 
     // logs
+    if (contractAbi && functionResultEvent.execResult.logs) {
+      const lensLogs: LensLog[] = functionResultEvent.execResult.logs.map((log) => {
+        const [signature, ...args] = log[1].map((it) => bytesToHex(it));
+        const decodedLog = decodeEventLog({
+          abi: contractAbi,
+          topics: [signature, ...args],
+          data: bytesToHex(log[2]),
+        });
+        const abiEvent = this.findEventByName(contractAbi, decodedLog.eventName);
+        const eventSignature = abiEvent ? toEventSignature(abiEvent) : undefined;
+        return { ...decodedLog, eventSignature: eventSignature };
+      });
+      functionResultEvent.logs = lensLogs;
+    }
 
     tempIdTxTrace.addResult(functionResultEvent);
   }
@@ -118,5 +138,11 @@ export class Tracer {
       throw new InvariantError('getTracingTx called without startTxTrace');
     }
     return this.tracingTx.get(tempId)!;
+  }
+
+  findEventByName<A extends Abi>(abi: A, name: string): AbiEvent {
+    const ev = abi.find((i): i is AbiEvent => i.type === 'event' && i.name === name);
+    if (!ev) throw new Error('Event not found');
+    return ev;
   }
 }

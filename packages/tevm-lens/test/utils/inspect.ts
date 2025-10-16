@@ -11,5 +11,5 @@ Uint8Array.prototype[util.inspect.custom] = function () {
 };
 
 export function inspect(obj: unknown) {
-  console.log(util.inspect(obj, { depth: 5, colors: true }));
+  console.log(util.inspect(obj, { depth: 7, colors: true }));
 }

@@ -1,23 +1,28 @@
 import type { Message } from 'tevm/actions';
 import type { EvmResult } from 'tevm/evm';
 import { InvariantError } from '../common/errors.ts';
+import type { ContractFQN } from './artifact.ts';
+import { decodeEventLog } from 'viem';
 
 // TODO: better type safety, less optional keys, discriminant union types?
 export type FunctionCallEvent = Message & {
   type: 'FunctionCallEvent';
-  contractFQN?: string;
+  contractFQN?: ContractFQN;
   functionName?: string;
   args?: readonly unknown[];
   isCreate?: boolean;
-  createdContractFQN?: string;
+  createdContractFQN?: ContractFQN;
   constructorArgs?: readonly unknown[];
   called?: Array<FunctionCallEvent>;
   result?: FunctionResultEvent;
 };
 export type FunctionResultEvent = EvmResult & {
   type: 'FunctionResultEvent';
+  isCreate?: boolean;
   createdContractFQN?: string;
+  logs?: LensLog[];
 };
+export type LensLog = ReturnType<typeof decodeEventLog> & { eventSignature?: string };
 
 export class TxTrace {
   public rootFunction?: FunctionCallEvent;
@@ -50,5 +55,9 @@ export class TxTrace {
 
     current.result = event;
     this.stack.pop();
+  }
+
+  public getCurrentFunctionCallEvent(): FunctionCallEvent {
+    return this.stack[this.stack.length - 1];
   }
 }

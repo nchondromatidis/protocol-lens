@@ -20,10 +20,10 @@ export class TestResourceLoader implements IResourceLoader {
 
   async getArtifactPart<ContractFqnT extends ContractFQN, ArtifactPartT extends keyof ArtifactMap[ContractFqnT]>(
     contractFQN: ContractFqnT,
-    artifactPartT: ArtifactPartT
+    artifactPart: ArtifactPartT
   ): Promise<ArtifactMap[ContractFqnT][ArtifactPartT]> {
     const artifact = await this.getArtifact(contractFQN);
-    return artifact[artifactPartT] as ArtifactMap[ContractFqnT][ArtifactPartT];
+    return artifact[artifactPart] as ArtifactMap[ContractFqnT][ArtifactPartT];
   }
 
   async getArtifacts(contractFQN: ContractFQN[]): Promise<ProtocolArtifact[]> {
