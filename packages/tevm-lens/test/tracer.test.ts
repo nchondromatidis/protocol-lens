@@ -14,12 +14,13 @@ import { inspect } from './utils/inspect.ts';
 import { getContractAddress, encodePacked, keccak256 } from 'viem';
 import type { IResourceLoader } from '../src/adapters/IResourceLoader.ts';
 import { safeCastToHex } from '../src/lens/artifact.ts';
-import type { TestArtifactsMap } from './utils/types.ts';
+import type { TestArtifactsMap } from './_fixtures/types.ts';
 import type { ProtocolName } from '@defi-notes/protocols/types';
 
 const __dirname = import.meta.dirname;
 
 const ETHER_1 = parseEther('1');
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 let lensClient: LensClient<TestArtifactsMap>;
 let factory: Awaited<ReturnType<typeof deployUniswapV2>>['factory'];
@@ -60,7 +61,7 @@ beforeEach(async () => {
   await vm.stateManager.revert();
 });
 
-test('tracer deploy test', async () => {
+test('tracer: send success with deployment', async () => {
   // arrange
   const token1 = await lensClient.deploy(
     'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
@@ -79,7 +80,7 @@ test('tracer deploy test', async () => {
   inspect(lensClient.tracer.tracedTx);
 });
 
-test('tracer interaction test', async () => {
+test('tracer: call success', async () => {
   // arrange
   const token1 = await lensClient.deploy(
     'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
@@ -115,6 +116,20 @@ test('tracer interaction test', async () => {
 
   // act
   await lensClient.contract(pairContract, 'getReserves', []);
+
+  // assert
+  inspect(lensClient.tracer.tracedTx);
+});
+
+test('tracer: call error', async () => {
+  // arrange
+  const token2 = await lensClient.deploy(
+    'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
+    []
+  );
+
+  // act
+  await lensClient.contract(factory, 'createPair', [ZERO_ADDRESS, token2.createdAddress!]);
 
   // assert
   inspect(lensClient.tracer.tracedTx);

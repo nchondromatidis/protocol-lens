@@ -16,6 +16,13 @@ export type FunctionCallEvent<TMap extends LensArtifactsMap<TMap>> = {
 
 export type FunctionResultEvent<TMap extends LensArtifactsMap<TMap>> = {
   type: 'FunctionResultEvent';
+  isError?: boolean;
+  errorType?: string;
+  errorName?: string;
+  errorAbiItem?: unknown;
+  errorArgs?: unknown;
+  returnValueRaw?: unknown;
+  returnValue?: unknown;
   isCreate?: boolean;
   createdContractFQN?: LensContractFQN<TMap>;
   logs?: LensLog[];

@@ -2,7 +2,16 @@ import { SupportedContracts } from './SupportedContracts.ts';
 import { DeployedContracts } from './DeployedContracts.ts';
 import type { Message } from 'tevm/actions';
 import type { EvmResult } from 'tevm/evm';
-import { type Abi, bytesToHex, decodeEventLog, decodeFunctionData, toEventSignature, toHex } from 'viem';
+import {
+  type Abi,
+  bytesToHex,
+  decodeErrorResult,
+  decodeEventLog,
+  decodeFunctionData,
+  decodeFunctionResult,
+  toEventSignature,
+  toHex,
+} from 'viem';
 import { InvariantError } from '../common/errors.ts';
 import { type FunctionCallEvent, type FunctionResultEvent, type LensLog, TxTrace } from './TxTrace.ts';
 import type { Hex, LensArtifactsMap } from './artifact.ts';
@@ -94,26 +103,23 @@ export class Tracer<TMap extends LensArtifactsMap<TMap>> {
       }
     }
 
-    const contractFQN = tempIdTxTrace.getCurrentFunctionCallEvent().contractFQN;
+    const functionCallEvent = tempIdTxTrace.getCurrentFunctionCallEvent();
     let contractAbi = undefined;
-    if (contractFQN) {
-      contractAbi = await this.supportedContracts.getArtifactPart(contractFQN, 'abi');
+    if (functionCallEvent.contractFQN) {
+      contractAbi = await this.supportedContracts.getArtifactPart(functionCallEvent.contractFQN, 'abi');
     }
-
-    // function result with error
-    if (!resultEvent.createdAddress && resultEvent.execResult.exceptionError) {
-      // decode logs
-    }
+    const returnValueHex = bytesToHex(resultEvent.execResult.returnValue);
 
     // function result without error
     if (!resultEvent.createdAddress && !resultEvent.execResult.exceptionError) {
-      // TODO: continue here
-      // decodeFunctionResult({
-      //   abi: yourContractAbi,
-      //   functionName: 'balanceOf',
-      //   data: '0x000000000000000000000000000000000000000000000000000000000000002a', // raw return data
-      // });
-      // success
+      functionResultEvent.returnValueRaw = returnValueHex;
+      if (contractAbi && functionCallEvent.functionName) {
+        functionResultEvent.returnValue = decodeFunctionResult({
+          abi: contractAbi as Abi,
+          functionName: functionCallEvent.functionName,
+          data: returnValueHex,
+        });
+      }
     }
 
     // logs
@@ -136,6 +142,22 @@ export class Tracer<TMap extends LensArtifactsMap<TMap>> {
           eventSignature: eventSignature,
         };
       });
+    }
+
+    // function result with error
+    if (!resultEvent.createdAddress && resultEvent.execResult.exceptionError) {
+      functionResultEvent.isError = true;
+      functionResultEvent.errorType = resultEvent.execResult.exceptionError.error;
+      functionResultEvent.returnValueRaw = returnValueHex;
+      if (contractAbi && functionCallEvent.functionName) {
+        const decodedError = decodeErrorResult({
+          abi: contractAbi,
+          data: returnValueHex,
+        });
+        functionResultEvent.errorName = decodedError.errorName;
+        functionResultEvent.errorArgs = decodedError.args;
+        functionResultEvent.errorAbiItem = decodedError.abiItem;
+      }
     }
 
     tempIdTxTrace.addResult(functionResultEvent);

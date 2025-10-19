@@ -61,13 +61,12 @@ export class LensClient<TMap extends LensArtifactsMap<TMap>> {
       abi: contract.abi,
       functionName: functionName,
       args: args,
+      throwOnFail: false,
       onBeforeMessage: async (event: Message, next?: Next) => {
-        console.debug('onBeforeMessage:Message', event.to?.toString(), event.depth);
         if (traceTx) await this.tracer.handleFunctionCall(event, tempId);
         next?.();
       },
       onAfterMessage: async (event: EvmResult, next?: Next) => {
-        console.log('onAfterMessage:EvmResult', event.execResult.returnValue);
         if (traceTx) await this.tracer.handleFunctionResult(event, tempId);
         next?.();
       },

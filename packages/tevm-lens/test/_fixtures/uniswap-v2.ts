@@ -1,7 +1,7 @@
 import { type Address, getContract } from 'viem';
 import type { LensClient } from '../../src/lens/LensClient.ts';
 import type { IResourceLoader } from '../../src/adapters/IResourceLoader.ts';
-import type { TestArtifactsMap } from '../utils/types.ts';
+import type { TestArtifactsMap } from './types.ts';
 import type { ProtocolName } from '@defi-notes/protocols/types';
 
 export async function deployUniswapV2(
