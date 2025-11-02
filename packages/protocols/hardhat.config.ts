@@ -4,25 +4,21 @@ const compilerVersions: string[] = ['0.4.26', '0.5.16', '0.6.6', '0.6.12'];
 
 function createCompilerSettings(version: string) {
   return {
-    version: version,
+    version,
     settings: {
-      optimizer: {
-        enabled: true,
-        runs: 100,
-      },
-    },
-    outputSelection: {
-      '*': {
-        '*': ['abi', 'evm.bytecode', 'evm.sourceMap'],
+      optimizer: { enabled: true, runs: 100 },
+      outputSelection: {
+        '*': {
+          '*': ['abi', 'evm.bytecode', 'evm.deployedBytecode', 'evm.methodIdentifiers', 'storageLayout'],
+        },
       },
     },
   };
 }
-const compilerSettings = compilerVersions.map((v) => createCompilerSettings(v));
 
 const config: HardhatUserConfig = {
   solidity: {
-    compilers: compilerSettings,
+    compilers: compilerVersions.map(createCompilerSettings),
   },
   paths: {
     sources: './contracts',
