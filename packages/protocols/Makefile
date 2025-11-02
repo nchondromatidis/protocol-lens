@@ -23,9 +23,9 @@ hardhat-build:
 	@echo "Building with Hardhat..."
 	pnpm exec hardhat build
 
-map-protocols-contracts:
+list-protocols-contracts:
 	@echo "Mapping Contracts..."
-	pnpm exec tsx tasks/map-protocols-contracts.ts
+	pnpm exec tsx tasks/list-protocols-contracts.ts
 
 index-function-definitions:
 	@echo "Indexing function definition..."
@@ -37,5 +37,9 @@ types-barrel:
 
 
 # Full build pipeline
-build: clean hardhat-tasks-filter-contracts hardhat-build map-protocols-contracts index-function-definitions types-barrel
+add-storage-layout:
+	@echo "Adding storageLayout to contract artifacts..."
+	pnpm exec tsx tasks/add-storage-layout.ts
+
+build: clean hardhat-tasks-filter-contracts hardhat-build list-protocols-contracts index-function-definitions add-storage-layout types-barrel
 	@echo "Build complete!"
