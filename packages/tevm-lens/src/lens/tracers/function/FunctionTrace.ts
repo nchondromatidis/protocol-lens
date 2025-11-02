@@ -1,5 +1,5 @@
-import { InvariantError } from '../common/errors.ts';
-import type { LensArtifactsMap, LensContractFQN } from './artifact.ts';
+import { InvariantError } from '../../../common/errors.ts';
+import type { LensArtifactsMap, LensContractFQN } from '../../types/artifact.ts';
 
 export type FunctionCallEvent<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> = {
   type: 'FunctionCallEvent';
@@ -33,7 +33,7 @@ export type FunctionResultEvent<ArtifactMapT extends LensArtifactsMap<ArtifactMa
 
 export type LensLog = { eventName: string; args: Array<unknown>; eventSignature?: string };
 
-export class TxTrace<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
+export class FunctionTrace<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
   public rootFunction?: FunctionCallEvent<ArtifactMapT>;
   private stack: FunctionCallEvent<ArtifactMapT>[] = [];
 

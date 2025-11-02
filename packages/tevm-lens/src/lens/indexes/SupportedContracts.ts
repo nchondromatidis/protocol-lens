@@ -1,5 +1,5 @@
-import { GenericError } from '../common/errors.ts';
-import type { LensArtifactsMap, LensContractFQN, LensSourceFunctionIndexes } from './artifact.ts';
+import { GenericError } from '../../common/errors.ts';
+import type { LensArtifactsMap, LensContractFQN, LensSourceFunctionIndexes } from '../types/artifact.ts';
 
 type Bytecode = string;
 type FunctionName = string;

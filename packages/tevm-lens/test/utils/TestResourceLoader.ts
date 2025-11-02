@@ -3,7 +3,7 @@ import type {
   LensContractFQN,
   LensProtocolsList,
   LensSourceFunctionIndexes,
-} from '../../src/lens/artifact.ts';
+} from '../../src/lens/types/artifact.ts';
 import { promises as fs } from 'fs';
 import type { IResourceLoader } from '../../src/adapters/IResourceLoader.ts';
 import * as path from 'node:path';

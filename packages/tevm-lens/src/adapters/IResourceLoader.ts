@@ -3,7 +3,7 @@ import type {
   LensContractFQN,
   LensProtocolsList,
   LensSourceFunctionIndexes,
-} from '../lens/artifact.ts';
+} from '../lens/types/artifact.ts';
 
 export interface IResourceLoader<
   ArtifactMapT extends LensArtifactsMap<ArtifactMapT>,

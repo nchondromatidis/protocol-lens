@@ -6,13 +6,13 @@ import { deployUniswapV2 } from './_fixtures/uniswap-v2.ts';
 import { LensClient } from '../src/lens/LensClient.ts';
 import { buildClient } from '../src/lens/client.ts';
 import { TestResourceLoader } from './utils/TestResourceLoader.ts';
-import { DeployedContracts } from '../src/lens/DeployedContracts.ts';
-import { SupportedContracts } from '../src/lens/SupportedContracts.ts';
-import { Tracer } from '../src/lens/Tracer.ts';
+import { DeployedContracts } from '../src/lens/indexes/DeployedContracts.ts';
+import { SupportedContracts } from '../src/lens/indexes/SupportedContracts.ts';
+import { FunctionTracer } from '../src/lens/tracers/function/FunctionTracer.ts';
 import { inspect } from './utils/inspect.ts';
 import { getContractAddress, encodePacked, keccak256 } from 'viem';
 import type { IResourceLoader } from '../src/adapters/IResourceLoader.ts';
-import { safeCastToHex } from '../src/lens/artifact.ts';
+import { safeCastToHex } from '../src/lens/types/artifact.ts';
 import type { TestArtifactsMap } from './_fixtures/types.ts';
 import type { ProtocolName } from '@defi-notes/protocols/types';
 
@@ -35,7 +35,7 @@ beforeAll(async () => {
 
   const supportedContracts = new SupportedContracts<TestArtifactsMap>();
   const labeledContracts = new DeployedContracts<TestArtifactsMap>();
-  const tracer = new Tracer<TestArtifactsMap>(supportedContracts, labeledContracts);
+  const tracer = new FunctionTracer<TestArtifactsMap>(supportedContracts, labeledContracts);
   lensClient = new LensClient<TestArtifactsMap>(client, supportedContracts, labeledContracts, tracer);
 
   const uniswapV2Artifacts = await resourceLoader.getProtocolArtifacts('uniswap-v2');
@@ -76,7 +76,7 @@ test('tracer: send success with deployment', async () => {
   await lensClient.contract(factory, 'createPair', [token1.createdAddress!, token2.createdAddress!]);
 
   // assert
-  inspect(lensClient.tracer.tracedTx);
+  inspect(lensClient.functionTracer.tracedTxs);
 });
 
 test('tracer: call success', async () => {
@@ -117,7 +117,7 @@ test('tracer: call success', async () => {
   await lensClient.contract(pairContract, 'getReserves', []);
 
   // assert
-  inspect(lensClient.tracer.tracedTx);
+  inspect(lensClient.functionTracer.tracedTxs);
 });
 
 test('tracer: call error', async () => {
@@ -131,5 +131,5 @@ test('tracer: call error', async () => {
   await lensClient.contract(factory, 'createPair', [ZERO_ADDRESS, token2.createdAddress!]);
 
   // assert
-  inspect(lensClient.tracer.tracedTx);
+  inspect(lensClient.functionTracer.tracedTxs);
 });

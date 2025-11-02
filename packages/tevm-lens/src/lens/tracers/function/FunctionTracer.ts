@@ -1,5 +1,5 @@
-import { SupportedContracts } from './SupportedContracts.ts';
-import { DeployedContracts } from './DeployedContracts.ts';
+import { SupportedContracts } from '../../indexes/SupportedContracts.ts';
+import { DeployedContracts } from '../../indexes/DeployedContracts.ts';
 import type { Message } from 'tevm/actions';
 import type { EvmResult } from 'tevm/evm';
 import {
@@ -12,33 +12,33 @@ import {
   toEventSignature,
   toHex,
 } from 'viem';
-import { InvariantError } from '../common/errors.ts';
-import { type FunctionCallEvent, type FunctionResultEvent, type LensLog, TxTrace } from './TxTrace.ts';
-import type { Hex, LensArtifactsMap } from './artifact.ts';
+import { InvariantError } from '../../../common/errors.ts';
+import { type FunctionCallEvent, type FunctionResultEvent, type LensLog, FunctionTrace } from './FunctionTrace.ts';
+import type { Hex, LensArtifactsMap } from '../../types/artifact.ts';
 import type { AbiEvent } from 'tevm';
 
-export class Tracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
-  public readonly tracedTx: Map<Hex, TxTrace<ArtifactMapT>> = new Map();
-  public readonly tracingTx: Map<string, TxTrace<ArtifactMapT>> = new Map();
+export class FunctionTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
+  public readonly tracedTxs: Map<Hex, FunctionTrace<ArtifactMapT>> = new Map();
+  public readonly tracingTxs: Map<string, FunctionTrace<ArtifactMapT>> = new Map();
 
   constructor(
     private readonly supportedContracts: SupportedContracts<ArtifactMapT>,
     private readonly deployedContracts: DeployedContracts<ArtifactMapT>
   ) {}
 
-  //** Start-Stop tx-tracing **/
+  //** Start-Stop tracing **/
 
-  public startTxTrace(tempId: string) {
-    const txTrace = new TxTrace();
-    this.tracingTx.set(tempId, txTrace);
+  public startTrace(tempId: string) {
+    const txTrace = new FunctionTrace();
+    this.tracingTxs.set(tempId, txTrace);
   }
 
-  public stopTxTrace(txHash: Hex | undefined, tempId: string) {
+  public stopTrace(txHash: Hex | undefined, tempId: string) {
     if (!txHash) throw new InvariantError('tx hash is empty');
-    const currentTxTrace = this.tracingTx.get(tempId);
+    const currentTxTrace = this.tracingTxs.get(tempId);
     if (!currentTxTrace) throw new InvariantError('current tx trace is empty');
 
-    this.tracedTx.set(txHash, currentTxTrace);
+    this.tracedTxs.set(txHash, currentTxTrace);
   }
 
   //** Event Handlers **/
@@ -168,10 +168,10 @@ export class Tracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
   }
 
   private getTracingTx(tempId: string) {
-    if (!this.tracingTx.has(tempId)) {
+    if (!this.tracingTxs.has(tempId)) {
       throw new InvariantError('getTracingTx called without startTxTrace');
     }
-    return this.tracingTx.get(tempId)!;
+    return this.tracingTxs.get(tempId)!;
   }
 
   findEventByName<A extends Abi>(abi: A, name: string): AbiEvent {

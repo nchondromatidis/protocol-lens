@@ -1,4 +1,4 @@
-import type { Address, LensArtifactsMap, LensContractFQN } from './artifact.ts';
+import type { Address, LensArtifactsMap, LensContractFQN } from '../types/artifact.ts';
 
 type DeployedContract<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> = {
   name: LensContractFQN<ArtifactMapT>;

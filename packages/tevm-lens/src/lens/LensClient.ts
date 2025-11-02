@@ -11,11 +11,12 @@ import {
 import type { ContractResult, Message } from 'tevm/actions';
 import type { EvmResult } from 'tevm/evm';
 import { randomId } from '../common/utils.ts';
-import { SupportedContracts } from './SupportedContracts.ts';
-import { DeployedContracts } from './DeployedContracts.ts';
-import { Tracer } from './Tracer.ts';
+import { SupportedContracts } from './indexes/SupportedContracts.ts';
+import { DeployedContracts } from './indexes/DeployedContracts.ts';
+import { FunctionTracer } from './tracers/function/FunctionTracer.ts';
 import { InvariantError } from '../common/errors.ts';
-import type { Address, Hex, LensArtifactsMap, LensContractFQN } from './artifact.ts';
+import type { Address, Hex, LensArtifactsMap, LensContractFQN } from './types/artifact.ts';
+import type { InterpreterStep } from 'tevm/evm';
 
 export type Next = () => void;
 
@@ -24,7 +25,7 @@ export class LensClient<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
     public readonly client: Client<TevmTransport>,
     public readonly supportedContracts: SupportedContracts<ArtifactMapT>,
     public readonly deployedContracts: DeployedContracts<ArtifactMapT>,
-    public readonly tracer: Tracer<ArtifactMapT>
+    public readonly functionTracer: FunctionTracer<ArtifactMapT>
   ) {}
 
   async deploy<ContractFQNT extends LensContractFQN<ArtifactMapT>>(
@@ -53,7 +54,7 @@ export class LensClient<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
     traceTx = true
   ): Promise<ContractResult<TAbi, TFunctionName>> {
     const tempId = randomId();
-    if (traceTx) this.tracer.startTxTrace(tempId);
+    if (traceTx) this.functionTracer.startTrace(tempId);
     const deployedResult = await tevmContract(this.client, {
       to: contract.address,
       code: undefined,
@@ -62,16 +63,23 @@ export class LensClient<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
       functionName: functionName,
       args: args,
       throwOnFail: false,
+      onStep: async (event: InterpreterStep, next?: Next) => {
+        if (event.opcode.name == 'SSTORE') {
+          console.log(event);
+        }
+
+        next?.();
+      },
       onBeforeMessage: async (event: Message, next?: Next) => {
-        if (traceTx) await this.tracer.handleFunctionCall(event, tempId);
+        if (traceTx) await this.functionTracer.handleFunctionCall(event, tempId);
         next?.();
       },
       onAfterMessage: async (event: EvmResult, next?: Next) => {
-        if (traceTx) await this.tracer.handleFunctionResult(event, tempId);
+        if (traceTx) await this.functionTracer.handleFunctionResult(event, tempId);
         next?.();
       },
     });
-    if (traceTx) this.tracer.stopTxTrace(deployedResult.txHash, tempId);
+    if (traceTx) this.functionTracer.stopTrace(deployedResult.txHash, tempId);
 
     return deployedResult;
   }
