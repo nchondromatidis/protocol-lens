@@ -1,49 +1,28 @@
-# Starlight Starter Kit: Basics
+# Scope
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+This project is about analyzing DeFi protocols written in Solidity and run in the EVM.
 
-```
-npm create astro@latest -- --template starlight
-```
+For each category of DeFi protocol (eg lending, liquid staking, dex) selected protocols are chosen.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+The goal is to understand each protocol by showcasing:
+- all white-paper topics
+- user flows interaction
+- source code
 
-## 🚀 Project Structure
+So the learning path for each protocol is interaction first.
 
-Inside of your Astro + Starlight project, you'll see the following folders and files:
+Readers will be able to interact with the protocol deployed on an evm node running in the browser.
 
-```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
-```
+The interactions will gradually build understanding of white-paper topics.
+When the necessary diagrams, charts and tables will be added.
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+For each interaction readers can see the call trace and the storage variables changed in the contracts.
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
 
-Static assets, like favicons, can be placed in the `public/` directory.
+# Technology
 
-## 🧞 Commands
+This app uses `Astro` with the `Starlight`.
 
-All commands are run from the root of the project, from a terminal:
+All the interactive areas in the docs use Astro's `Islands architecture`.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
 
-## 👀 Want to learn more?
-
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
