@@ -31,15 +31,13 @@ index-function-definitions:
 	@echo "Indexing function definition..."
 	pnpm exec tsx tasks/index-function-definitions.ts
 
+augment-artifacts:
+	@echo "Augmenting contract artifacts..."
+	pnpm exec tsx tasks/augment-artifacts/augment-artifacts.ts
+
 types-barrel:
 	@echo "Generating type barrel exports..."
 	pnpm exec ctix build
 
-
-# Full build pipeline
-add-storage-layout:
-	@echo "Adding storageLayout to contract artifacts..."
-	pnpm exec tsx tasks/add-storage-layout.ts
-
-build: clean hardhat-tasks-filter-contracts hardhat-build list-protocols-contracts index-function-definitions add-storage-layout types-barrel
+build: clean hardhat-tasks-filter-contracts hardhat-build list-protocols-contracts index-function-definitions augment-artifacts types-barrel
 	@echo "Build complete!"

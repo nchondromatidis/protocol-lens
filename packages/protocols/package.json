@@ -9,8 +9,7 @@
   "types": "types/index.d.ts",
   "scripts": {
     "check:types": "tsc --noEmit",
-    "build": "make build",
-    "add:storage-layout": "tsx tasks/add-storage-layout.ts"
+    "build": "make build"
   },
   "devDependencies": {
     "@defi-notes/config": "workspace:*",
@@ -29,6 +28,7 @@
     "solidity-ast": "^0.4.61",
     "tsx": "^4.19.0",
     "typescript": "~5.9.2",
+    "ts-morph": "^20.0.0",
     "vfile-location": "^5.0.3"
   }
 }
