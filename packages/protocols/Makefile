@@ -23,21 +23,25 @@ hardhat-build:
 	@echo "Building with Hardhat..."
 	pnpm exec hardhat build
 
-list-protocols-contracts:
-	@echo "Mapping Contracts..."
-	pnpm exec tsx tasks/list-protocols-contracts.ts
+list-contracts-per-protocol:
+	@echo "Mapping Contracts to protocols..."
+	pnpm exec hardhat list-contracts-per-protocol
 
-index-function-definitions:
-	@echo "Indexing function definition..."
-	pnpm exec tsx tasks/index-function-definitions.ts
+index-functions:
+	@echo "Indexing functions..."
+	pnpm exec hardhat index-functions
 
 augment-artifacts:
 	@echo "Augmenting contract artifacts..."
-	pnpm exec tsx tasks/augment-artifacts/augment-artifacts.ts
+	pnpm exec hardhat augment-artifacts
 
-types-barrel:
+list-protocols:
+	@echo "Listing protocols..."
+	pnpm exec hardhat list-protocols
+
+type-barrel:
 	@echo "Generating type barrel exports..."
-	pnpm exec ctix build
+	pnpm exec hardhat type-barrel
 
-build: clean hardhat-tasks-filter-contracts hardhat-build list-protocols-contracts index-function-definitions augment-artifacts types-barrel
+build: clean hardhat-tasks-filter-contracts hardhat-build list-contracts-per-protocol index-functions augment-artifacts list-protocols type-barrel
 	@echo "Build complete!"

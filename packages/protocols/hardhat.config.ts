@@ -1,4 +1,5 @@
 import type { HardhatUserConfig } from 'hardhat/config';
+import augmentArtifacts from '@defi-notes/hardhat-tevm-lens';
 
 const compilerVersions: string[] = ['0.4.26', '0.5.16', '0.6.6', '0.6.12'];
 
@@ -17,6 +18,7 @@ function createCompilerSettings(version: string) {
 }
 
 const config: HardhatUserConfig = {
+  plugins: [augmentArtifacts],
   solidity: {
     compilers: compilerVersions.map(createCompilerSettings),
   },
@@ -27,6 +29,16 @@ const config: HardhatUserConfig = {
     artifacts: './artifacts',
   },
   networks: {},
+  artifactsAugment: {
+    contracts: {
+      path: 'contracts',
+    },
+    typeBarrel: {
+      tsConfig: 'tsconfig.json',
+      includeFolders: ['artifacts/'],
+      excludeFolders: ['lib', 'contracts', 'node_modules'],
+    },
+  },
 };
 
 export default config;

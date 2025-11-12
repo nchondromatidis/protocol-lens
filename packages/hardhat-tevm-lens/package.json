@@ -1,0 +1,41 @@
+{
+  "name": "@defi-notes/hardhat-tevm-lens",
+  "version": "1.0.0",
+  "description": "Augments hardhat artifacts with build info data",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "check:types": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "build": "rm -rf dist && tsc",
+    "postinstall": "pnpm run build"
+  },
+  "devDependencies": {
+    "@defi-notes/config": "workspace:*",
+    "@eslint/js": "^9.36.0",
+    "@types/debug": "^4.1.12",
+    "@types/node": "^24.5.2",
+    "eslint": "^9.36.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "hardhat": "^3.0.11",
+    "prettier": "3.6.2",
+    "tsx": "^4.19.0",
+    "typescript": "~5.9.2"
+  },
+  "peerDependencies": {
+    "hardhat": "^3.0.11"
+  },
+  "dependencies": {
+    "barrelsby": "^2.8.1",
+    "debug": "^4.4.3",
+    "zod": "^4.1.12"
+  }
+}

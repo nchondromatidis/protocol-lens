@@ -1,28 +1,15 @@
-import url from 'node:url';
-import { artifactsContractPath } from '../tasks-config.ts';
 import fs from 'fs';
 import type { SolidityBuildInfoOutput, SolidityBuildInfo } from 'hardhat/types/solidity';
 import { findAll, srcDecoder } from 'solidity-ast/utils.js'; // force common.js resolution
 import path from 'node:path';
-import hre from 'hardhat';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types/hre';
+import createDebug from 'debug';
+import { DEBUG_PREFIX } from '../../debug.js';
+import type { FunctionIndex, ProtocolFunctionIndexes, SourceFunctionIndexes } from './types.js';
+import { fileURLToPath } from 'node:url';
 
-// types
-
-export type FunctionIndex = {
-  name: string;
-  kind: string;
-  lineStart: number;
-  lineEnd: number;
-};
-
-export type SourceFunctionIndexes = {
-  [source: string]: Array<FunctionIndex>;
-};
-
-export type ProtocolFunctionIndexes = {
-  [protocol: string]: SourceFunctionIndexes;
-};
+const debug = createDebug(`${DEBUG_PREFIX}:index-functions`);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function getBuildInfoPairs(hre: HardhatRuntimeEnvironment) {
   const buildInfoIds = await hre.artifacts.getAllBuildInfoIds();
@@ -70,6 +57,7 @@ function createSourceFunctionIndexes(
           lineEnd: functionLineEnd,
         };
         sourceFunctionDefinitions.push(functionIndex);
+        debug('Created function indexes:', { sourceName, functionName: functionDef.name });
       }
       sourceFunctionIndex[sourceNormalized] = sourceFunctionDefinitions;
     }
@@ -77,7 +65,7 @@ function createSourceFunctionIndexes(
   return sourceFunctionIndex;
 }
 
-function createProtocolFunctionIndexes(sourceFunctionIndexes: SourceFunctionIndexes): ProtocolFunctionIndexes {
+function groupFunctionIndexesPerProtocol(sourceFunctionIndexes: SourceFunctionIndexes): ProtocolFunctionIndexes {
   const protocolFunctionIndexes: ProtocolFunctionIndexes = {};
   for (const source of Object.keys(sourceFunctionIndexes)) {
     const secondFolder = source.split('/')[1];
@@ -86,6 +74,31 @@ function createProtocolFunctionIndexes(sourceFunctionIndexes: SourceFunctionInde
   }
 
   return protocolFunctionIndexes;
+}
+
+function copyFunctionIndexesTypes(functionIndexesTypesPath: string) {
+  // after compilation in dist folder types inside types.ts go to types.d.ts
+  const functionIndexesTypes = fs.readFileSync(path.join(__dirname, 'types.d.ts'), { encoding: 'utf8' });
+
+  fs.writeFileSync(functionIndexesTypesPath, functionIndexesTypes, {
+    encoding: 'utf8',
+  });
+  debug('Created function index types', functionIndexesTypesPath);
+}
+
+export default async function (_taskArgs: Record<string, any>, hre: HardhatRuntimeEnvironment) {
+  const artifactsContractPath = path.join(hre.config.paths.artifacts, hre.config.artifactsAugment.contracts.path);
+
+  const buildInfoPairs = await getBuildInfoPairs(hre);
+  const sourceFunctionIndexes = createSourceFunctionIndexes(buildInfoPairs);
+  const protocolFunctionIndexes = groupFunctionIndexesPerProtocol(sourceFunctionIndexes);
+
+  for (const [protocol, sourceFunctionIndexes] of Object.entries(protocolFunctionIndexes)) {
+    const protocolSourceFunctionIndexesPath = path.join(artifactsContractPath, protocol, 'function-indexes.json');
+    fs.writeFileSync(protocolSourceFunctionIndexesPath, JSON.stringify(sourceFunctionIndexes, null, 2), 'utf-8');
+  }
+  const functionIndexesTypesPath = path.join(artifactsContractPath, 'function-indexes.d.ts');
+  copyFunctionIndexesTypes(functionIndexesTypesPath);
 }
 
 // helpers
@@ -104,17 +117,4 @@ function assertBuildInfoOutput(file: any): asserts file is SolidityBuildInfoOutp
 
 function getLineNumber(location: string) {
   return Number.parseInt(location.split(':')[1]);
-}
-
-// main
-
-if (import.meta.url === url.pathToFileURL(process.argv[1]).href) {
-  const buildInfoPairs = await getBuildInfoPairs(hre);
-  const sourceFunctionIndexes = createSourceFunctionIndexes(buildInfoPairs);
-  const protocolFunctionIndexes = createProtocolFunctionIndexes(sourceFunctionIndexes);
-
-  for (const [protocol, sourceFunctionIndexes] of Object.entries(protocolFunctionIndexes)) {
-    const protocolSourceFunctionIndexesPath = path.join(artifactsContractPath, protocol, 'function-indexes.json');
-    fs.writeFileSync(protocolSourceFunctionIndexesPath, JSON.stringify(sourceFunctionIndexes, null, 2), 'utf-8');
-  }
 }

@@ -1,0 +1,10 @@
+{
+  "extends": "@defi-notes/config/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "declaration": true
+  },
+  "exclude": ["node_modules", "lib", "contracts", "artifacts/build-info", "dist"]
+}

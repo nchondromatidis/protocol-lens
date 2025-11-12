@@ -8,7 +8,8 @@
     "check:types": "tsc --noEmit",
     "build": "tsc -b",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "test": "vitest"
   },
   "dependencies": {
     "tevm": "^1.0.0-next.149",
