@@ -25,16 +25,15 @@
     "eslint": "^9.36.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
-    "hardhat": "^3.0.11",
+    "hardhat": "^3.0.14",
     "prettier": "3.6.2",
-    "tsx": "^4.19.0",
-    "typescript": "~5.9.2"
+    "tsx": "^4.19.4",
+    "typescript": "~5.9.3"
   },
   "peerDependencies": {
-    "hardhat": "^3.0.11"
+    "hardhat": "^3.0.14"
   },
   "dependencies": {
-    "barrelsby": "^2.8.1",
     "debug": "^4.4.3",
     "zod": "^4.1.12"
   }
