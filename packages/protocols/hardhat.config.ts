@@ -24,8 +24,6 @@ const config: HardhatUserConfig = {
   },
   paths: {
     sources: './contracts',
-    tests: './test',
-    cache: './cache',
     artifacts: './artifacts',
   },
   networks: {},
@@ -35,8 +33,7 @@ const config: HardhatUserConfig = {
       path: 'contracts',
     },
     typeBarrel: {
-      tsConfig: 'tsconfig.json',
-      includeFolders: ['artifacts/'],
+      includeFolders: ['artifacts'],
       excludeFolders: ['lib', 'contracts', 'node_modules'],
     },
   },
