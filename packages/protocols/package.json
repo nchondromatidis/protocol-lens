@@ -29,9 +29,8 @@
     "prettier": "3.6.2",
     "remove": "^0.1.5",
     "solidity-ast": "^0.4.61",
-    "tsx": "^4.19.4",
-    "typescript": "~5.9.3",
     "ts-morph": "^20.0.0",
-    "vfile-location": "^5.0.3"
+    "tsx": "^4.19.4",
+    "typescript": "~5.9.3"
   }
 }

@@ -30,6 +30,7 @@ const config: HardhatUserConfig = {
   },
   networks: {},
   artifactsAugment: {
+    runOnBuild: true,
     contracts: {
       path: 'contracts',
     },

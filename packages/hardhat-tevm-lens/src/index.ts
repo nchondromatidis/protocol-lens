@@ -2,6 +2,7 @@ import { task } from 'hardhat/config';
 import type { HardhatPlugin } from 'hardhat/types/plugins';
 
 import './type-extensions.js';
+import { TaskDefinitionType } from 'hardhat/types/tasks';
 
 const plugin: HardhatPlugin = {
   id: 'hardhat-tevm-lens',
@@ -24,6 +25,13 @@ const plugin: HardhatPlugin = {
     task('type-barrel', 'Creates an artifacts index.d.ts for artifacts folder.')
       .setAction(() => import('./tasks/type-barrel.js'))
       .build(),
+    {
+      type: TaskDefinitionType.TASK_OVERRIDE,
+      id: ['build'],
+      description: 'Compile contracts and run post-processing',
+      action: () => import('./tasks/compile-override.js'),
+      options: {},
+    },
   ],
 };
 
