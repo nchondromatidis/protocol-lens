@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./CalleeContract.sol";
+import "./CalleeContract2.sol";
 import "./ExternalLib.sol";
 import "./InlineLib.sol";
 
@@ -15,6 +16,16 @@ contract CallerContract {
         emit Log("CallerContract deployed", 0);
     }
 
+    // deploy contract
+
+    function deployContract() public {
+        new CalleeContract2(4);
+    }
+
+    function create2Contract(bytes32 salt) public {
+        new CalleeContract2{salt: salt}(6);
+    }
+
     //  function calls to another contract
 
     function callPublicFunction() public returns (string memory) {
@@ -25,8 +36,8 @@ contract CallerContract {
         return callee.externalFunction();
     }
 
-    function callWithFallback(bytes memory _calldata) public payable returns (bool, bytes memory) {
-        (bool success, bytes memory result) = address(callee).call{value: msg.value}(_calldata);
+    function callWithFallback(bytes memory _ignoredCalldata) public payable returns (bool, bytes memory) {
+        (bool success, bytes memory result) = address(callee).call{value: msg.value}("0x1");
         emit Log("callWithFallback executed", msg.value);
         return (success, result);
     }

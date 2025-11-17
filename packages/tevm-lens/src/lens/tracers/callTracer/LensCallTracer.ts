@@ -2,16 +2,7 @@ import { SupportedContracts } from '../../indexes/SupportedContracts.ts';
 import { DeployedContracts } from '../../indexes/DeployedContracts.ts';
 import type { Message } from 'tevm/actions';
 import type { EvmResult } from 'tevm/evm';
-import {
-  type Abi,
-  bytesToHex,
-  decodeErrorResult,
-  decodeEventLog,
-  decodeFunctionData,
-  decodeFunctionResult,
-  toEventSignature,
-  toHex,
-} from 'viem';
+import { type Abi, bytesToHex, decodeErrorResult, decodeEventLog, toEventSignature, toHex } from 'viem';
 import { InvariantError } from '../../../common/errors.ts';
 import {
   type FunctionCallEvent,
@@ -21,6 +12,7 @@ import {
 } from './LensCallTracerResult.ts';
 import type { Hex, LensArtifactsMap } from '../../types/artifact.ts';
 import type { AbiEvent } from 'tevm';
+import { decodeFunctionCall, decodeFunctionResultComplete } from './decoders.js';
 
 export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
   public readonly tracedTxs: Map<Hex, LensCallTracerResult<ArtifactMapT>> = new Map();
@@ -46,6 +38,10 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
     this.tracedTxs.set(txHash, currentTxTrace);
   }
 
+  public deleteTracing(tempId: string) {
+    this.tracingTxs.delete(tempId);
+  }
+
   //** Event Handlers **/
 
   public async handleFunctionCall(callEvent: Message, tempId: string): Promise<void> {
@@ -57,20 +53,31 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
     // new contract deployment
     if (!callEvent.to) {
       functionCallEvent.isCreate = true;
-      const hexBytecode = bytesToHex(callEvent.data);
-      const contractFQN = this.supportedContracts.getContractFqnFromBytecode(hexBytecode);
+      const hexCallData = bytesToHex(callEvent.data);
+      const { bytecode, contractFQN } = this.supportedContracts.getContractFqnFromCallData(hexCallData);
       if (contractFQN) {
         functionCallEvent.createdContractFQN = contractFQN;
+
         const contractArtifact = this.supportedContracts.getArtifactFrom(contractFQN);
-        const constructorCode = contractArtifact.bytecode.slice(hexBytecode.length) as Hex;
-        if (constructorCode.length === 0) {
-          functionCallEvent.constructorArgs = [];
-        } else {
-          const decodedNew = decodeFunctionData({
-            abi: contractArtifact.abi,
-            data: constructorCode,
-          });
+        const decodedNew = decodeFunctionCall({
+          abi: contractArtifact.abi,
+          data: hexCallData,
+          createdBytecode: bytecode,
+        });
+
+        if (decodedNew) {
+          functionCallEvent.functionName = decodedNew.functionName;
+          functionCallEvent.functionType = decodedNew.type;
           functionCallEvent.constructorArgs = decodedNew.args;
+
+          const sourceLocation = this.supportedContracts.getFunctionCallLocation(
+            contractFQN,
+            decodedNew.functionName,
+            decodedNew.type
+          );
+          functionCallEvent.lineStart = sourceLocation?.lineStart;
+          functionCallEvent.lineEnd = sourceLocation?.lineEnd;
+          functionCallEvent.source = sourceLocation?.source;
         }
       }
     }
@@ -79,18 +86,27 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
     if (callEvent.to) {
       const contractFQN = this.deployedContracts.getContractFqnForAddress(callEvent.to.toString());
       if (contractFQN) {
+        functionCallEvent.contractFQN = contractFQN;
+
         const contractArtifact = this.supportedContracts.getArtifactFrom(contractFQN);
-        const decoded = decodeFunctionData({
+        const decoded = decodeFunctionCall({
           abi: contractArtifact.abi,
           data: toHex(callEvent.data),
         });
-        const sourceLocation = this.supportedContracts.getFunctionLocation(contractFQN, decoded.functionName);
-        functionCallEvent.contractFQN = contractFQN;
-        functionCallEvent.functionName = decoded.functionName;
-        functionCallEvent.args = decoded.args ?? [];
-        functionCallEvent.lineStart = sourceLocation?.lineStart;
-        functionCallEvent.lineEnd = sourceLocation?.lineEnd;
-        functionCallEvent.source = sourceLocation?.source;
+        if (decoded) {
+          functionCallEvent.functionName = decoded.functionName;
+          functionCallEvent.functionType = decoded.type;
+          functionCallEvent.args = decoded.args;
+
+          const sourceLocation = this.supportedContracts.getFunctionCallLocation(
+            contractFQN,
+            decoded.functionName,
+            decoded.type
+          );
+          functionCallEvent.lineStart = sourceLocation?.lineStart;
+          functionCallEvent.lineEnd = sourceLocation?.lineEnd;
+          functionCallEvent.source = sourceLocation?.source;
+        }
       }
     }
 
@@ -123,7 +139,7 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
     if (!resultEvent.createdAddress && !resultEvent.execResult.exceptionError) {
       functionResultEvent.returnValueRaw = returnValueHex;
       if (contractAbi && functionCallEvent.functionName) {
-        functionResultEvent.returnValue = decodeFunctionResult({
+        functionResultEvent.returnValue = decodeFunctionResultComplete({
           abi: contractAbi as Abi,
           functionName: functionCallEvent.functionName,
           data: returnValueHex,
@@ -172,6 +188,8 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
     tempIdTxTrace.addResult(functionResultEvent);
   }
 
+  // HELPER FUNCTIONS
+
   private getTracingTx(tempId: string) {
     if (!this.tracingTxs.has(tempId)) {
       throw new InvariantError('getTracingTx called without startTxTrace');
@@ -179,7 +197,7 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
     return this.tracingTxs.get(tempId)!;
   }
 
-  findEventByName<A extends Abi>(abi: A, name: string): AbiEvent {
+  private findEventByName<A extends Abi>(abi: A, name: string): AbiEvent {
     const ev = abi.find((i): i is AbiEvent => i.type === 'event' && i.name === name);
     if (!ev) throw new Error('Event not found');
     return ev;

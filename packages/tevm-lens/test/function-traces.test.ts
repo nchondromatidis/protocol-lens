@@ -11,11 +11,11 @@ import { LensCallTracer } from '../src/lens/tracers/callTracer/LensCallTracer.ts
 import { inspect } from './setup/_utils/debug.ts';
 import type { IResourceLoader } from '../src/adapters/IResourceLoader.ts';
 import path from 'node:path';
-
 import { ETHER_1 } from './setup/_utils/constants.js';
 import type { FunctionTracesArtifactsMap } from './setup/function-traces/types.js';
 import type { ProtocolName } from './setup/artifacts/index.js';
 import { deployFunctionTracesContracts } from './setup/function-traces/deploy.js';
+import type { Hex } from '../src/lens/types/artifact.js';
 
 let lensClient: LensClient<FunctionTracesArtifactsMap>;
 let callerContract: Awaited<ReturnType<typeof deployFunctionTracesContracts>>['callerContract'];
@@ -64,12 +64,83 @@ beforeEach(async () => {
   await vm.stateManager.revert();
 });
 
-test('tracer: send success with deployment', async () => {
-  // arrange
-
-  // act
+test('state', async () => {
   await lensClient.contract(callerContract, 'callExternalFunction', []);
+  const txHash = lensClient.callDecodeTracer.tracedTxs.keys().next().value;
+  const callTraceResult = await client.transport.tevm.request({
+    method: 'debug_traceTransaction',
+    params: [
+      {
+        transactionHash: txHash,
+        tracer: 'callTracer',
+        tracerConfig: { onlyTopCall: false },
+      },
+    ],
+  });
 
-  // assert
+  console.log(callTraceResult);
+});
+
+test('deployContract', async () => {
+  await lensClient.contract(callerContract, 'deployContract', []);
+  inspect(lensClient.callDecodeTracer.tracedTxs);
+}, 999999999999);
+
+test('create2Contract', async () => {
+  const hex32Pattern = ('0x' + '11'.repeat(32)) as Hex;
+  await lensClient.contract(callerContract, 'create2Contract', [hex32Pattern]);
+  inspect(lensClient.callDecodeTracer.tracedTxs);
+});
+
+test('callExternalFunction', async () => {
+  await lensClient.contract(callerContract, 'callExternalFunction', []);
+  inspect(lensClient.callDecodeTracer.tracedTxs);
+});
+
+test('callPublicFunction', async () => {
+  await lensClient.contract(callerContract, 'callPublicFunction', []);
+  inspect(lensClient.callDecodeTracer.tracedTxs);
+});
+
+// TODO: continue here with decoding result data for fallback & receive
+test('callWithFallback', async () => {
+  const calldata = '0x20';
+  await lensClient.contract(callerContract, 'callWithFallback', [calldata], ETHER_1);
+  inspect(lensClient.callDecodeTracer.tracedTxs);
+});
+
+test('callReceiveFunction', async () => {
+  await lensClient.contract(callerContract, 'callReceiveFunction', [], ETHER_1);
+  inspect(lensClient.callDecodeTracer.tracedTxs);
+});
+
+test('callDelegateCall', async () => {
+  const calldata = '0x'; // Example calldata, adjust as needed
+  await lensClient.contract(callerContract, 'callDelegateCall', [calldata]);
+  inspect(lensClient.callDecodeTracer.tracedTxs);
+});
+
+test('callStaticCallViewFunction', async () => {
+  await lensClient.contract(callerContract, 'callStaticCallViewFunction', []);
+  inspect(lensClient.callDecodeTracer.tracedTxs);
+});
+
+test('testExternalLibCall', async () => {
+  await lensClient.contract(callerContract, 'testExternalLibCall', []);
+  inspect(lensClient.callDecodeTracer.tracedTxs);
+});
+
+test('testInlineLibCall', async () => {
+  await lensClient.contract(callerContract, 'testInlineLibCall', []);
+  inspect(lensClient.callDecodeTracer.tracedTxs);
+});
+
+test('callPublicAndExternal', async () => {
+  await lensClient.contract(callerContract, 'callPublicAndExternal', []);
+  inspect(lensClient.callDecodeTracer.tracedTxs);
+});
+
+test('callInternalAndPrivate', async () => {
+  await lensClient.contract(callerContract, 'callInternalAndPrivate', []);
   inspect(lensClient.callDecodeTracer.tracedTxs);
 });

@@ -26,7 +26,8 @@ contract CalleeContract {
         emit Log("Receive function called", msg.value);
     }
 
-    fallback() external payable {
+    fallback(bytes calldata input) external payable returns (bytes memory output){
         emit Log("Fallback function called", msg.value);
+        return input;
     }
 }

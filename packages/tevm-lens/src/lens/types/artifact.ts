@@ -32,10 +32,12 @@ export type LensArtifactsMap<T extends Record<string, LensArtifactSchema>> = {
 export type LensContractFQN<T extends Record<string, LensArtifactSchema>> = keyof LensArtifactsMap<T> & string;
 export type LensProtocolsList = string;
 
+export type FunctionCallTypes = 'function' | 'constructor' | 'fallback' | 'receive';
+
 // function index schema
 export type LensFunctionIndex = {
   name: string;
-  kind: string;
+  kind: Abi[number]['type'];
   lineStart: number;
   lineEnd: number;
 };

@@ -33,8 +33,8 @@ beforeAll(async () => {
 
   client = await buildClient(deployerAccount);
 
-  const artifactsPath = path.join(__dirname, '..', '..', '..', 'protocols', 'artifacts');
-  const artifactsContractsPath = path.join(__dirname, '..', '..', '..', 'protocols', 'artifacts', 'contracts');
+  const artifactsPath = path.join(__dirname, '..', '..', 'protocols', 'artifacts');
+  const artifactsContractsPath = path.join(__dirname, '..', '..', 'protocols', 'artifacts', 'contracts');
   resourceLoader = new TestResourceLoader<UniswapV2ArtifactsMap, ProtocolName>(artifactsPath, artifactsContractsPath);
 
   const supportedContracts = new SupportedContracts<UniswapV2ArtifactsMap>();
@@ -93,7 +93,7 @@ test('tracer: call success', async () => {
     'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
     []
   );
-  await lensClient.contract(factory, 'createPair', [token1.createdAddress!, token2.createdAddress!], false);
+  await lensClient.contract(factory, 'createPair', [token1.createdAddress!, token2.createdAddress!], undefined, false);
 
   const pairArtifact = await resourceLoader.getArtifact(
     'contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair'
@@ -136,4 +136,33 @@ test('tracer: call error', async () => {
 
   // assert
   inspect(lensClient.callDecodeTracer.tracedTxs);
+});
+
+test('debug_traceTransaction', async () => {
+  // arrange
+  const token1 = await lensClient.deploy(
+    'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
+    []
+  );
+
+  const token2 = await lensClient.deploy(
+    'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
+    []
+  );
+
+  // act
+  await lensClient.contract(factory, 'createPair', [token1.createdAddress!, token2.createdAddress!]);
+  const txHash = lensClient.callDecodeTracer.tracedTxs.keys().next().value;
+  const callTraceResult = await client.transport.tevm.request({
+    method: 'debug_traceTransaction',
+    params: [
+      {
+        transactionHash: txHash,
+        tracer: 'callTracer',
+        tracerConfig: { onlyTopCall: false },
+      },
+    ],
+  });
+
+  console.log(callTraceResult);
 });

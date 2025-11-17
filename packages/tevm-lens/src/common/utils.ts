@@ -6,3 +6,24 @@ export function randomId(length = 6) {
   }
   return result;
 }
+
+type Ok<T> = { ok: true; value: T };
+type Err<E = unknown> = { ok: false; error: E };
+type Result<T, E = unknown> = Ok<T> | Err<E>;
+
+export async function tryAsync<T, E = unknown>(fn: () => Promise<T>): Promise<Result<T, E>> {
+  try {
+    const value = await fn();
+    return { ok: true, value };
+  } catch (error) {
+    return { ok: false, error: error as E };
+  }
+}
+
+export function trySync<T, E = unknown>(fn: () => T): Result<T, E> {
+  try {
+    return { ok: true, value: fn() };
+  } catch (error) {
+    return { ok: false, error: error as E };
+  }
+}

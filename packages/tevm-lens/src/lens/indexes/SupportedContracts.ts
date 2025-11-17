@@ -1,21 +1,29 @@
-import { GenericError } from '../../common/errors.ts';
-import type { LensArtifactsMap, LensContractFQN, LensSourceFunctionIndexes } from '../types/artifact.ts';
+import { GenericError } from '../../common/errors.js';
+import type {
+  FunctionCallTypes,
+  Hex,
+  LensArtifactsMap,
+  LensContractFQN,
+  LensSourceFunctionIndexes,
+} from '../types/artifact.js';
 
-type Bytecode = string;
+type Bytecode = Hex;
 type FunctionName = string;
 type Source = string;
 type Location = { lineStart: number; lineEnd: number; source: string };
 
 export class SupportedContracts<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
-  constructor() {}
-
   protected bytecodeToContractFqnIndex: Map<Bytecode, LensContractFQN<ArtifactMapT>> = new Map();
   protected contractFqnToArtifactIndex: Map<
     LensContractFQN<ArtifactMapT>,
     ArtifactMapT[LensContractFQN<ArtifactMapT>]
   > = new Map();
-  protected sourceFunctionIndexes: Map<Source, Map<FunctionName, LensSourceFunctionIndexes[string][number]>> =
-    new Map();
+
+  protected sourceFunctionNameFunctionIndexes: Map<
+    Source,
+    Map<FunctionName, LensSourceFunctionIndexes[string][number]>
+  > = new Map();
+  protected sourceFunctionIndexes: Map<Source, LensSourceFunctionIndexes[string]> = new Map();
 
   // create indexes
 
@@ -29,8 +37,9 @@ export class SupportedContracts<ArtifactMapT extends LensArtifactsMap<ArtifactMa
 
   public async registerFunctionIndexes(artifacts: LensSourceFunctionIndexes) {
     for (const [source, functionIndexes] of Object.entries(artifacts)) {
+      this.sourceFunctionIndexes.set(source, functionIndexes);
       const sourceFunctionIndexes: Map<FunctionName, LensSourceFunctionIndexes[string][number]> = new Map();
-      this.sourceFunctionIndexes.set(source, sourceFunctionIndexes);
+      this.sourceFunctionNameFunctionIndexes.set(source, sourceFunctionIndexes);
       for (const functionIndex of functionIndexes) {
         sourceFunctionIndexes.set(functionIndex.name, functionIndex);
       }
@@ -39,8 +48,11 @@ export class SupportedContracts<ArtifactMapT extends LensArtifactsMap<ArtifactMa
 
   // query indexes
 
-  public getContractFqnFromBytecode(bytecode: string) {
-    return this.bytecodeToContractFqnIndex.get(bytecode);
+  public getContractFqnFromCallData(callData: Hex) {
+    for (const [bytecode, contractFQN] of this.bytecodeToContractFqnIndex.entries()) {
+      if (callData.startsWith(bytecode)) return { bytecode, contractFQN };
+    }
+    return { bytecode: undefined, contractFQN: undefined };
   }
 
   public getArtifactFrom<ContractFqnT extends LensContractFQN<ArtifactMapT>>(
@@ -60,9 +72,34 @@ export class SupportedContracts<ArtifactMapT extends LensArtifactsMap<ArtifactMa
     return artifact[artifactPart];
   }
 
-  public getFunctionLocation(contractFQN: LensContractFQN<ArtifactMapT>, functionName: string): Location | undefined {
+  public getFunctionCallLocation(
+    contractFQN: LensContractFQN<ArtifactMapT>,
+    functionName: string,
+    type: FunctionCallTypes
+  ) {
+    if (functionName !== '') return this.getFunctionTypeLocation(contractFQN, functionName);
+    if (functionName === '') return this.getFunctionType(contractFQN, type);
+    return undefined;
+  }
+
+  public getFunctionTypeLocation(
+    contractFQN: LensContractFQN<ArtifactMapT>,
+    functionName: string
+  ): Location | undefined {
     const source = contractFQN.split(':')[0];
-    const { lineStart, lineEnd } = this.sourceFunctionIndexes.get(source)?.get(functionName) ?? {};
+    const { lineStart, lineEnd } = this.sourceFunctionNameFunctionIndexes.get(source)?.get(functionName) ?? {};
     return lineStart !== undefined && lineEnd !== undefined ? { lineStart, lineEnd, source } : undefined;
+  }
+
+  public getFunctionType(contractFQN: LensContractFQN<ArtifactMapT>, type: FunctionCallTypes): Location | undefined {
+    const source = contractFQN.split(':')[0];
+    const sourceFunctionIndexes = this.sourceFunctionIndexes.get(source) ?? [];
+    const functionIndex = sourceFunctionIndexes.find((it) => it.kind === type);
+    if (!functionIndex) return undefined;
+    return {
+      lineStart: functionIndex.lineStart,
+      lineEnd: functionIndex.lineEnd,
+      source,
+    };
   }
 }

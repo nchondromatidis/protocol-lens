@@ -30,7 +30,8 @@ export class LensClient<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
     public readonly callDecodeTracer: LensCallTracer<ArtifactMapT>
   ) {}
 
-  linkHardhatBytecode<ContractFQNT extends LensContractFQN<ArtifactMapT>>(
+  // TODO: supports only hardhat bytecode format
+  private linkHardhatBytecode<ContractFQNT extends LensContractFQN<ArtifactMapT>>(
     bytecode: Hex,
     libraryFqn: ContractFQNT,
     libraryAddress: Address
@@ -75,13 +76,15 @@ export class LensClient<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
     contract: { abi: TAbi; address: Address },
     functionName: TFunctionName,
     args: TArgs,
+    value?: bigint,
     traceTx = true
   ): Promise<ContractResult<TAbi, TFunctionName>> {
     const tempId = randomId();
     if (traceTx) this.callDecodeTracer.startTracing(tempId);
-    const deployedResult = await tevmContract(this.client, {
+    const contractInteractionResult = await tevmContract(this.client, {
       to: contract.address,
       code: undefined,
+      value,
       deployedBytecode: undefined,
       abi: contract.abi,
       functionName: functionName,
@@ -89,7 +92,7 @@ export class LensClient<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
       throwOnFail: false,
       onStep: async (event: InterpreterStep, next?: Next) => {
         if (event.opcode.name == 'SSTORE') {
-          console.log(event);
+          // console.log(event);
         }
         next?.();
       },
@@ -102,9 +105,14 @@ export class LensClient<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
         next?.();
       },
     });
-    if (traceTx) this.callDecodeTracer.stopTracing(deployedResult.txHash, tempId);
+    if (contractInteractionResult.errors) {
+      this.callDecodeTracer.deleteTracing(tempId);
+      console.log(contractInteractionResult);
+    } else {
+      if (traceTx) this.callDecodeTracer.stopTracing(contractInteractionResult.txHash, tempId);
+    }
 
-    return deployedResult;
+    return contractInteractionResult;
   }
 
   async getContract<ContractFqnT extends LensContractFQN<ArtifactMapT>>(address: Hex, contractFQN: ContractFqnT) {

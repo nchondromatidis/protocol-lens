@@ -9,7 +9,7 @@
     "build": "tsc -b",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test:build": "pnpm exec hardhat build",
+    "test:contracts:build": "pnpm exec hardhat build --force",
     "test": "vitest"
   },
   "dependencies": {

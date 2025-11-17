@@ -6,13 +6,14 @@ export type FunctionCallEvent<ArtifactMapT extends LensArtifactsMap<ArtifactMapT
   depth?: number;
   contractFQN?: LensContractFQN<ArtifactMapT>;
   functionName?: string;
-  args?: readonly unknown[];
+  functionType?: string;
+  args?: unknown;
   lineStart?: number;
   lineEnd?: number;
   source?: string;
   isCreate?: boolean;
   createdContractFQN?: LensContractFQN<ArtifactMapT>;
-  constructorArgs?: readonly unknown[];
+  constructorArgs?: unknown;
   called?: Array<FunctionCallEvent<ArtifactMapT>>;
   result?: FunctionResultEvent<ArtifactMapT>;
 };
