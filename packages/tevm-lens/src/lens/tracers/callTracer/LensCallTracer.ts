@@ -9,8 +9,9 @@ import type { Hex, LensArtifactsMap } from '../../types/artifact.ts';
 import { decodeFunctionCall, decodeFunctionResult, decodeLog } from './decoders.js';
 
 export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
-  public readonly tracedTxs: Map<Hex, LensCallTracerResult<ArtifactMapT>> = new Map();
   public readonly tracingTxs: Map<string, LensCallTracerResult<ArtifactMapT>> = new Map();
+  public readonly succeededTxs: Map<Hex, LensCallTracerResult<ArtifactMapT>> = new Map();
+  public readonly failedTxs: Map<string, LensCallTracerResult<ArtifactMapT>> = new Map();
 
   constructor(
     private readonly supportedContracts: SupportedContracts<ArtifactMapT>,
@@ -24,16 +25,19 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
     this.tracingTxs.set(tempId, txTrace);
   }
 
-  public stopTracing(txHash: Hex | undefined, tempId: string) {
+  public stopTracingSuccess(txHash: Hex | undefined, tempId: string) {
     if (!txHash) throw new InvariantError('tx hash is empty');
     const currentTxTrace = this.tracingTxs.get(tempId);
     if (!currentTxTrace) throw new InvariantError('current tx trace is empty');
 
-    this.tracedTxs.set(txHash, currentTxTrace);
+    this.succeededTxs.set(txHash, currentTxTrace);
   }
 
-  public deleteTracing(tempId: string) {
-    this.tracingTxs.delete(tempId);
+  public stopTracingFailed(txHash: string, tempId: string) {
+    const currentTxTrace = this.tracingTxs.get(tempId);
+    if (!currentTxTrace) throw new InvariantError('current tx trace is empty');
+
+    this.failedTxs.set(txHash, currentTxTrace);
   }
 
   //** Event Handlers **/
@@ -114,7 +118,7 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
     functionResultEvent.isError = false;
     if (!resultEvent.createdAddress && resultEvent.execResult.exceptionError) {
       functionResultEvent.isError = true;
-      functionResultEvent.errorType = resultEvent.execResult.exceptionError.error;
+      functionResultEvent.rawError = resultEvent.execResult.exceptionError;
     }
 
     if (abi && functionCallEvent.functionName) {

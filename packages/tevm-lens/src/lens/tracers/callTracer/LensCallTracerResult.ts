@@ -21,7 +21,7 @@ export type FunctionCallEvent<ArtifactMapT extends LensArtifactsMap<ArtifactMapT
 export type FunctionResultEvent<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> = {
   type: 'FunctionResultEvent';
   isError?: boolean;
-  errorType?: string;
+  rawError?: unknown;
   errorName?: string;
   errorAbiItem?: unknown;
   errorArgs?: unknown;

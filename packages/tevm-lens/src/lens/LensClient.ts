@@ -106,10 +106,9 @@ export class LensClient<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
       },
     });
     if (contractInteractionResult.errors) {
-      this.callDecodeTracer.deleteTracing(tempId);
-      console.log(contractInteractionResult);
+      if (traceTx) this.callDecodeTracer.stopTracingFailed(tempId, tempId);
     } else {
-      if (traceTx) this.callDecodeTracer.stopTracing(contractInteractionResult.txHash, tempId);
+      if (traceTx) this.callDecodeTracer.stopTracingSuccess(contractInteractionResult.txHash, tempId);
     }
 
     return contractInteractionResult;
