@@ -77,12 +77,12 @@ export class SupportedContracts<ArtifactMapT extends LensArtifactsMap<ArtifactMa
     functionName: string,
     type: FunctionCallTypes
   ) {
-    if (functionName !== '') return this.getFunctionTypeLocation(contractFQN, functionName);
-    if (functionName === '') return this.getFunctionType(contractFQN, type);
+    if (functionName !== '') return this.getAbiFunctionNameLocation(contractFQN, functionName);
+    if (functionName === '') return this.getAbiTypeLocation(contractFQN, type);
     return undefined;
   }
 
-  public getFunctionTypeLocation(
+  public getAbiFunctionNameLocation(
     contractFQN: LensContractFQN<ArtifactMapT>,
     functionName: string
   ): Location | undefined {
@@ -91,7 +91,7 @@ export class SupportedContracts<ArtifactMapT extends LensArtifactsMap<ArtifactMa
     return lineStart !== undefined && lineEnd !== undefined ? { lineStart, lineEnd, source } : undefined;
   }
 
-  public getFunctionType(contractFQN: LensContractFQN<ArtifactMapT>, type: FunctionCallTypes): Location | undefined {
+  public getAbiTypeLocation(contractFQN: LensContractFQN<ArtifactMapT>, type: FunctionCallTypes): Location | undefined {
     const source = contractFQN.split(':')[0];
     const sourceFunctionIndexes = this.sourceFunctionIndexes.get(source) ?? [];
     const functionIndex = sourceFunctionIndexes.find((it) => it.kind === type);
