@@ -53,6 +53,8 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
     };
     functionCallEvent.isDelegateCall = callEvent.delegatecall;
     functionCallEvent.depth = callEvent.depth;
+    functionCallEvent.value = callEvent.value;
+    functionCallEvent.data = bytesToHex(callEvent.data);
 
     const callData = bytesToHex(callEvent.data);
 
@@ -88,12 +90,13 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
         abi: contractArtifact.abi,
         data: callData,
         createdBytecode: bytecode,
+        value: callEvent.value,
       });
 
       if (decodedFunctionCall) {
         functionCallEvent.functionName = decodedFunctionCall.decodedFunctionName;
         functionCallEvent.functionType = decodedFunctionCall.type;
-        functionCallEvent.constructorArgs = decodedFunctionCall.decodedArgs;
+        functionCallEvent.args = decodedFunctionCall.decodedArgs;
 
         const sourceLocation = this.supportedContracts.getFunctionCallLocation(
           contractFQN,

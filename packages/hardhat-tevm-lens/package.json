@@ -28,6 +28,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "hardhat": "^3.0.14",
     "prettier": "3.6.2",
+    "solidity-ast": "^0.4.61",
     "tsx": "^4.19.4",
     "typescript": "~5.9.3"
   },

@@ -28,7 +28,6 @@
     "minimatch": "^10.0.3",
     "prettier": "3.6.2",
     "remove": "^0.1.5",
-    "solidity-ast": "^0.4.61",
     "ts-morph": "^20.0.0",
     "tsx": "^4.19.4",
     "typescript": "~5.9.3"

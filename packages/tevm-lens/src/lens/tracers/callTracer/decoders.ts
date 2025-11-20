@@ -33,6 +33,7 @@ type DecodedFunctionCall = {
 
 export function decodeFunctionCall(parameters: DecodeFunctionCallParameters): DecodedFunctionCall | undefined {
   const { abi, data, value, createdBytecode } = parameters;
+
   // constructor: data = contract bytecode + encoded constructor args
   if (createdBytecode) {
     const constructorArgsEncoded = ('0x' + data.slice(createdBytecode.length)) as Hex;
@@ -64,7 +65,7 @@ export function decodeFunctionCall(parameters: DecodeFunctionCallParameters): De
   const receive = abi.find((x) => x.type === 'receive');
   const fallback = abi.find((x) => x.type === 'fallback');
 
-  const hasData = data.length !== 0;
+  const hasData = data !== '0x';
   const hasValue = value !== undefined;
   const hasReceive = receive !== undefined;
   const hasFallbackPayable = fallback !== undefined && fallback.stateMutability === 'payable';
@@ -77,9 +78,9 @@ export function decodeFunctionCall(parameters: DecodeFunctionCallParameters): De
   if (functionHandler === 'receive' && receive !== undefined) {
     return { decodedFunctionName: '', type: 'receive', decodedArgs: [] };
   }
-  // if (functionHandler === 'revert') {
-  //   throw new InvariantError('FallbackHandler decoding error: Transaction should have reverted');
-  // }
+  if (functionHandler === 'revert') {
+    throw new InvariantError('FallbackHandler decoding error: Transaction should have reverted');
+  }
 
   return undefined;
 }

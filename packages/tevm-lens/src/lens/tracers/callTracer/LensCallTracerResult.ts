@@ -4,6 +4,8 @@ import type { Address, Hex, LensArtifactsMap, LensContractFQN } from '../../type
 export type FunctionCallEvent<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> = {
   type: 'FunctionCallEvent';
   to: Address | undefined;
+  value?: bigint;
+  data?: Hex;
   depth?: number;
   isDelegateCall?: boolean;
   proxyContractFQN?: LensContractFQN<ArtifactMapT>;
@@ -18,7 +20,6 @@ export type FunctionCallEvent<ArtifactMapT extends LensArtifactsMap<ArtifactMapT
   isCreate?: boolean;
   create2Salt?: Hex;
   createdContractFQN?: LensContractFQN<ArtifactMapT>;
-  constructorArgs?: unknown;
   called?: Array<FunctionCallEvent<ArtifactMapT>>;
   result?: FunctionResultEvent<ArtifactMapT>;
 };
