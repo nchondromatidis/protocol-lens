@@ -77,9 +77,9 @@ export function decodeFunctionCall(parameters: DecodeFunctionCallParameters): De
   if (functionHandler === 'receive' && receive !== undefined) {
     return { decodedFunctionName: '', type: 'receive', decodedArgs: [] };
   }
-  if (functionHandler === 'revert') {
-    throw new InvariantError('FallbackHandler decoding error: Transaction should have reverted');
-  }
+  // if (functionHandler === 'revert') {
+  //   throw new InvariantError('FallbackHandler decoding error: Transaction should have reverted');
+  // }
 
   return undefined;
 }

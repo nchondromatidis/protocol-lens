@@ -5,11 +5,12 @@ import type { EvmResult } from 'tevm/evm';
 import { bytesToHex } from 'viem';
 import { InvariantError } from '../../../common/errors.ts';
 import { type FunctionCallEvent, type FunctionResultEvent, LensCallTracerResult } from './LensCallTracerResult.ts';
-import { type Hex, type LensArtifactsMap } from '../../types/artifact.ts';
+import { type Address, type Hex, type LensArtifactsMap } from '../../types/artifact.ts';
 import { decodeFunctionCall, decodeFunctionResult, decodeLog } from './decoders.js';
 
 export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
   public readonly tracingTxs: Map<string, LensCallTracerResult<ArtifactMapT>> = new Map();
+
   public readonly succeededTxs: Map<Hex, LensCallTracerResult<ArtifactMapT>> = new Map();
   public readonly failedTxs: Map<string, LensCallTracerResult<ArtifactMapT>> = new Map();
 
@@ -44,12 +45,15 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
 
   public async handleFunctionCall(callEvent: Message, tempId: string): Promise<void> {
     const tempIdTxTrace = this.getTracingTx(tempId);
+
+    // function call object
     const functionCallEvent: FunctionCallEvent<ArtifactMapT> = {
       type: 'FunctionCallEvent',
       to: callEvent?.to?.toString(),
     };
-
+    functionCallEvent.isDelegateCall = callEvent.delegatecall;
     functionCallEvent.depth = callEvent.depth;
+
     const callData = bytesToHex(callEvent.data);
 
     let bytecode = undefined;
@@ -57,12 +61,25 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
 
     if (!callEvent.to) {
       functionCallEvent.isCreate = true;
+      functionCallEvent.create2Salt = callEvent.salt ? bytesToHex(callEvent.salt) : undefined;
       ({ bytecode, contractFQN } = this.supportedContracts.getContractFqnFromCallData(callData));
       functionCallEvent.createdContractFQN = contractFQN;
     }
+
     if (callEvent.to) {
       contractFQN = this.deployedContracts.getContractFqnForAddress(callEvent.to.toString());
       functionCallEvent.contractFQN = contractFQN;
+    }
+
+    if (callEvent.to && callEvent.delegatecall) {
+      functionCallEvent.proxyContractFQN = functionCallEvent.contractFQN;
+      functionCallEvent.proxyAddress = callEvent.to.toString();
+
+      // callEvent type missing _codeAddress
+      const codeAddress = (callEvent as any)['_codeAddress'].toString()! as Address;
+      contractFQN = this.deployedContracts.getContractFqnForAddress(codeAddress);
+      functionCallEvent.contractFQN = contractFQN;
+      functionCallEvent.to = codeAddress;
     }
 
     if (contractFQN) {
@@ -95,19 +112,19 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
   public async handleFunctionResult(resultEvent: EvmResult, tempId: string) {
     const tempIdTxTrace = this.getTracingTx(tempId);
 
+    // function call that led to this result
+    const functionCallEvent = tempIdTxTrace.getCurrentFunctionCallEvent();
+    const contractFQN = functionCallEvent.contractFQN;
+    const functionName = functionCallEvent.functionName;
+
+    // function result object
     const functionResultEvent: FunctionResultEvent<ArtifactMapT> = {
       type: 'FunctionResultEvent',
     };
-
-    const functionCallEvent = tempIdTxTrace.getCurrentFunctionCallEvent();
-    let abi = undefined;
-    if (functionCallEvent.contractFQN) {
-      abi = this.supportedContracts.getArtifactPart(functionCallEvent.contractFQN, 'abi');
-    }
     const returnValueHex = bytesToHex(resultEvent.execResult.returnValue);
     functionResultEvent.returnValueRaw = returnValueHex;
 
-    // new contract deployment
+    // case: new contract deployment
     if (resultEvent.createdAddress) {
       functionResultEvent.isCreate = true;
       functionResultEvent.createdAddress = resultEvent.createdAddress.toString();
@@ -118,14 +135,17 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
       }
     }
 
-    // function result
+    // case: function result
+    let abi = undefined;
+    if (contractFQN) abi = this.supportedContracts.getArtifactPart(contractFQN, 'abi');
+
     functionResultEvent.isError = false;
     if (!resultEvent.createdAddress && resultEvent.execResult.exceptionError) {
       functionResultEvent.isError = true;
       functionResultEvent.rawError = resultEvent.execResult.exceptionError;
     }
 
-    if (abi && functionCallEvent.functionName) {
+    if (abi && functionName) {
       const decodedResult = decodeFunctionResult({
         abi: abi,
         data: returnValueHex,
@@ -141,20 +161,29 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
       }
     }
 
-    // constructor/fallback/receive: do not need decoding
+    // case: constructor/fallback/receive: do not need decoding
 
     // logs
     if (abi && resultEvent.execResult.logs) {
       const logAbis = resultEvent.execResult.logs.map((it) => {
         const logContractAddress = bytesToHex(it[0]);
-        const contractFQN = this.deployedContracts.getContractFqnForAddress(logContractAddress);
-        const abi = contractFQN && this.supportedContracts.getArtifactPart(contractFQN, 'abi');
+
+        const logAbiContractAddress = functionCallEvent.isDelegateCall ? functionCallEvent.to : logContractAddress;
+        if (!logAbiContractAddress) {
+          throw new InvariantError('Log decoding error: Creating new contract from proxy');
+        }
+        const logContractFQN = this.deployedContracts.getContractFqnForAddress(logAbiContractAddress);
+        // const logContractFQN = this.deployedContracts.getContractFqnForAddress(logContractAddress);
+        const logContractAbi = logContractFQN && this.supportedContracts.getArtifactPart(logContractFQN, 'abi');
+        return { log: it, logContractAbi, logContractFQN };
+      });
+      functionResultEvent.logs = logAbis.map((it) => {
+        const decoded = decodeLog(it.log, it.logContractAbi);
         return {
-          log: it,
-          abi: abi,
+          ...decoded,
+          contractFQN: it.logContractFQN,
         };
       });
-      functionResultEvent.logs = logAbis.map((it) => decodeLog(it.log, it.abi));
     }
 
     tempIdTxTrace.addResult(functionResultEvent);
