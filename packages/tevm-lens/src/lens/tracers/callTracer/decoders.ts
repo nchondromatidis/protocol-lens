@@ -18,27 +18,64 @@ import type { AbiEvent } from 'tevm';
 
 // ############################## Decode Function Calls ##############################/
 
-type DecodeFunctionCallParameters = {
+// multiple abis
+
+type decodeFunctionCallMultipleAbisParams = {
+  contractsAndAbis: Array<{ contractFQN: string | undefined; abi: Abi | undefined }>;
+  data: Hex;
+  value?: bigint;
+  createdBytecode?: Hex;
+};
+
+type DecodeFunctionCallMultipleAbisReturn = {
+  type: FunctionCallTypes;
+  contractFQN: string;
+  decodedFunctionName: string;
+  decodedArgs: unknown;
+};
+
+export function decodeFunctionCallMultipleAbis(
+  params: decodeFunctionCallMultipleAbisParams
+): DecodeFunctionCallMultipleAbisReturn | undefined {
+  const { data, value, createdBytecode } = params;
+  for (const { contractFQN, abi } of params.contractsAndAbis) {
+    if (!contractFQN || !abi) continue;
+    const decodeResult = decodeFunctionCallOneAbi({ abi, data, value, createdBytecode });
+    if (decodeResult) {
+      return {
+        contractFQN,
+        ...decodeResult,
+      };
+    }
+  }
+  return undefined;
+}
+
+// one abi
+
+type DecodeFunctionCallOneAbiParams = {
   abi: Abi;
   data: Hex;
   value?: bigint;
   createdBytecode?: Hex;
 };
 
-type DecodedFunctionCall = {
+type DecodedFunctionCallOneAbiReturn = {
   type: FunctionCallTypes;
   decodedFunctionName: string;
   decodedArgs: unknown;
 };
 
-export function decodeFunctionCall(parameters: DecodeFunctionCallParameters): DecodedFunctionCall | undefined {
-  const { abi, data, value, createdBytecode } = parameters;
+export function decodeFunctionCallOneAbi(
+  params: DecodeFunctionCallOneAbiParams
+): DecodedFunctionCallOneAbiReturn | undefined {
+  const { abi, data, value, createdBytecode } = params;
 
   // constructor: data = contract bytecode + encoded constructor args
   if (createdBytecode) {
     const constructorArgsEncoded = ('0x' + data.slice(createdBytecode.length)) as Hex;
     const description = abi.find((x) => x.type === 'constructor');
-    if (!description) throw new InvariantError('constructor not found', { parameters });
+    if (!description) throw new InvariantError('constructor not found', { parameters: params });
     return {
       type: 'constructor',
       decodedFunctionName: '',
@@ -49,7 +86,7 @@ export function decodeFunctionCall(parameters: DecodeFunctionCallParameters): De
   }
 
   // function: : function selector + encoded function args
-  const decodeFunctionDataResult = trySync(() => decodeFunctionData(parameters));
+  const decodeFunctionDataResult = trySync(() => decodeFunctionData(params));
   if (decodeFunctionDataResult.ok) {
     return {
       type: 'function',
@@ -79,7 +116,7 @@ export function decodeFunctionCall(parameters: DecodeFunctionCallParameters): De
     return { decodedFunctionName: '', type: 'receive', decodedArgs: [] };
   }
   if (functionHandler === 'revert') {
-    throw new InvariantError('FallbackHandler decoding error: Transaction should have reverted');
+    // ignore
   }
 
   return undefined;

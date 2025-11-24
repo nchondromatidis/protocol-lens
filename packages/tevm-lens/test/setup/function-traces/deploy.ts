@@ -12,6 +12,10 @@ export async function deployFunctionTracesContracts(
   const calleeDeployResult = await lensClient.deploy('contracts/function-traces/CalleeContract.sol:CalleeContract', []);
 
   const externalLibDeployResult = await lensClient.deploy('contracts/function-traces/ExternalLib.sol:ExternalLib', []);
+  const externalLib2DeployResult = await lensClient.deploy(
+    'contracts/function-traces/ExternalLib2.sol:ExternalLib2',
+    []
+  );
   const callerDeployResult = await lensClient.deploy(
     'contracts/function-traces/CallerContract.sol:CallerContract',
     [calleeDeployResult.createdAddress!],
@@ -19,6 +23,10 @@ export async function deployFunctionTracesContracts(
       {
         libFQN: 'contracts/function-traces/ExternalLib.sol:ExternalLib',
         address: externalLibDeployResult.createdAddress!,
+      },
+      {
+        libFQN: 'contracts/function-traces/ExternalLib2.sol:ExternalLib2',
+        address: externalLib2DeployResult.createdAddress!,
       },
     ]
   );

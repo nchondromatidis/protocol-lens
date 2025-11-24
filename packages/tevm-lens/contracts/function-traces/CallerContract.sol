@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./CalleeContract.sol";
 import "./CalleeContract2.sol";
 import "./ExternalLib.sol";
+import "./ExternalLib2.sol";
 import "./InlineLib.sol";
 
 contract CallerContract {
@@ -70,6 +71,10 @@ contract CallerContract {
         externalLibData.externalModifyStorage(0);
         uint[] memory mem = new uint[](1);
         mem.externalOperateOnMemory(0);
+    }
+
+    function testExternalLibCall2() public {
+        ExternalLib2.externalOperation(2, 5);
     }
 
     // function calls to inline library

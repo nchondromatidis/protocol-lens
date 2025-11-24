@@ -7,8 +7,6 @@ import {
   type ContractConstructorArgs,
   type ContractFunctionArgs,
   getContract,
-  keccak256,
-  toHex,
 } from 'viem';
 import type { ContractResult, Message } from 'tevm/actions';
 import type { EvmResult } from 'tevm/evm';
@@ -19,6 +17,7 @@ import { LensCallTracer } from './tracers/callTracer/LensCallTracer.ts';
 import { InvalidArgument, InvariantError } from '../common/errors.ts';
 import type { Address, Hex, LensArtifactsMap, LensContractFQN } from './types/artifact.ts';
 import type { InterpreterStep } from 'tevm/evm';
+import { hardhatLinkExternalLibToBytecode } from '../utils/hardhat.ts';
 
 export type Next = () => void;
 
@@ -30,24 +29,6 @@ export class LensClient<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
     public readonly callDecodeTracer: LensCallTracer<ArtifactMapT>
   ) {}
 
-  // TODO: supports only hardhat bytecode format
-  private linkHardhatBytecode<ContractFQNT extends LensContractFQN<ArtifactMapT>>(
-    bytecode: Hex,
-    libraryFqn: ContractFQNT,
-    libraryAddress: Address
-  ) {
-    const hash = keccak256(toHex('project/' + libraryFqn));
-    const tagContent = hash.slice(2, 2 + 34);
-    const tag = `__$${tagContent}$__`;
-
-    const libraryAddressNoPrefix = libraryAddress.toLowerCase().slice(2);
-    if (!bytecode.includes(tag)) {
-      throw new InvalidArgument(`Library tag not found in bytecode.`, { externalLibraryFqn: libraryFqn });
-    }
-
-    return bytecode.replaceAll(tag, libraryAddressNoPrefix) as Hex;
-  }
-
   async deploy<ContractFQNT extends LensContractFQN<ArtifactMapT>>(
     contractFQN: ContractFQNT,
     args: ContractConstructorArgs<ArtifactMapT[ContractFQNT]['abi']>,
@@ -58,7 +39,7 @@ export class LensClient<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
 
     let bytecode = artifact.bytecode;
     for (const lib of librariesToLink) {
-      bytecode = this.linkHardhatBytecode(bytecode, lib.libFQN, lib.address);
+      bytecode = hardhatLinkExternalLibToBytecode(bytecode, lib.libFQN, lib.address);
     }
     const deployResult = await tevmDeploy(this.client, {
       abi: artifact.abi,
@@ -117,7 +98,7 @@ export class LensClient<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
   }
 
   async getContract<ContractFqnT extends LensContractFQN<ArtifactMapT>>(address: Hex, contractFQN: ContractFqnT) {
-    const contractAbi = this.supportedContracts.getArtifactPart(contractFQN, 'abi');
+    const contractAbi = this.supportedContracts.getArtifactAbi(contractFQN);
     if (!contractAbi) throw new InvalidArgument(`Artifact for ${contractFQN} not found.`);
 
     return getContract({

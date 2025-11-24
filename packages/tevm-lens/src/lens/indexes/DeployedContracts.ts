@@ -1,19 +1,16 @@
 import type { Address } from '../types/artifact.ts';
 
-type DeployedContract = {
-  name: string;
-  isDeployedByCA: boolean;
-};
+type DeployedContractFQN = string;
 
 export class DeployedContracts {
-  public readonly addressLabel: Map<Address, DeployedContract> = new Map();
+  public readonly addressLabel: Map<Address, DeployedContractFQN> = new Map();
 
-  public markContractAddress(address: Address, contractFQN: string, isDeployedByCA = false): void {
-    this.addressLabel.set(this.toLowerCase(address), { name: contractFQN, isDeployedByCA });
+  public markContractAddress(address: Address, contractFQN: string): void {
+    this.addressLabel.set(this.toLowerCase(address), contractFQN);
   }
 
   public getContractFqnForAddress(address: Address) {
-    return this.addressLabel.get(this.toLowerCase(address))?.name;
+    return this.addressLabel.get(this.toLowerCase(address));
   }
 
   private toLowerCase(address: Address): Address {

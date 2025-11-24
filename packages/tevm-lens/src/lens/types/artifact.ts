@@ -16,7 +16,7 @@ export type LensArtifact = {
   readonly abi: Abi;
   readonly bytecode: Hex;
   readonly deployedBytecode: Hex;
-  readonly linkReferences: Record<string, unknown>;
+  readonly linkReferences: Record<string, Record<string, unknown>>;
 };
 
 // T object must be:

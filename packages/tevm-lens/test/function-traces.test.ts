@@ -84,17 +84,11 @@ describe('function traces', () => {
     inspect(lensClient.callDecodeTracer.succeededTxs);
   });
 
-  test('callExternalFunction', async () => {
-    await lensClient.contract(callerContract, 'callExternalFunction', []);
-    inspect(lensClient.callDecodeTracer.succeededTxs);
-  });
-
   test('callPublicFunction', async () => {
     await lensClient.contract(callerContract, 'callPublicFunction', []);
     inspect(lensClient.callDecodeTracer.succeededTxs);
   });
 
-  // TODO: continue here with decoding result data for fallback & receive
   test('callWithFallback', async () => {
     const calldata = '0x20';
     await lensClient.contract(callerContract, 'callWithFallback', [calldata], ETHER_1);
@@ -106,19 +100,24 @@ describe('function traces', () => {
     inspect(lensClient.callDecodeTracer.succeededTxs);
   });
 
-  test('callDelegateCall', async () => {
-    const calldata = '0x'; // Example calldata, adjust as needed
-    await lensClient.contract(callerContract, 'callDelegateCall', [calldata]);
+  test('callExternalFunction', async () => {
+    await lensClient.contract(callerContract, 'callExternalFunction', []);
     inspect(lensClient.callDecodeTracer.succeededTxs);
-  });
+  }, 600_000);
 
   test('callStaticCallViewFunction', async () => {
     await lensClient.contract(callerContract, 'callStaticCallViewFunction', []);
     inspect(lensClient.callDecodeTracer.succeededTxs);
   });
 
+  // TODO: continue here
   test('testExternalLibCall', async () => {
     await lensClient.contract(callerContract, 'testExternalLibCall', []);
+    inspect(lensClient.callDecodeTracer.succeededTxs);
+  });
+  test('callDelegateCall', async () => {
+    const calldata = '0x'; // Example calldata, adjust as needed
+    await lensClient.contract(callerContract, 'callDelegateCall', [calldata]);
     inspect(lensClient.callDecodeTracer.succeededTxs);
   });
 

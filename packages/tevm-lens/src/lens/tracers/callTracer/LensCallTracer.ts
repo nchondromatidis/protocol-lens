@@ -2,11 +2,11 @@ import { SupportedContracts } from '../../indexes/SupportedContracts.ts';
 import { DeployedContracts } from '../../indexes/DeployedContracts.ts';
 import type { Message } from 'tevm/actions';
 import type { EvmResult } from 'tevm/evm';
-import { bytesToHex } from 'viem';
+import { type Abi, bytesToHex } from 'viem';
 import { InvariantError } from '../../../common/errors.ts';
 import { type FunctionCallEvent, type FunctionResultEvent, LensCallTracerResult } from './LensCallTracerResult.ts';
 import { type Address, type Hex, type LensArtifactsMap } from '../../types/artifact.ts';
-import { decodeFunctionCall, decodeFunctionResult, decodeLog } from './decoders.ts';
+import { decodeFunctionCallMultipleAbis, decodeFunctionResult, decodeLog } from './decoders.ts';
 
 export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>> {
   public readonly tracingTxs: Map<string, LensCallTracerResult> = new Map();
@@ -46,69 +46,79 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
   public async handleFunctionCall(callEvent: Message, tempId: string): Promise<void> {
     const tempIdTxTrace = this.getTracingTx(tempId);
 
-    // function call object
+    // base function call object
+    const callData = bytesToHex(callEvent.data);
     const functionCallEvent: FunctionCallEvent = {
       type: 'FunctionCallEvent',
       to: callEvent?.to?.toString(),
+      from: callEvent.caller.toString(),
+      depth: callEvent.depth,
+      rawData: callData,
+      value: callEvent.value,
+      isDelegateCall: callEvent.delegatecall,
     };
-    functionCallEvent.isDelegateCall = callEvent.delegatecall;
-    functionCallEvent.depth = callEvent.depth;
-    functionCallEvent.value = callEvent.value;
-    functionCallEvent.data = bytesToHex(callEvent.data);
-
-    const callData = bytesToHex(callEvent.data);
 
     let bytecode = undefined;
-    let contractFQN = undefined;
+    const abisRelatedToCalledContract: Array<{ contractFQN: string | undefined; abi: Abi | undefined }> = [];
 
+    // new contract
     if (!callEvent.to) {
       functionCallEvent.isCreate = true;
       functionCallEvent.create2Salt = callEvent.salt ? bytesToHex(callEvent.salt) : undefined;
-      ({ bytecode, contractFQN } = this.supportedContracts.getContractFqnFromCallData(callData));
-      functionCallEvent.createdContractFQN = contractFQN;
+      const result = this.supportedContracts.getContractFqnFromCallData(callData);
+      bytecode = result.bytecode;
+      functionCallEvent.createdContractFQN = result.newContractFQN;
     }
 
+    // function call
     if (callEvent.to) {
-      contractFQN = this.deployedContracts.getContractFqnForAddress(callEvent.to.toString());
+      const contractFQN = this.deployedContracts.getContractFqnForAddress(callEvent.to.toString());
       functionCallEvent.contractFQN = contractFQN;
-    }
-
-    if (callEvent.to && callEvent.delegatecall) {
-      functionCallEvent.proxyContractFQN = functionCallEvent.contractFQN;
-      functionCallEvent.proxyAddress = callEvent.to.toString();
-
-      // callEvent type missing _codeAddress
-      const codeAddress = (callEvent as any)['_codeAddress'].toString()! as Address;
-      contractFQN = this.deployedContracts.getContractFqnForAddress(codeAddress);
-      functionCallEvent.contractFQN = contractFQN;
-      functionCallEvent.to = codeAddress;
-    }
-
-    if (contractFQN) {
-      const contractAbi = this.supportedContracts.getArtifactPart(contractFQN, 'abi');
-      if (contractAbi) {
-        const decodedFunctionCall = decodeFunctionCall({
-          abi: contractAbi,
-          data: callData,
-          createdBytecode: bytecode,
-          value: callEvent.value,
-        });
-
-        if (decodedFunctionCall) {
-          functionCallEvent.functionName = decodedFunctionCall.decodedFunctionName;
-          functionCallEvent.functionType = decodedFunctionCall.type;
-          functionCallEvent.args = decodedFunctionCall.decodedArgs;
-
-          const sourceLocation = this.supportedContracts.getFunctionCallLocation(
-            contractFQN,
-            decodedFunctionCall.decodedFunctionName,
-            decodedFunctionCall.type
-          );
-          functionCallEvent.lineStart = sourceLocation?.lineStart;
-          functionCallEvent.lineEnd = sourceLocation?.lineEnd;
-          functionCallEvent.source = sourceLocation?.source;
-        }
+      const { contractAbi, linkLibraries } = this.supportedContracts.getAllAbisRelatedTo(contractFQN);
+      // called contract
+      abisRelatedToCalledContract.push({ contractFQN, abi: contractAbi });
+      // called contract external libraries
+      for (const linkLibrary of linkLibraries) {
+        abisRelatedToCalledContract.push({ contractFQN: linkLibrary.fqn, abi: linkLibrary.abi });
       }
+    }
+
+    // function delegate call
+    if (callEvent.to && callEvent.delegatecall) {
+      // callEvent type missing _codeAddress, but implementation has it
+      const codeAddress = (callEvent as any)['_codeAddress'].toString() as Address;
+      if (!codeAddress) throw new InvariantError('codeAddress is empty', { callEvent, functionCallEvent });
+
+      // delegate call implementation contract
+      const implContractFQN = this.deployedContracts.getContractFqnForAddress(codeAddress);
+      functionCallEvent.implContractFQN = implContractFQN;
+      functionCallEvent.implAddress = codeAddress;
+
+      const implAbi = this.supportedContracts.getArtifactAbi(implContractFQN);
+      abisRelatedToCalledContract.push({ contractFQN: implContractFQN, abi: implAbi });
+    }
+
+    // decode called function: name, type, args
+    const decodedFunctionCall = decodeFunctionCallMultipleAbis({
+      contractsAndAbis: abisRelatedToCalledContract,
+      data: callData,
+      createdBytecode: bytecode,
+      value: callEvent.value,
+    });
+
+    if (decodedFunctionCall) {
+      functionCallEvent.functionName = decodedFunctionCall.decodedFunctionName;
+      functionCallEvent.functionType = decodedFunctionCall.type;
+      functionCallEvent.args = decodedFunctionCall.decodedArgs;
+
+      const sourceLocation = this.supportedContracts.getFunctionCallLocation(
+        decodedFunctionCall.contractFQN,
+        decodedFunctionCall.decodedFunctionName,
+        decodedFunctionCall.type
+      );
+      functionCallEvent.lineStart = sourceLocation?.lineStart;
+      functionCallEvent.lineEnd = sourceLocation?.lineEnd;
+      functionCallEvent.source = sourceLocation?.source;
     }
 
     tempIdTxTrace.addFunctionCall(functionCallEvent);
@@ -142,7 +152,7 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
 
     // case: function result
     let abi = undefined;
-    if (contractFQN) abi = this.supportedContracts.getArtifactPart(contractFQN, 'abi');
+    if (contractFQN) abi = this.supportedContracts.getArtifactAbi(contractFQN);
 
     functionResultEvent.isError = false;
     if (!resultEvent.createdAddress && resultEvent.execResult.exceptionError) {
@@ -178,7 +188,7 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
 
         const logContractFQN = this.deployedContracts.getContractFqnForAddress(logAbiContractAddress);
         if (!logContractFQN) return;
-        const logContractAbi = this.supportedContracts.getArtifactPart(logContractFQN, 'abi');
+        const logContractAbi = this.supportedContracts.getArtifactAbi(logContractFQN);
 
         return { log: it, logContractAbi, logContractFQN };
       });
@@ -197,7 +207,7 @@ export class LensCallTracer<ArtifactMapT extends LensArtifactsMap<ArtifactMapT>>
     tempIdTxTrace.addResult(functionResultEvent);
   }
 
-  // HELPER FUNCTIONS
+  //** Helper Functions **/
 
   private getTracingTx(tempId: string) {
     if (!this.tracingTxs.has(tempId)) {

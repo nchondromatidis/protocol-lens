@@ -1,5 +1,6 @@
-import { GenericError } from '../../common/errors.ts';
 import type { FunctionCallTypes, Hex, LensArtifact, LensSourceFunctionIndexes } from '../types/artifact.ts';
+import type { Abi } from 'viem';
+import { hardhatGetReferencesFQN } from '../../utils/hardhat.ts';
 
 type Bytecode = Hex;
 type ContractFQN = string;
@@ -42,24 +43,45 @@ export class SupportedContracts {
 
   public getContractFqnFromCallData(callData: Hex) {
     for (const [bytecode, contractFQN] of this.bytecodeToContractFqnIndex.entries()) {
-      if (callData.startsWith(bytecode)) return { bytecode, contractFQN };
+      if (callData.startsWith(bytecode)) return { bytecode, newContractFQN: contractFQN };
     }
     return { bytecode: undefined, contractFQN: undefined };
   }
 
   public getArtifactFrom(contractFQN: ContractFQN): LensArtifact | undefined {
-    if (!this.contractFqnToArtifactIndex.has(contractFQN)) {
-      throw new GenericError('Contract not supported', { name: contractFQN });
-    }
     return this.contractFqnToArtifactIndex.get(contractFQN);
   }
 
-  public getArtifactPart<ArtifactPartT extends keyof LensArtifact>(
-    contractFQN: ContractFQN,
-    artifactPart: ArtifactPartT
-  ): LensArtifact[ArtifactPartT] | undefined {
-    const artifact = this.getArtifactFrom(contractFQN);
-    return artifact?.[artifactPart];
+  public getArtifactAbi(contractFQN: ContractFQN | undefined): LensArtifact['abi'] | undefined {
+    if (!contractFQN) return undefined;
+    const contractArtifact = this.getArtifactFrom(contractFQN);
+    return contractArtifact?.['abi'];
+  }
+
+  public getArtifactsRelatedTo(contractFQN: ContractFQN): {
+    contractArtifact: LensArtifact | undefined;
+    linkLibraries: { fqn: string | undefined; artifact: LensArtifact | undefined }[];
+  } {
+    const contractArtifact = this.contractFqnToArtifactIndex.get(contractFQN);
+    const linkLibrariesFQNs = hardhatGetReferencesFQN(contractArtifact?.linkReferences);
+    const linkLibraries = linkLibrariesFQNs.map((it) => ({
+      fqn: it,
+      artifact: this.contractFqnToArtifactIndex.get(it),
+    }));
+    return { contractArtifact, linkLibraries };
+  }
+
+  public getAllAbisRelatedTo(contractFQN: ContractFQN | undefined): {
+    contractAbi: Abi | undefined;
+    linkLibraries: { fqn: string | undefined; abi: Abi | undefined }[];
+  } {
+    if (!contractFQN) return { contractAbi: undefined, linkLibraries: [] };
+    const { contractArtifact, linkLibraries } = this.getArtifactsRelatedTo(contractFQN);
+    const linkLibrariesAbis = linkLibraries.map((it) => ({
+      fqn: it.fqn,
+      abi: it.artifact?.abi,
+    }));
+    return { contractAbi: contractArtifact?.['abi'], linkLibraries: linkLibrariesAbis };
   }
 
   public getFunctionCallLocation(
