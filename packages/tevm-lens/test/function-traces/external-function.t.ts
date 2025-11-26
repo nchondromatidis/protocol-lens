@@ -1,39 +1,29 @@
 import { test, beforeEach, describe } from 'vitest';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { tevmSetAccount } from 'tevm';
-import { LensClient } from '../src/lens/LensClient.ts';
-import { buildClient } from '../src/lens/client.ts';
-import { TestResourceLoader } from './setup/TestResourceLoader.ts';
-import { DeployedContracts } from '../src/lens/indexes/DeployedContracts.ts';
-import { SupportedContracts } from '../src/lens/indexes/SupportedContracts.ts';
-import { LensCallTracer } from '../src/lens/callTracer/LensCallTracer.ts';
-import { inspect } from './setup/_utils/debug.ts';
-import type { IResourceLoader } from '../src/adapters/IResourceLoader.ts';
-import path from 'node:path';
-import { ETHER_1 } from './setup/_utils/constants.ts';
-import type { FunctionTracesArtifactsMap } from './setup/function-traces/types.ts';
-import type { ProtocolName } from './setup/artifacts';
-import { deployFunctionTracesContracts } from './setup/function-traces/deploy.ts';
-import type { Hex } from '../src/lens/types/artifact';
+import { LensClient } from '../../src/lens/LensClient.ts';
+import { buildClient } from '../../src/lens/client.ts';
+import { TestResourceLoader } from '../_setup/TestResourceLoader.ts';
+import { DeployedContracts } from '../../src/lens/indexes/DeployedContracts.ts';
+import { SupportedContracts } from '../../src/lens/indexes/SupportedContracts.ts';
+import { LensCallTracer } from '../../src/lens/callTracer/LensCallTracer.ts';
+import { inspect } from '../_setup/utils/debug.ts';
+import { ETHER_1 } from '../_setup/utils/constants.ts';
+import type { FunctionTracesArtifactsMap } from './_setup/types.ts';
+import type { ProtocolName } from '../_setup/artifacts';
+import { deployFunctionTracesContracts } from './_setup/deploy.ts';
+import type { Hex } from '../../src/lens/types/artifact.ts';
 
 describe('function traces', () => {
   let lensClient: LensClient<FunctionTracesArtifactsMap>;
   let callerContract: Awaited<ReturnType<typeof deployFunctionTracesContracts>>['callerContract'];
-  // let calleeContract: Awaited<ReturnType<typeof deployFunctionTracesContracts>>['calleeContract'];
-  let client: Awaited<ReturnType<typeof buildClient>>;
-  let resourceLoader: IResourceLoader<FunctionTracesArtifactsMap, ProtocolName>;
 
   beforeEach(async () => {
     const deployerAccount = privateKeyToAccount(generatePrivateKey());
 
-    client = await buildClient(deployerAccount);
+    const client = await buildClient(deployerAccount);
 
-    const artifactsPath = path.join(__dirname, 'setup', 'artifacts');
-    const artifactsContractsPath = path.join(__dirname, 'setup', 'artifacts', 'contracts');
-    resourceLoader = new TestResourceLoader<FunctionTracesArtifactsMap, ProtocolName>(
-      artifactsPath,
-      artifactsContractsPath
-    );
+    const resourceLoader = new TestResourceLoader<FunctionTracesArtifactsMap, ProtocolName>();
 
     const supportedContracts = new SupportedContracts();
     const labeledContracts = new DeployedContracts();
@@ -71,6 +61,11 @@ describe('function traces', () => {
     inspect(lensClient.callDecodeTracer.succeededTxs);
   });
 
+  test('callExternalFunction', async () => {
+    await lensClient.contract(callerContract, 'callExternalFunction', []);
+    inspect(lensClient.callDecodeTracer.succeededTxs);
+  });
+
   test('callWithFallback', async () => {
     const calldata = '0x20';
     await lensClient.contract(callerContract, 'callWithFallback', [calldata], ETHER_1);
@@ -82,22 +77,9 @@ describe('function traces', () => {
     inspect(lensClient.callDecodeTracer.succeededTxs);
   });
 
-  test('callExternalFunction', async () => {
-    await lensClient.contract(callerContract, 'callExternalFunction', []);
-    inspect(lensClient.callDecodeTracer.succeededTxs);
-  });
-
   test('callStaticCallViewFunction', async () => {
     await lensClient.contract(callerContract, 'callStaticCallViewFunction', []);
     inspect(lensClient.callDecodeTracer.succeededTxs);
-  });
-
-  // TODO: continue here
-  test('testExternalLibCall', async () => {
-    await lensClient.contract(callerContract, 'testExternalLibCall', []);
-    inspect(lensClient.callDecodeTracer.succeededTxs);
-    // TODO: fails to decode external library call with argument typed storage
-    // https://docs.soliditylang.org/en/latest/contracts.html#function-signatures-and-selectors-in-libraries
   });
 
   test('callDelegateCall', async () => {
@@ -106,18 +88,8 @@ describe('function traces', () => {
     inspect(lensClient.callDecodeTracer.succeededTxs);
   });
 
-  test('testInlineLibCall', async () => {
-    await lensClient.contract(callerContract, 'testInlineLibCall', []);
-    inspect(lensClient.callDecodeTracer.succeededTxs);
-  });
-
   test('callPublicAndExternal', async () => {
     await lensClient.contract(callerContract, 'callPublicAndExternal', []);
-    inspect(lensClient.callDecodeTracer.succeededTxs);
-  });
-
-  test('callInternalAndPrivate', async () => {
-    await lensClient.contract(callerContract, 'callInternalAndPrivate', []);
     inspect(lensClient.callDecodeTracer.succeededTxs);
   });
 

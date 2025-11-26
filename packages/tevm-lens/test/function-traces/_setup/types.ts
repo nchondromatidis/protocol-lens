@@ -1,4 +1,4 @@
-import type { ArtifactMap } from '../artifacts';
+import type { ArtifactMap } from '../../_setup/artifacts';
 
 export type FunctionTracesArtifactsMap = {
   [K in keyof ArtifactMap as K extends `${ArtifactMap[K]['sourceName']}:${ArtifactMap[K]['contractName']}`

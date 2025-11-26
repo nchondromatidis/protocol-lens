@@ -1,20 +1,19 @@
 import { test, beforeEach, describe } from 'vitest';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { parseEther, tevmSetAccount } from 'tevm';
-import { deployUniswapV2 } from './setup/uniswap-v2/deploy.ts';
-import { LensClient } from '../src/lens/LensClient.ts';
-import { buildClient } from '../src/lens/client.ts';
-import { TestResourceLoader } from './setup/TestResourceLoader.ts';
-import { DeployedContracts } from '../src/lens/indexes/DeployedContracts.ts';
-import { SupportedContracts } from '../src/lens/indexes/SupportedContracts.ts';
-import { LensCallTracer } from '../src/lens/callTracer/LensCallTracer.ts';
-import { inspect } from './setup/_utils/debug.ts';
+import { deployUniswapV2 } from './_setup/deploy.ts';
+import { LensClient } from '../../src/lens/LensClient.ts';
+import { buildClient } from '../../src/lens/client.ts';
+import { TestResourceLoader } from '../_setup/TestResourceLoader.ts';
+import { DeployedContracts } from '../../src/lens/indexes/DeployedContracts.ts';
+import { SupportedContracts } from '../../src/lens/indexes/SupportedContracts.ts';
+import { LensCallTracer } from '../../src/lens/callTracer/LensCallTracer.ts';
+import { inspect } from '../_setup/utils/debug.ts';
 import { getContractAddress, encodePacked, keccak256 } from 'viem';
-import type { IResourceLoader } from '../src/adapters/IResourceLoader.ts';
-import { safeCastToHex } from '../src/lens/types/artifact.ts';
+import type { IResourceLoader } from '../../src/adapters/IResourceLoader.ts';
+import { safeCastToHex } from '../../src/lens/types/artifact.ts';
 import type { ProtocolName } from '@defi-notes/protocols/*';
-import path from 'node:path';
-import type { UniswapV2ArtifactsMap } from './setup/uniswap-v2/types.ts';
+import type { UniswapV2ArtifactsMap } from './_setup/types.ts';
 
 const ETHER_1 = parseEther('1');
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -31,9 +30,7 @@ describe('uniswap-v2', () => {
 
     client = await buildClient(deployerAccount);
 
-    const artifactsPath = path.join(__dirname, '..', '..', 'protocols', 'artifacts');
-    const artifactsContractsPath = path.join(__dirname, '..', '..', 'protocols', 'artifacts', 'contracts');
-    resourceLoader = new TestResourceLoader<UniswapV2ArtifactsMap, ProtocolName>(artifactsPath, artifactsContractsPath);
+    resourceLoader = new TestResourceLoader<UniswapV2ArtifactsMap, ProtocolName>();
 
     const supportedContracts = new SupportedContracts();
     const labeledContracts = new DeployedContracts();

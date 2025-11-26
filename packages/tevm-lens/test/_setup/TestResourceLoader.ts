@@ -13,12 +13,10 @@ export class TestResourceLoader<
   ProtocolsListT extends LensProtocolsList,
 > implements IResourceLoader<ArtifactMapT, ProtocolsListT>
 {
-  constructor(
-    private readonly artifactsPath: string,
-    private readonly artifactsContractsPath: string,
-    private readonly contractFqnListFileName = 'contract-fqn-list.json',
-    private readonly sourceFunctionIndexFileName = 'function-indexes.json'
-  ) {}
+  artifactsPath = path.join(__dirname, 'artifacts');
+  artifactsContractsPath = path.join(__dirname, 'artifacts', 'contracts');
+  contractFqnListFileName = 'contract-fqn-list.json';
+  sourceFunctionIndexFileName = 'function-indexes.json';
 
   async getArtifact<LensContractFqnT extends LensContractFQN<ArtifactMapT>>(
     contractFQN: LensContractFqnT

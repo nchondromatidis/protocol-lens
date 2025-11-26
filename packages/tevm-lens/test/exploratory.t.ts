@@ -1,18 +1,18 @@
 import { beforeEach, describe, test } from 'vitest';
 import { LensClient } from '../src/lens/LensClient.ts';
-import type { FunctionTracesArtifactsMap } from './setup/function-traces/types.ts';
-import { deployFunctionTracesContracts } from './setup/function-traces/deploy.ts';
+import type { FunctionTracesArtifactsMap } from './function-traces/_setup/types.ts';
+import { deployFunctionTracesContracts } from './function-traces/_setup/deploy.ts';
 import { buildClient } from '../src/lens/client.ts';
 import type { IResourceLoader } from '../src/adapters/IResourceLoader.ts';
-import type { ProtocolName } from './setup/artifacts';
+import type { ProtocolName } from './_setup/artifacts';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import path from 'node:path';
-import { TestResourceLoader } from './setup/TestResourceLoader.ts';
+import { TestResourceLoader } from './_setup/TestResourceLoader.ts';
 import { SupportedContracts } from '../src/lens/indexes/SupportedContracts.ts';
 import { DeployedContracts } from '../src/lens/indexes/DeployedContracts.ts';
 import { LensCallTracer } from '../src/lens/callTracer/LensCallTracer.ts';
 import { tevmSetAccount } from 'tevm';
-import { ETHER_1 } from './setup/_utils/constants.ts';
+import { ETHER_1 } from './_setup/utils/constants.ts';
 
 describe('exploratory tests', () => {
   let lensClient: LensClient<FunctionTracesArtifactsMap>;
