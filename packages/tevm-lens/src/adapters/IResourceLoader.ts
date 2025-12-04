@@ -7,6 +7,7 @@ import type {
 
 export interface IResourceLoader<
   ArtifactMapT extends LensArtifactsMap<ArtifactMapT>,
+  FunctionIndexesT extends LensSourceFunctionIndexes,
   ProtocolsListT extends LensProtocolsList,
 > {
   getArtifact<LensContractFqnT extends LensContractFQN<ArtifactMapT>>(
@@ -24,5 +25,5 @@ export interface IResourceLoader<
   ): Promise<Array<ArtifactMapT[LensContractFqnT]>>;
   getProtocolContractsFqn(protocolName: ProtocolsListT): Promise<Array<LensContractFQN<ArtifactMapT>>>;
   getProtocolArtifacts(protocolName: ProtocolsListT): Promise<Array<ArtifactMapT[LensContractFQN<ArtifactMapT>]>>;
-  getFunctionIndexes(protocolName: ProtocolsListT): Promise<LensSourceFunctionIndexes>;
+  getFunctionIndexes(protocolName: ProtocolsListT): Promise<FunctionIndexesT>;
 }

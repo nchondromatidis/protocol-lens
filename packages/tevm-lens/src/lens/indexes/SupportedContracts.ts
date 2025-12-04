@@ -29,10 +29,10 @@ export class SupportedContracts {
   }
 
   public async registerFunctionIndexes(artifacts: LensSourceFunctionIndexes) {
-    for (const [source, functionIndexes] of Object.entries(artifacts)) {
-      this.sourceFunctionIndexes.set(source, functionIndexes);
+    for (const [contractFQN, functionIndexes] of Object.entries(artifacts)) {
+      this.sourceFunctionIndexes.set(contractFQN, functionIndexes);
       const sourceFunctionIndexes: Map<FunctionName, LensSourceFunctionIndexes[string][number]> = new Map();
-      this.sourceFunctionNameFunctionIndexes.set(source, sourceFunctionIndexes);
+      this.sourceFunctionNameFunctionIndexes.set(contractFQN, sourceFunctionIndexes);
       for (const functionIndex of functionIndexes) {
         sourceFunctionIndexes.set(functionIndex.name, functionIndex);
       }
@@ -95,20 +95,21 @@ export class SupportedContracts {
   }
 
   public getAbiFunctionNameLocation(contractFQN: ContractFQN, functionName: string): Location | undefined {
-    const source = contractFQN.split(':')[0];
-    const { lineStart, lineEnd } = this.sourceFunctionNameFunctionIndexes.get(source)?.get(functionName) ?? {};
-    return lineStart !== undefined && lineEnd !== undefined ? { lineStart, lineEnd, source } : undefined;
+    const { lineStart, lineEnd, source } =
+      this.sourceFunctionNameFunctionIndexes.get(contractFQN)?.get(functionName) ?? {};
+    return lineStart !== undefined && lineEnd !== undefined && source !== undefined
+      ? { lineStart, lineEnd, source }
+      : undefined;
   }
 
   public getAbiTypeLocation(contractFQN: ContractFQN, type: FunctionCallTypes): Location | undefined {
-    const source = contractFQN.split(':')[0];
-    const sourceFunctionIndexes = this.sourceFunctionIndexes.get(source) ?? [];
+    const sourceFunctionIndexes = this.sourceFunctionIndexes.get(contractFQN) ?? [];
     const functionIndex = sourceFunctionIndexes.find((it) => it.kind === type);
     if (!functionIndex) return undefined;
     return {
       lineStart: functionIndex.lineStart,
       lineEnd: functionIndex.lineEnd,
-      source,
+      source: functionIndex.source,
     };
   }
 }

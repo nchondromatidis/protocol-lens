@@ -33,18 +33,19 @@ export type LensArtifactsMap<T extends Record<string, LensArtifact>> = {
 export type LensContractFQN<T extends Record<string, LensArtifact>> = keyof LensArtifactsMap<T> & string;
 export type LensProtocolsList = string;
 
-export type FunctionCallTypes = 'function' | 'constructor' | 'fallback' | 'receive';
+export type FunctionCallTypes = 'function' | 'constructor' | 'fallback' | 'receive' | 'freeFunction';
 
 // function index schema
 export type LensFunctionIndex = {
   name: string;
-  kind: Abi[number]['type'];
+  kind: FunctionCallTypes;
   lineStart: number;
   lineEnd: number;
+  source: string;
 };
 
 export type LensSourceFunctionIndexes = {
-  [source: string]: Array<LensFunctionIndex>;
+  [contractFQN: string]: Array<LensFunctionIndex>;
 };
 
 export type RawLog = [address: Hex, topics: Hex[], data: Hex];

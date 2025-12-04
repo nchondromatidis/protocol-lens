@@ -2,7 +2,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { buildClient } from '../../../src/lens/client.ts';
 import { TestResourceLoader } from '../../_setup/TestResourceLoader.ts';
 import type { FunctionTracesArtifactsMap } from './types.ts';
-import type { ProtocolName } from '../../_setup/artifacts';
+import type { FunctionEntryIndexes, ProtocolName } from '../../_setup/artifacts';
 import { SupportedContracts } from '../../../src/lens/indexes/SupportedContracts.ts';
 import { DeployedContracts } from '../../../src/lens/indexes/DeployedContracts.ts';
 import { LensCallTracer } from '../../../src/lens/callTracer/LensCallTracer.ts';
@@ -16,7 +16,7 @@ export async function testSetup() {
 
   const client = await buildClient(deployerAccount);
 
-  const resourceLoader = new TestResourceLoader<FunctionTracesArtifactsMap, ProtocolName>();
+  const resourceLoader = new TestResourceLoader<FunctionTracesArtifactsMap, FunctionEntryIndexes, ProtocolName>();
 
   const supportedContracts = new SupportedContracts();
   const labeledContracts = new DeployedContracts();

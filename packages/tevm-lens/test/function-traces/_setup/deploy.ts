@@ -2,11 +2,11 @@ import type { LensClient } from '../../../src/lens/LensClient.ts';
 import type { IResourceLoader } from '../../../src/adapters/IResourceLoader.ts';
 import type { FunctionTracesArtifactsMap } from './types.ts';
 import { getContract } from 'viem';
-import type { ProtocolName } from '../../_setup/artifacts';
+import type { FunctionEntryIndexes, ProtocolName } from '../../_setup/artifacts';
 
 export async function deployFunctionTracesContracts(
   lensClient: LensClient<FunctionTracesArtifactsMap>,
-  resourceLoader: IResourceLoader<FunctionTracesArtifactsMap, ProtocolName>
+  resourceLoader: IResourceLoader<FunctionTracesArtifactsMap, FunctionEntryIndexes, ProtocolName>
 ) {
   // deploy
   const calleeDeployResult = await lensClient.deploy('contracts/function-traces/CalleeContract.sol:CalleeContract', []);

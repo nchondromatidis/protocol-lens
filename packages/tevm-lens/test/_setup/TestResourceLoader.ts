@@ -10,8 +10,9 @@ import * as path from 'node:path';
 
 export class TestResourceLoader<
   ArtifactMapT extends LensArtifactsMap<ArtifactMapT>,
+  FunctionIndexesT extends LensSourceFunctionIndexes,
   ProtocolsListT extends LensProtocolsList,
-> implements IResourceLoader<ArtifactMapT, ProtocolsListT>
+> implements IResourceLoader<ArtifactMapT, FunctionIndexesT, ProtocolsListT>
 {
   artifactsPath = path.join(__dirname, 'artifacts');
   artifactsContractsPath = path.join(__dirname, 'artifacts', 'contracts');
@@ -58,13 +59,13 @@ export class TestResourceLoader<
     return this.getArtifacts(protocolContracts);
   }
 
-  async getFunctionIndexes(protocolName: LensProtocolsList): Promise<LensSourceFunctionIndexes> {
+  async getFunctionIndexes(protocolName: LensProtocolsList): Promise<FunctionIndexesT> {
     const sourceFunctionIndexFilePath = path.join(
       this.artifactsContractsPath,
       protocolName,
       this.sourceFunctionIndexFileName
     );
     const sourceFunctionIndexJson = await fs.readFile(sourceFunctionIndexFilePath, 'utf-8');
-    return JSON.parse(sourceFunctionIndexJson) as LensSourceFunctionIndexes;
+    return JSON.parse(sourceFunctionIndexJson) as FunctionIndexesT;
   }
 }

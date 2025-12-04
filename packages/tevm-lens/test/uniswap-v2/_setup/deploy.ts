@@ -3,11 +3,12 @@ import type { LensClient } from '../../../src/lens/LensClient.ts';
 import type { IResourceLoader } from '../../../src/adapters/IResourceLoader.ts';
 import type { UniswapV2ArtifactsMap } from './types.ts';
 import type { ProtocolName } from '@defi-notes/protocols/*';
+import type { FunctionEntryIndexes } from '../../_setup/artifacts';
 
 export async function deployUniswapV2(
   lensClient: LensClient<UniswapV2ArtifactsMap>,
   feeToSetAddress: Address,
-  resourceLoader: IResourceLoader<UniswapV2ArtifactsMap, ProtocolName>
+  resourceLoader: IResourceLoader<UniswapV2ArtifactsMap, FunctionEntryIndexes, ProtocolName>
 ) {
   const factoryDeployResult = await lensClient.deploy(
     'contracts/uniswap-v2/v2-core/contracts/UniswapV2Factory.sol:UniswapV2Factory',

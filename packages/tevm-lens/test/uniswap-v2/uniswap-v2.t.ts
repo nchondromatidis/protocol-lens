@@ -14,6 +14,7 @@ import type { IResourceLoader } from '../../src/adapters/IResourceLoader.ts';
 import { safeCastToHex } from '../../src/lens/types/artifact.ts';
 import type { ProtocolName } from '@defi-notes/protocols/*';
 import type { UniswapV2ArtifactsMap } from './_setup/types.ts';
+import type { FunctionEntryIndexes } from '../_setup/artifacts';
 
 const ETHER_1 = parseEther('1');
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -22,7 +23,7 @@ describe('uniswap-v2', () => {
   let lensClient: LensClient<UniswapV2ArtifactsMap>;
   let factory: Awaited<ReturnType<typeof deployUniswapV2>>['factory'];
   let client: Awaited<ReturnType<typeof buildClient>>;
-  let resourceLoader: IResourceLoader<UniswapV2ArtifactsMap, ProtocolName>;
+  let resourceLoader: IResourceLoader<UniswapV2ArtifactsMap, FunctionEntryIndexes, ProtocolName>;
 
   beforeEach(async () => {
     const deployerAccount = privateKeyToAccount(generatePrivateKey());
@@ -30,7 +31,7 @@ describe('uniswap-v2', () => {
 
     client = await buildClient(deployerAccount);
 
-    resourceLoader = new TestResourceLoader<UniswapV2ArtifactsMap, ProtocolName>();
+    resourceLoader = new TestResourceLoader<UniswapV2ArtifactsMap, FunctionEntryIndexes, ProtocolName>();
 
     const supportedContracts = new SupportedContracts();
     const labeledContracts = new DeployedContracts();
