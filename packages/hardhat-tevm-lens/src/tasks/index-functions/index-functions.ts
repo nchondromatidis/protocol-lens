@@ -1,28 +1,14 @@
-import fs from 'fs';
-import type { CompilerOutputBytecode, SolidityBuildInfo, SolidityBuildInfoOutput } from 'hardhat/types/solidity';
-import path from 'node:path';
-import type { HardhatRuntimeEnvironment } from 'hardhat/types/hre';
-import createDebug from 'debug';
-import { DEBUG_PREFIX } from '../../debug.ts';
-import { fileURLToPath } from 'node:url';
-import { type ASTDereferencer, astDereferencer, type SrcDecoder, srcDecoder } from 'solidity-ast/utils.js';
-import { hardhatConvertFromSourceInputToContractFQN, isNotUndefined, trySync } from '../../utils';
+import type { BuildInfoPair } from './build-info-pairs';
 import type { FunctionData, FunctionEntryIndexes } from './types';
-
-const debug = createDebug(`${DEBUG_PREFIX}:index-functions`);
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import { type ASTDereferencer, astDereferencer, type SrcDecoder, srcDecoder } from 'solidity-ast/utils.js'; // force common.js
+import { hardhatConvertFromSourceInputToContractFQN, isNotUndefined, trySync } from '../../utils';
+import type { FunctionDefinition } from 'solidity-ast';
+import type { CompilerOutputBytecode, SolidityBuildInfoOutput } from 'hardhat/types/solidity';
+import { keccak_256 } from '@noble/hashes/sha3.js';
+import { bytesToHex, utf8ToBytes } from '@noble/hashes/utils.js';
+import { debug } from './_debug';
 
 //*************************************** TYPES ***************************************//
-
-// build info types
-type BuildInfoPairPath = { readonly input: string; readonly output: string; readonly id: string };
-type BuildInfoPair = {
-  readonly buildInfoInputPath: string;
-  readonly buildInfoInput: SolidityBuildInfo;
-  readonly buildInfoOutputPath: string;
-  readonly buildInfoOutput: SolidityBuildInfoOutput;
-  readonly buildInfoId: string;
-};
 
 // CompilerOutputBytecode types miss functionDebugData
 declare module 'hardhat/types/solidity' {
@@ -38,9 +24,9 @@ declare module 'hardhat/types/solidity' {
   }
 }
 
-//*************************************** INDEX CREATION ***************************************//
+//*************************************** INDEXES ***************************************//
 
-function createFunctionEntryIndexes(
+export function createFunctionIndexes(
   buildInfoPair: BuildInfoPair,
   functionEntryIndexes: FunctionEntryIndexes // mutates
 ) {
@@ -99,9 +85,15 @@ function convertToFunctionData(
 
       if (node.nodeType != 'FunctionDefinition') {
         // expected and ignored generated public variable getters
-        console.warn(`Ignoring: ast.id ${node.id}, not a FunctionDefinition, type is ${node.nodeType}`);
+        console.warn(`Ignoring function call from: ast.id ${node.id}, type is ${node.nodeType}`);
         return undefined;
       }
+
+      const functionInterface = toFunctionInterface(node);
+      const functionSelector =
+        (node.functionSelector ?? (node.visibility === 'external' || node.visibility === 'public'))
+          ? toFunctionSelector(toFunctionSignature(node))
+          : undefined;
 
       const newFunctionData: FunctionData = {
         nameOrKind: node.name ? node.name : node.kind,
@@ -109,7 +101,8 @@ function convertToFunctionData(
         kind: node.kind,
         visibility: node.visibility,
         stateMutability: node.stateMutability,
-        functionSelector: node.functionSelector,
+        functionInterface,
+        functionSelector,
         src: node.src,
         lineStart,
         lineEnd,
@@ -125,84 +118,71 @@ function convertToFunctionData(
     .filter(isNotUndefined);
 }
 
-//*************************************** SAVING FILES ***************************************//
+function toFunctionInterface(node: FunctionDefinition | undefined) {
+  if (!node) return undefined;
 
-function groupFunctionIndexesPerProtocol(data: FunctionEntryIndexes) {
-  const protocolFunctionIndexes: Record<string, Array<FunctionData>> = {};
-  for (const functionData of data) {
-    const secondFolder = functionData.source.split('/')[1];
-    if (!protocolFunctionIndexes[secondFolder]) protocolFunctionIndexes[secondFolder] = [];
-    protocolFunctionIndexes[secondFolder].push(functionData);
+  // Handle function name (constructor/fallback/receive)
+  let fnName;
+  switch (node.kind) {
+    case 'constructor':
+      fnName = 'constructor';
+      break;
+    case 'fallback':
+      fnName = 'fallback';
+      break;
+    case 'receive':
+      fnName = 'receive';
+      break;
+    default:
+      fnName = `function ${node.name || ''}`;
   }
 
-  return protocolFunctionIndexes;
+  // Parameters
+  const params = node.parameters?.parameters || [];
+  const paramList = params
+    .map((p) => {
+      const type = p.typeDescriptions?.typeString || 'unknown';
+      const name = p.name ? ` ${p.name}` : '';
+      return `${type}${name}`;
+    })
+    .join(', ');
+
+  // Returns
+  const returns = node.returnParameters?.parameters || [];
+  const returnList = returns.map((p) => p.typeDescriptions?.typeString || 'unknown').join(', ');
+  const returnClause = returns.length ? ` returns (${returnList})` : '';
+
+  // Visibility + state mutability
+  const visibility = node.visibility ? ` ${node.visibility}` : '';
+  const stateMutability =
+    node.stateMutability && node.stateMutability !== 'nonpayable' ? ` ${node.stateMutability}` : '';
+
+  // Assemble the interface
+  const signature = `${fnName}(${paramList})${visibility}${stateMutability}${returnClause};`;
+
+  // Clean up spacing
+  return signature.replace(/\s+/g, ' ').trim();
 }
 
-function copyFunctionIndexesTypes(indexFilePath: string) {
-  // after compilation in dist folder types inside types.ts go to types.d.ts
-  const functionIndexesTypes =
-    fs.readFileSync(path.join(__dirname, 'types.ts'), { encoding: 'utf8' }) ??
-    fs.readFileSync(path.join(__dirname, 'types.d.ts'), { encoding: 'utf8' });
+function toFunctionSignature(node: FunctionDefinition | undefined) {
+  if (!node) return undefined;
 
-  fs.writeFileSync(indexFilePath, functionIndexesTypes, {
-    encoding: 'utf8',
-  });
+  const functionName = node.name;
+  const functionSignatureParams = node.parameters.parameters
+    .map((it) => {
+      let paramSignature = it.typeDescriptions.typeString;
+      paramSignature += it.storageLocation === 'storage' ? ' ' + it.storageLocation : '';
+      return paramSignature;
+    })
+    .join(',');
+  const functionSignature = functionName + '(' + functionSignatureParams + ')';
+  if (functionName) return functionSignature;
 }
 
-//*************************************** MAIN ***************************************//
-
-export default async function (_taskArgs: Record<string, any>, hre: HardhatRuntimeEnvironment) {
-  debug('Index functions task started');
-
-  const artifactsContractPath = hre.config.artifactsAugment.artifactContractsPath;
-  const buildInfoPairPaths = await getBuildInfoPairsPath(hre);
-
-  const functionEntryIndexes: FunctionEntryIndexes = [];
-
-  for (const buildInfoPairPath of buildInfoPairPaths) {
-    const buildInfoPair = getBuildInfoPair(buildInfoPairPath);
-    createFunctionEntryIndexes(buildInfoPair, functionEntryIndexes);
-  }
-
-  const protocolFunctionEntryIndexes = groupFunctionIndexesPerProtocol(functionEntryIndexes);
-
-  for (const [protocol, sourceFunctionIndexes] of Object.entries(protocolFunctionEntryIndexes)) {
-    const protocolSourceFunctionIndexesPath = path.join(artifactsContractPath, protocol, 'function-indexes.json');
-    debug('Paths:', { protocolSourceFunctionIndexesPath });
-    fs.writeFileSync(protocolSourceFunctionIndexesPath, JSON.stringify(sourceFunctionIndexes, null, 2), 'utf-8');
-  }
-  const functionIndexesTypesPath = path.join(artifactsContractPath, 'function-indexes.d.ts');
-  debug('Paths:', { functionIndexesTypesPath });
-
-  copyFunctionIndexesTypes(functionIndexesTypesPath);
-
-  debug('Index functions task ended');
-}
-
-//*************************************** HELPER FUNCTIONS ***************************************//
-
-async function getBuildInfoPairsPath(hre: HardhatRuntimeEnvironment) {
-  const buildInfoIds = await hre.artifacts.getAllBuildInfoIds();
-  const pairs: Array<BuildInfoPairPath> = [];
-  for (const buildInfoId of buildInfoIds) {
-    pairs.push({
-      input: (await hre.artifacts.getBuildInfoPath(buildInfoId))!,
-      output: (await hre.artifacts.getBuildInfoOutputPath(buildInfoId))!,
-      id: buildInfoId,
-    });
-  }
-  return pairs;
-}
-
-function getBuildInfoPair(buildInfoPairPath: BuildInfoPairPath): BuildInfoPair {
-  const buildInfoInputPath = buildInfoPairPath.input;
-  const buildInfoOutputPath = buildInfoPairPath.output;
-  const id = buildInfoPairPath.id;
-  const buildInfoOutput = JSON.parse(fs.readFileSync(buildInfoOutputPath).toString());
-  const buildInfoInput = JSON.parse(fs.readFileSync(buildInfoInputPath).toString());
-  assertBuildInfoOutput(buildInfoOutput);
-  assertBuildInfoInput(buildInfoInput);
-  return { buildInfoInputPath, buildInfoInput, buildInfoOutputPath, buildInfoOutput, buildInfoId: id };
+function toFunctionSelector(functionSignature: string | undefined) {
+  if (!functionSignature) return undefined;
+  const hash = keccak_256(utf8ToBytes(functionSignature));
+  return bytesToHex(hash).slice(0, 8);
 }
 
 function getLines(location: string, decodeSrc: SrcDecoder) {
@@ -225,19 +205,5 @@ function getLines(location: string, decodeSrc: SrcDecoder) {
   } catch (e: unknown) {
     debug(`Location not found: ${location}: ${e}`);
     return { lineStart: -1, lineEnd: -1, source: '' };
-  }
-}
-
-//*************************************** TYPE GUARDS ***************************************//
-
-function assertBuildInfoInput(file: any): asserts file is SolidityBuildInfo {
-  if (file['_format'] !== 'hh3-sol-build-info-1') {
-    throw new Error(`Invalid build info format. Expected 'hh3-sol-build-info-1', got '${file['_format']}'`);
-  }
-}
-
-function assertBuildInfoOutput(file: any): asserts file is SolidityBuildInfoOutput {
-  if (file['_format'] !== 'hh3-sol-build-info-output-1') {
-    throw new Error(`Invalid build info format. Expected 'hh3-sol-build-info-output-1', got '${file['_format']}'`);
   }
 }
