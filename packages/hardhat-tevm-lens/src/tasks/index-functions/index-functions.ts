@@ -2,23 +2,11 @@ import type { BuildInfoPair } from './build-info-pairs';
 import type { FunctionData, FunctionEntryIndexes } from './types';
 import { type ASTDereferencer, astDereferencer, type SrcDecoder, srcDecoder } from 'solidity-ast/utils.js'; // force common.js
 import { hardhatConvertFromSourceInputToContractFQN, isNotUndefined, trySync } from '../../utils';
-import type { FunctionDefinition } from 'solidity-ast';
+import { type FunctionDefinition, type VariableDeclaration } from 'solidity-ast';
 import type { CompilerOutputBytecode } from 'hardhat/types/solidity';
 import { keccak_256 } from '@noble/hashes/sha3.js';
 import { bytesToHex, utf8ToBytes } from '@noble/hashes/utils.js';
 import { debug } from './_debug';
-import {
-  ASTNode,
-  ASTReader,
-  ASTWriter,
-  DefaultASTWriterMapping,
-  LatestCompilerVersion,
-  PrettyFormatter,
-  SourceUnit,
-  FunctionDefinition as FunctionDefinition2,
-} from 'solc-typed-ast';
-import { DataLocation } from 'solc-typed-ast/dist/ast/constants';
-import { ElementaryTypeName } from 'solc-typed-ast/dist/ast/implementation/type/elementary_type_name';
 
 //*************************************** TYPES ***************************************//
 
@@ -50,9 +38,6 @@ export function createFunctionIndexes(
 
   const decodeSrc = srcDecoder(buildInfoInput.input, buildInfoOutput.output);
 
-  const reader = new ASTReader();
-  const sourceUnits = reader.read(buildInfoOutput.output);
-
   for (const [inputSourceName, contractsData] of Object.entries(contracts)) {
     for (const [contractName, contractData] of Object.entries(contractsData)) {
       const contractFQN = hardhatConvertFromSourceInputToContractFQN(`${inputSourceName}:${contractName}`);
@@ -62,16 +47,14 @@ export function createFunctionIndexes(
         contractFQN,
         contractData.evm?.deployedBytecode?.functionDebugData,
         decodeSrc,
-        deref,
-        sourceUnits
+        deref
       );
 
       const bytecodeFunctionData = convertToFunctionData(
         contractFQN,
         contractData.evm?.bytecode?.functionDebugData,
         decodeSrc,
-        deref,
-        sourceUnits
+        deref
       );
 
       if (deployedBytecodeFunctionData) functionEntryIndexes.push(...deployedBytecodeFunctionData);
@@ -84,8 +67,7 @@ function convertToFunctionData(
   contractFQN: string,
   functionDebugData: CompilerOutputBytecode['functionDebugData'],
   decodeSrc: SrcDecoder,
-  deref: ASTDereferencer,
-  sourceUnits: SourceUnit[]
+  deref: ASTDereferencer
 ) {
   if (!functionDebugData) return undefined;
 
@@ -108,12 +90,11 @@ function convertToFunctionData(
         return undefined;
       }
 
-      const node2 = findNodeById(sourceUnits, node.id);
-      const functionInterfaceDecode = toFunctionInterfaceDecode(node2?.targetNode);
-      const functionSelector =
-        (node.functionSelector ?? (node.visibility === 'external' || node.visibility === 'public'))
-          ? toFunctionSelector(toFunctionSignature(node))
-          : undefined;
+      const functionHumanReadableABI = toHumanReadableAbi(node, deref);
+      let functionSelector = node.functionSelector;
+      if (!functionSelector && (node.visibility === 'external' || node.visibility === 'public')) {
+        functionSelector = toFunctionSelector(toFunctionSignature(node));
+      }
 
       const newFunctionData: FunctionData = {
         nameOrKind: node.name ? node.name : node.kind,
@@ -121,7 +102,7 @@ function convertToFunctionData(
         kind: node.kind,
         visibility: node.visibility,
         stateMutability: node.stateMutability,
-        functionInterfaceDecode,
+        functionHumanReadableABI,
         functionSelector,
         src: node.src,
         lineStart,
@@ -182,44 +163,110 @@ function getLines(location: string, decodeSrc: SrcDecoder) {
   }
 }
 
-function toFunctionInterfaceDecode(node: ASTNode | undefined) {
+function toHumanReadableAbi(node: FunctionDefinition | undefined, deref: ASTDereferencer) {
   if (!node) return undefined;
+  const functionNameOrKind = node.name == '' ? node.kind : node.name;
 
-  const formatter = new PrettyFormatter(4, 0);
-  const writer = new ASTWriter(DefaultASTWriterMapping, formatter, LatestCompilerVersion);
-  if (node instanceof FunctionDefinition2) {
-    delete node.vBody;
+  const functionParams: string[] = [];
+  node.parameters.parameters.forEach((varDeclaration) => {
+    // replace storage variables with uint256
+    if (varDeclaration.storageLocation === 'storage') {
+      const param = `uint256 ${varDeclaration.name}`;
+      functionParams.push(param);
+    } else {
+      const param = getParametersForFunctionInterface(varDeclaration, deref);
+      functionParams.push(param);
+    }
+  });
 
-    node.vParameters.vParameters.forEach((param) => {
-      if (param.storageLocation === 'storage') {
-        param.storageLocation = DataLocation.Default;
-        param.typeString = 'uint256';
-        param.typeIdentifier = 't_uint256';
-        param.vType = new ElementaryTypeName(param.id, param.src, 'uint256', 't_uint256', 'uint256');
-      }
-    });
+  const functionReturn: string[] = [];
+  node.returnParameters.parameters.forEach((varDeclaration) => {
+    const param = getParametersForFunctionInterface(varDeclaration, deref);
+    functionReturn.push(param);
+  });
 
-    return writer.write(node);
+  let returns = '';
+  if (functionReturn.length > 0) {
+    returns = ` returns (${functionReturn.join(', ')})`;
   }
-  return undefined;
+
+  return `function ${functionNameOrKind}(${functionParams.join(', ')})${returns}`;
 }
 
-function findNodeById(
-  sourceUnits: SourceUnit[],
-  targetId: number
-): { targetNode: ASTNode; targetSourceUnit: SourceUnit } | undefined {
-  let targetNode: ASTNode | undefined = undefined;
-  let targetSourceUnit: SourceUnit | undefined = undefined;
+function getParametersForFunctionInterface(params: VariableDeclaration, deref: ASTDereferencer): string {
+  const returnParams: string[] = [];
 
-  for (const sourceUnit of sourceUnits) {
-    sourceUnit.walk((node) => {
-      if (node.id === targetId) {
-        targetNode = node;
-        targetSourceUnit = sourceUnit;
+  function formatType(typeNode: any): string {
+    if (!typeNode) return 'unknown';
+
+    switch (typeNode.nodeType) {
+      case 'ElementaryTypeName':
+        return typeNode.name;
+
+      case 'ArrayTypeName': {
+        const base = formatType(typeNode.baseType);
+        let suffix = '[]';
+        if (typeNode.length) {
+          if (typeNode.length.nodeType === 'NumberLiteral' && typeNode.length.number !== undefined) {
+            suffix = `[${typeNode.length.number}]`;
+          } else if (typeNode.length.value !== undefined) {
+            suffix = `[${typeNode.length.value}]`;
+          }
+        }
+        return `${base}${suffix}`;
       }
-    });
-    if (targetNode) break;
+
+      case 'UserDefinedTypeName': {
+        const ref = deref('*', typeNode.referencedDeclaration);
+
+        if (!ref) return 'tuple';
+
+        if (ref.nodeType === 'StructDefinition') {
+          const members = ref.members
+            .map((m: any) => {
+              const t = formatType(m.typeName);
+              return `${t}${m.name ? ` ${m.name}` : ''}`;
+            })
+            .join(', ');
+          return `(${members})`;
+        }
+
+        if (ref.nodeType === 'EnumDefinition') {
+          return 'uint8';
+        }
+
+        return 'tuple';
+      }
+
+      case 'TupleTypeName': {
+        const comps = (typeNode.components || [])
+          .map((c: any) => {
+            const t = formatType(c.typeName);
+            return `${t}${c.name ? ` ${c.name}` : ''}`;
+          })
+          .join(', ');
+        return `(${comps})`;
+      }
+
+      default:
+        if (typeNode.typeDescriptions?.typeString) {
+          return typeNode.typeDescriptions.typeString;
+        }
+        return 'unknown';
+    }
   }
-  if (!targetNode || !targetSourceUnit) return undefined;
-  return { targetNode, targetSourceUnit };
+
+  // --- build the parameter string ---
+  const typeStr = formatType(params.typeName);
+  returnParams.push(typeStr);
+
+  if (params.storageLocation && params.storageLocation !== 'default') {
+    returnParams.push(params.storageLocation);
+  }
+
+  if (params.name !== '') {
+    returnParams.push(params.name);
+  }
+
+  return returnParams.join(' ');
 }
