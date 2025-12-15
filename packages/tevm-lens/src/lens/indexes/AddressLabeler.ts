@@ -2,7 +2,7 @@ import type { Address } from '../types/artifact.ts';
 
 type DeployedContractFQN = string;
 
-export class DeploymentTracer {
+export class AddressLabeler {
   public readonly addressLabel: Map<Address, DeployedContractFQN> = new Map();
 
   public markContractAddress(address: Address, contractFQN: string): void {

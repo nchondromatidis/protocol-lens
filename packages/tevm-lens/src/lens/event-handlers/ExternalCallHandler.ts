@@ -1,17 +1,18 @@
 import { HandlerBase } from './HandlerBase.ts';
 import type { Message } from 'tevm/actions';
 import { type Abi, bytesToHex } from 'viem';
-import type { FunctionCallEvent } from '../callTracer/LensCallTracerResult.ts';
+import type { FunctionCallEvent } from '../tx-tracer/TxTrace.ts';
 import type { Address } from '../types/artifact.ts';
 import { InvariantError } from '../../common/errors.ts';
 import {
   decodeFunctionCallMultipleAbis,
   decodeFunctionCallWithFunctionIndexes,
-} from '../decoders/functionCallDecoder.ts';
+} from '../abi-decoders/functionCallDecoder.ts';
 import { QueryBy } from '../indexes/FunctionIndexesRegistry.ts';
 
+// Handles opcodes: 'CALL' | 'DELEGATECALL' | 'STATICCALL' | 'CREATE' | 'CREATE2'
 export class ExternalCallHandler extends HandlerBase {
-  public async handleFunctionCall(callEvent: Message) {
+  public async handle(callEvent: Message) {
     // base function call object
     const callData = bytesToHex(callEvent.data);
     const functionCallEvent: FunctionCallEvent = {
@@ -21,7 +22,7 @@ export class ExternalCallHandler extends HandlerBase {
       depth: callEvent.depth,
       rawData: callData,
       value: callEvent.value,
-      callType: 'UNKNOWN',
+      callType: 'EXTERNAL',
       precompile: callEvent.isCompiled,
     };
 
@@ -47,7 +48,7 @@ export class ExternalCallHandler extends HandlerBase {
     if (callEvent.to) {
       functionCallEvent.callType = 'CALL';
       if (callEvent.isStatic) functionCallEvent.callType = 'STATICCALL';
-      const contractFQN = this.deployedContracts.getContractFqnForAddress(callEvent.to.toString());
+      const contractFQN = this.addressLabeler.getContractFqnForAddress(callEvent.to.toString());
       functionCallEvent.contractFQN = contractFQN;
       const { contractAbi, linkLibraries } = this.debugMetadata.artifacts.getAllAbisRelatedTo(contractFQN);
       // called contract
@@ -63,14 +64,14 @@ export class ExternalCallHandler extends HandlerBase {
       functionCallEvent.callType = 'DELEGATECALL';
 
       // delegate call caller contract
-      functionCallEvent.contractFQN = this.deployedContracts.getContractFqnForAddress(callEvent.to.toString());
+      functionCallEvent.contractFQN = this.addressLabeler.getContractFqnForAddress(callEvent.to.toString());
 
       // callEvent type missing _codeAddress, but implementation has it
       const codeAddress = (callEvent as any)['_codeAddress'].toString() as Address;
       if (!codeAddress) throw new InvariantError('codeAddress is empty', { callEvent, functionCallEvent });
 
       // delegate call implementation contract
-      const implContractFQN = this.deployedContracts.getContractFqnForAddress(codeAddress);
+      const implContractFQN = this.addressLabeler.getContractFqnForAddress(codeAddress);
       functionCallEvent.implContractFQN = implContractFQN;
       functionCallEvent.implAddress = codeAddress;
 

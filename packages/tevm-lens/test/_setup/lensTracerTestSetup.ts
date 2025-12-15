@@ -3,16 +3,16 @@ import { buildClient } from '../../src/lens/client.ts';
 import { TestResourceLoader } from './TestResourceLoader.ts';
 import type { ArtifactMap, FunctionEntryIndexes, ProtocolName } from './artifacts';
 import { DebugMetadata } from '../../src/lens/indexes/DebugMetadata.ts';
-import { DeploymentTracer } from '../../src/lens/callTracer/DeploymentTracer.ts';
-import { LensCallTracer } from '../../src/lens/callTracer/LensCallTracer.ts';
+import { AddressLabeler } from '../../src/lens/indexes/AddressLabeler.ts';
+import { TxTracer } from '../../src/lens/tx-tracer/TxTracer.ts';
 import { LensClient } from '../../src/lens/LensClient.ts';
 import { tevmSetAccount } from 'tevm';
 import { ETHER_1 } from './utils/constants.ts';
 import { ArtifactsProvider } from '../../src/lens/indexes/ArtifactsProvider.ts';
 import { FunctionIndexesRegistry } from '../../src/lens/indexes/FunctionIndexesRegistry.ts';
-import { ExternalCallHandler } from '../../src/lens/handlers/ExternalCallHandler.ts';
-import { ExternalCallResultHandler } from '../../src/lens/handlers/ExternalCallResultHandler.ts';
-import { InternalCallHandler } from '../../src/lens/handlers/InternalCallHandler.ts';
+import { ExternalCallHandler } from '../../src/lens/event-handlers/ExternalCallHandler.ts';
+import { ExternalCallResultHandler } from '../../src/lens/event-handlers/ExternalCallResultHandler.ts';
+import { OpcodesCallHandler } from '../../src/lens/event-handlers/OpcodesCallHandler.ts';
 
 export async function lensTracerTestSetup<ProjectNameT extends ProtocolName, RootT extends string>(
   projectName: ProjectNameT,
@@ -29,16 +29,16 @@ export async function lensTracerTestSetup<ProjectNameT extends ProtocolName, Roo
   const functionIndexesRegistry = new FunctionIndexesRegistry();
   const debugMetadata = new DebugMetadata(artifactsProvider, functionIndexesRegistry);
 
-  const deploymentTracer = new DeploymentTracer();
-  const externalCallHandler = new ExternalCallHandler(debugMetadata, deploymentTracer);
-  const externalCallResultHandler = new ExternalCallResultHandler(debugMetadata, deploymentTracer);
-  const internalCallHandler = new InternalCallHandler(debugMetadata, deploymentTracer);
-  const tracer = new LensCallTracer(externalCallHandler, externalCallResultHandler, internalCallHandler);
+  const addressLabeler = new AddressLabeler();
+  const externalCallHandler = new ExternalCallHandler(debugMetadata, addressLabeler);
+  const externalCallResultHandler = new ExternalCallResultHandler(debugMetadata, addressLabeler);
+  const internalCallHandler = new OpcodesCallHandler(debugMetadata, addressLabeler);
+  const tracer = new TxTracer(externalCallHandler, externalCallResultHandler, internalCallHandler);
 
   const lensClient = new LensClient<ArtifactMap, ProtocolName, ProjectNameT, RootT>(
     client,
     debugMetadata,
-    deploymentTracer,
+    addressLabeler,
     tracer
   );
 

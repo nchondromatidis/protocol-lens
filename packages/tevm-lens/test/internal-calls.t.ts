@@ -36,14 +36,50 @@ describe('internal-calls', () => {
     getTracedTx = getTracedTxFactory(lensClient);
   });
 
+  test('debug_traceTransaction.structLogs', async () => {
+    await lensClient.contract(callerContract, 'mixedCall', [2n]);
+    const txHash = lensClient.txTracer.succeededTxs.keys().next().value;
+    const callTraceResult = await lensClient.client.transport.tevm.request({
+      method: 'debug_traceTransaction',
+      params: [
+        {
+          transactionHash: txHash,
+          tracer: 'structLogs',
+          tracerConfig: {
+            enableMemory: true,
+          },
+        },
+      ],
+    });
+
+    // fs.writeFileSync('./structLogs.json', JSON.stringify(callTraceResult, null, 2), 'utf8');
+    console.log(callTraceResult);
+  });
+
+  test.skip('debug_traceTransaction.callTracer', async () => {
+    await lensClient.contract(callerContract, 'mixedCall', [2n]);
+    const txHash = lensClient.txTracer.succeededTxs.keys().next().value;
+    const callTraceResult = await lensClient.client.transport.tevm.request({
+      method: 'debug_traceTransaction',
+      params: [
+        {
+          transactionHash: txHash,
+          tracer: 'callTracer',
+          tracerConfig: { onlyTopCall: false },
+        },
+      ],
+    });
+
+    console.log(callTraceResult);
+  });
+
   test('callPublicInternallyAndExternally', async () => {
-    const result = await lensClient.contract(callerContract, 'callPublicInternallyAndExternally', [2n]);
+    const result = await lensClient.contract(callerContract, 'mixedCall', [2n]);
     inspect(getTracedTx.success(result));
   }, 999999);
 
   test('callInternalAndPrivate2', async () => {
-    // todo wrong abi: callInternalAndPrivate2
-    const result = await lensClient.contract(callerContract, 'callInternalAndPrivate', []);
+    const result = await lensClient.contract(callerContract, 'callAnotherContract', []);
     inspect(getTracedTx.success(result));
     inspect(getTracedTx.failed(0));
   }, 999999);

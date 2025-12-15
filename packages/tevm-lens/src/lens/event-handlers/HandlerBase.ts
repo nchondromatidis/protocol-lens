@@ -1,9 +1,9 @@
 import { DebugMetadata } from '../indexes/DebugMetadata.ts';
-import { DeploymentTracer } from '../callTracer/DeploymentTracer.ts';
+import { AddressLabeler } from '../indexes/AddressLabeler.ts';
 
 export abstract class HandlerBase {
   constructor(
     protected readonly debugMetadata: DebugMetadata,
-    protected readonly deployedContracts: DeploymentTracer
+    protected readonly addressLabeler: AddressLabeler
   ) {}
 }

@@ -1,28 +1,30 @@
 import type { Message } from 'tevm/actions';
-import type { EvmResult } from 'tevm/evm';
+import type { EvmResult, InterpreterStep } from 'tevm/evm';
 import { InvariantError } from '../../common/errors.ts';
-import { LensCallTracerResult } from './LensCallTracerResult.ts';
+import { TxTrace } from './TxTrace.ts';
 import { type Hex } from '../types/artifact.ts';
-import { ExternalCallHandler } from '../handlers/ExternalCallHandler.ts';
-import { ExternalCallResultHandler } from '../handlers/ExternalCallResultHandler.ts';
+import { ExternalCallHandler } from '../event-handlers/ExternalCallHandler.ts';
+import { ExternalCallResultHandler } from '../event-handlers/ExternalCallResultHandler.ts';
+import { OpcodesCallHandler } from '../event-handlers/OpcodesCallHandler.ts';
 
 type TempTxId = string;
 type TxId = Hex;
 
-export class LensCallTracer {
-  public readonly tracingTxs: Map<string, LensCallTracerResult> = new Map();
-  public readonly succeededTxs: Map<TxId, LensCallTracerResult> = new Map();
-  public readonly failedTxs: Map<TempTxId, LensCallTracerResult> = new Map();
+export class TxTracer {
+  public readonly tracingTxs: Map<string, TxTrace> = new Map();
+  public readonly succeededTxs: Map<TxId, TxTrace> = new Map();
+  public readonly failedTxs: Map<TempTxId, TxTrace> = new Map();
 
   constructor(
     private readonly externalCallHandler: ExternalCallHandler,
-    private readonly externalCallResultHandler: ExternalCallResultHandler
+    private readonly externalCallResultHandler: ExternalCallResultHandler,
+    private readonly opcodesCallHandler: OpcodesCallHandler
   ) {}
 
   //** Start-Stop tracing **/
 
   public startTracing(tempId: string) {
-    const txTrace = new LensCallTracerResult();
+    const txTrace = new TxTrace();
     this.tracingTxs.set(tempId, txTrace);
   }
 
@@ -47,21 +49,28 @@ export class LensCallTracer {
 
   //** Event Handlers **/
 
-  public async handleFunctionCall(callEvent: Message, tempId: string): Promise<void> {
+  public async handleExternalCall(callEvent: Message, tempId: string): Promise<void> {
     const tempIdTxTrace = this.getTracingTx(tempId);
-    const functionCallEvent = await this.externalCallHandler.handleFunctionCall(callEvent);
+    const functionCallEvent = await this.externalCallHandler.handle(callEvent);
     tempIdTxTrace.addFunctionCall(functionCallEvent);
   }
 
-  public async handleFunctionResult(resultEvent: EvmResult, tempId: string) {
+  public async handleExternalCallResult(resultEvent: EvmResult, tempId: string) {
     const tempIdTxTrace = this.getTracingTx(tempId);
-    const functionCallEvent = tempIdTxTrace.getCurrentFunctionCallEvent();
-    const functionResultEvent = await this.externalCallResultHandler.handleFunctionResult(
+    const parentFunctionCallEvent = tempIdTxTrace.getCurrentFunctionCallEvent();
+    const functionResultEvent = await this.externalCallResultHandler.handle(
       resultEvent,
       tempId,
-      functionCallEvent
+      parentFunctionCallEvent
     );
     tempIdTxTrace.addResult(functionResultEvent);
+  }
+
+  public async handleInternalCall(stepEvent: InterpreterStep, tempId: string) {
+    const tempIdTxTrace = this.getTracingTx(tempId);
+    const parentFunctionCallEvent = tempIdTxTrace.getCurrentFunctionCallEvent();
+    const newFunctionCallEvent = await this.opcodesCallHandler.handle(stepEvent, parentFunctionCallEvent);
+    if (newFunctionCallEvent) tempIdTxTrace.addFunctionCall(newFunctionCallEvent);
   }
 
   //** Helper Functions **/

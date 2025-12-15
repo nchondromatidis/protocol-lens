@@ -1,8 +1,9 @@
 import { InvariantError } from '../../common/errors.ts';
 import type { Address, Hex } from '../types/artifact.ts';
 
-type Unknown = 'UNKNOWN';
-type CallTypes = 'CALL' | 'DELEGATECALL' | 'STATICCALL' | 'CREATE' | 'CREATE2';
+type External = 'EXTERNAL';
+type InternalCallTypes = 'INTERNAL';
+type ExternalCallTypes = 'CALL' | 'DELEGATECALL' | 'STATICCALL' | 'CREATE' | 'CREATE2';
 // TODO: conditional types: eg FunctionCallEvent.to is only undefined when callType equals ('CREATE' || 'CREATE2')
 export type FunctionCallEvent = {
   type: 'FunctionCallEvent';
@@ -11,7 +12,7 @@ export type FunctionCallEvent = {
   depth: number;
   rawData: Hex;
   value: bigint;
-  callType: Unknown | CallTypes;
+  callType: External | ExternalCallTypes | InternalCallTypes;
   precompile: boolean;
   implContractFQN?: string;
   implAddress?: Address;
@@ -53,7 +54,7 @@ export type LensLog = {
   functionType?: string;
 };
 
-export class LensCallTracerResult {
+export class TxTrace {
   public rootFunction?: FunctionCallEvent;
   private stack: FunctionCallEvent[] = [];
 

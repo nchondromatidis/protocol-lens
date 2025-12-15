@@ -12,8 +12,8 @@ import type { ContractResult, Message } from 'tevm/actions';
 import type { EvmResult } from 'tevm/evm';
 import { randomId } from '../common/utils.ts';
 import { DebugMetadata } from './indexes/DebugMetadata.ts';
-import { DeploymentTracer } from './callTracer/DeploymentTracer.ts';
-import { LensCallTracer } from './callTracer/LensCallTracer.ts';
+import { AddressLabeler } from './indexes/AddressLabeler.ts';
+import { TxTracer } from './tx-tracer/TxTracer.ts';
 import { InvalidArgument, InvariantError } from '../common/errors.ts';
 import type { Address, Hex, LensArtifactsMap, LensProjects } from './types/artifact.ts';
 import type { InterpreterStep } from 'tevm/evm';
@@ -36,8 +36,8 @@ export class LensClient<
   constructor(
     public readonly client: Client<TevmTransport>,
     public readonly debugMetadata: DebugMetadata,
-    public readonly deployedContracts: DeploymentTracer,
-    public readonly callDecodeTracer: LensCallTracer
+    public readonly addressLabeler: AddressLabeler,
+    public readonly txTracer: TxTracer
   ) {}
 
   async deploy<ContractFQNT extends keyof LensArtifactsMapT & string>(
@@ -58,7 +58,7 @@ export class LensClient<
       args: args as unknown[],
     });
     if (!deployResult.createdAddress) throw new InvariantError('createdAddress missing after deploy');
-    this.deployedContracts.markContractAddress(deployResult.createdAddress, contractFQN);
+    this.addressLabeler.markContractAddress(deployResult.createdAddress, contractFQN);
     return deployResult;
   }
 
@@ -74,7 +74,7 @@ export class LensClient<
     traceTx = true
   ): Promise<ContractResult<TAbi, TFunctionName>> {
     const tempId = randomId();
-    if (traceTx) this.callDecodeTracer.startTracing(tempId);
+    if (traceTx) this.txTracer.startTracing(tempId);
     const contractTxResult = await tevmContract(this.client, {
       to: contract.address,
       code: undefined,
@@ -84,30 +84,32 @@ export class LensClient<
       functionName: functionName,
       args: args,
       throwOnFail: false,
-      onStep: async (_event: InterpreterStep, next?: Next) => {
-        // console.log(event.opcode.name, event.stack);
+      onStep: async (event: InterpreterStep, next?: Next) => {
+        // if (traceTx) await this.txTracer.handleInternalCall(event, tempId);
         next?.();
       },
       onBeforeMessage: async (event: Message, next?: Next) => {
-        if (traceTx) await this.callDecodeTracer.handleFunctionCall(event, tempId);
+        if (traceTx) await this.txTracer.handleExternalCall(event, tempId);
         next?.();
       },
       onAfterMessage: async (event: EvmResult, next?: Next) => {
-        if (traceTx) await this.callDecodeTracer.handleFunctionResult(event, tempId);
+        if (traceTx) await this.txTracer.handleExternalCallResult(event, tempId);
         next?.();
       },
     });
     if (contractTxResult.errors) {
-      if (traceTx) this.callDecodeTracer.stopTracingFailed(tempId, tempId);
+      if (traceTx) this.txTracer.stopTracingFailed(tempId, tempId);
     } else {
-      if (traceTx) this.callDecodeTracer.stopTracingSuccess(contractTxResult.txHash, tempId);
+      if (traceTx) this.txTracer.stopTracingSuccess(contractTxResult.txHash, tempId);
     }
 
     return contractTxResult;
   }
 
-  async getContract<ContractFqnT extends keyof LensArtifactsMapT & string>(address: Hex, contractFQN: ContractFqnT) {
-    const contractAbi = this.debugMetadata.artifacts.getArtifactAbi(contractFQN);
+  getContract<ContractFqnT extends keyof LensArtifactsMapT & string>(address: Hex, contractFQN: ContractFqnT) {
+    const contractAbi = this.debugMetadata.artifacts.getArtifactAbi(
+      contractFQN
+    ) as LensArtifactsMapT[ContractFqnT]['abi'];
     if (!contractAbi) throw new InvalidArgument(`Artifact for ${contractFQN} not found.`);
 
     return getContract({

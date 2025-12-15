@@ -96,8 +96,9 @@ function convertToFunctionData(
         functionSelector = toFunctionSelector(toFunctionSignature(node));
       }
 
+      const nameOrKind = node.name ? node.name : node.kind;
       const newFunctionData: FunctionData = {
-        nameOrKind: node.name ? node.name : node.kind,
+        nameOrKind,
         name: node.name,
         kind: node.kind,
         visibility: node.visibility,
@@ -193,6 +194,7 @@ function toHumanReadableAbi(node: FunctionDefinition | undefined, deref: ASTDere
   return `function ${functionNameOrKind}(${functionParams.join(', ')})${returns}`;
 }
 
+// AI generated
 function getParametersForFunctionInterface(params: VariableDeclaration, deref: ASTDereferencer): string {
   const returnParams: string[] = [];
 

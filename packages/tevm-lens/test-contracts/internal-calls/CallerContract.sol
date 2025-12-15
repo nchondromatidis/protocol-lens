@@ -1,0 +1,48 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "./CalleeContract.sol";
+
+contract CallerContract {
+    event Log(string message, uint256 value);
+
+    CalleeContract public callee;
+
+    constructor(address payable _calleeAddress) {
+        callee = CalleeContract(_calleeAddress);
+    }
+
+    function mixedCall(uint256 input) external returns (uint256){
+        uint256 a = publicFunction(input);
+        uint256 c = internalFunction(input);
+        internalFunction2();
+        uint256 d = this.publicFunction(input);
+        return a + c + d;
+    }
+
+    function internalFunction(uint256 input) internal returns (uint256) {
+        uint256 result = privateFunction(input);
+        emit Log("internalFunction called", 0);
+        return result+ input;
+    }
+
+    function internalFunction2() internal view {
+        require(address(callee) != address(0));
+    }
+
+    function privateFunction(uint256 input) private returns (uint256) {
+        emit Log("privateFunction called", 0);
+        return input;
+    }
+
+
+    function publicFunction(uint256 input) public view returns (uint256){
+        return input + 3;
+    }
+
+    function callAnotherContract() public returns (uint256) {
+        uint256 a = callee.callInternalAndPrivate2();
+        emit Log("callInternalAndPrivate called", 0);
+        return a;
+    }
+}

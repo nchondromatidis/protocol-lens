@@ -10,15 +10,15 @@ export function getTracedTxFactory(lensClient: LensClient<any, any, any, any>) {
   return {
     success: (contractTxResult: ContractResult, log: boolean = false) => {
       if (!contractTxResult?.txHash) return undefined;
-      const rootFunction = lensClient.tracer.succeededTxs.get(contractTxResult.txHash)?.rootFunction;
+      const rootFunction = lensClient.txTracer.succeededTxs.get(contractTxResult.txHash)?.rootFunction;
       if (log) inspect(rootFunction);
       return rootFunction;
     },
     failed: (ordinalNumber: number = 0, log: boolean = false) => {
-      const tempIds = [...lensClient.tracer.failedTxs.keys()];
+      const tempIds = [...lensClient.txTracer.failedTxs.keys()];
       const targetTempId = tempIds[ordinalNumber];
       if (!targetTempId) return undefined;
-      const rootFunction = lensClient.tracer.failedTxs.get(targetTempId)?.rootFunction;
+      const rootFunction = lensClient.txTracer.failedTxs.get(targetTempId)?.rootFunction;
       if (log) inspect(rootFunction);
       return rootFunction;
     },

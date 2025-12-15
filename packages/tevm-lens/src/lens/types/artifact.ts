@@ -59,6 +59,8 @@ export type LensFunctionIndex = {
   lineEnd: number;
   source: string;
   contractFQN: string;
+  pc: number;
+  visibility: 'external' | 'public' | 'internal' | 'private';
 };
 
 export type LensSourceFunctionIndexes = Array<LensFunctionIndex>;
