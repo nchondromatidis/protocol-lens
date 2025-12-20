@@ -3,47 +3,60 @@ import { HandlerBase } from './HandlerBase.ts';
 import type { InterpreterStep } from 'tevm/evm';
 import { QueryBy } from '../indexes/FunctionIndexesRegistry.ts';
 import type { FunctionCallEvent } from '../tx-tracer/TxTrace.ts';
-import type { FunctionCallEventHandlers, PC, RuntimeTraceMetadata } from './trace-metadata.ts';
+import type { PC, RuntimeTraceMetadata } from './trace-metadata.ts';
+import type { Address } from '../types/artifact.ts';
+import { safeBigIntToNumber } from '../../common/utils.ts';
 
 // Handles JUMPDEST opcode with PC that is a function entry (taken from solidity.output.contracts.evm...functionDebugData)
 export class FunctionEntryHandler extends HandlerBase {
   public async handle(
     stepEvent: InterpreterStep,
     executionContext: RuntimeTraceMetadata['executionContext'],
-    parentFunctionCallEvent: FunctionCallEvent,
-    parentFunctionCallEventHandler?: FunctionCallEventHandlers
-  ): Promise<{ functionCallEvent?: FunctionCallEvent; pc?: PC }> {
-    let contractAddress = stepEvent.address.toString();
-    const functionCallExecutionContext = executionContext.get(stepEvent.depth)!;
+    parentFunctionCallEvent: FunctionCallEvent
+  ): Promise<{ functionCallEvent: FunctionCallEvent; functionExitPc: PC; contractAddress: Address } | undefined> {
+    if (stepEvent.opcode.name !== 'JUMPDEST') return undefined;
 
-    if (functionCallExecutionContext.callType === 'DELEGATECALL')
-      contractAddress = functionCallExecutionContext.implAddress!;
+    // identify contract and function using contract address and pc
+    let contractAddress = stepEvent.address.toString();
+    const currentDepthExecutionContext = executionContext.get(stepEvent.depth)!;
+
+    if (currentDepthExecutionContext.functionCallEvent.callType === 'DELEGATECALL')
+      contractAddress = currentDepthExecutionContext.functionCallEvent.implAddress!;
 
     const contractFQN = this.addressLabeler.getContractFqnForAddress(contractAddress);
-    if (!contractFQN) return { functionCallEvent: undefined, pc: undefined };
+    if (!contractFQN) return undefined;
 
     const functionData = this.debugMetadata.functions.getBy(QueryBy.contractFqnAndPC(contractFQN, stepEvent.pc));
-    if (!functionData) return { functionCallEvent: undefined, pc: undefined };
+    if (!functionData) return undefined;
 
     // console.log('---------------------------------------------------------------------');
     // console.log(stepEvent.address.toString(), stepEvent.pc, stepEvent.depth);
     // console.log('functionData', contractFQN, stepEvent.pc, functionData.contractFQN, functionData.nameOrKind);
 
-    if (
-      parentFunctionCallEventHandler &&
-      parentFunctionCallEventHandler.externalCallHandler &&
-      !parentFunctionCallEventHandler.opcodesCallHandler
-    ) {
-      // already abi registered by external call opcodes, skip adding first
-      parentFunctionCallEventHandler.opcodesCallHandler = true;
-      const pc = stepEvent.stack[functionData.parameterSlots];
-      return { functionCallEvent: undefined, pc };
+    // the first JUMPDEST on a new context must match external call calldata
+    if (!executionContext.get(stepEvent.depth)!.isJumpDestReached) {
+      const isJumpDestReached =
+        functionData.contractFQN === parentFunctionCallEvent.contractFQN &&
+        functionData.name == parentFunctionCallEvent.functionName &&
+        functionData.kind === parentFunctionCallEvent.functionType;
+      if (isJumpDestReached) {
+        executionContext.get(stepEvent.depth)!.isJumpDestReached = true;
+        const functionExitPc = safeBigIntToNumber(stepEvent.stack[functionData.parameterSlots]);
+
+        return {
+          functionCallEvent: parentFunctionCallEvent,
+          functionExitPc,
+          contractAddress,
+        };
+      }
+      return undefined;
     }
 
+    // handle internal calls
     const functionCallEvent: FunctionCallEvent = {
       type: 'FunctionCallEvent',
       to: stepEvent.address.toString(),
-      from: parentFunctionCallEvent.from,
+      from: executionContext.get(stepEvent.depth)!.functionCallEvent.from,
       depth: stepEvent.depth,
       rawData: '0x',
       value: 0n,
@@ -59,8 +72,8 @@ export class FunctionEntryHandler extends HandlerBase {
       implAddress: parentFunctionCallEvent.implAddress,
     };
 
-    const pc = stepEvent.stack[functionData.parameterSlots];
+    const functionExitPc = safeBigIntToNumber(stepEvent.stack[functionData.parameterSlots]);
 
-    return { functionCallEvent, pc };
+    return { functionCallEvent, functionExitPc, contractAddress };
   }
 }

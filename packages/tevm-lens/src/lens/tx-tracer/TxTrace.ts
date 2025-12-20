@@ -57,15 +57,13 @@ export type LensLog = {
 export class TxTrace {
   public rootFunction?: FunctionCallEvent;
   private stack: FunctionCallEvent[] = [];
-  private latestFunctionCallEvent: FunctionCallEvent | undefined;
 
   public addFunctionCall(event: FunctionCallEvent) {
-    this.latestFunctionCallEvent = event;
     // Ensure event shape and defaults
     event.called = event.called ?? [];
     event.result = event.result ?? undefined;
 
-    const parent = this.getLatestFunctionCallEventWithoutResult();
+    const parent = this.getLatestFunctionCallEvent();
 
     if (!this.rootFunction) {
       this.rootFunction = event;
@@ -77,7 +75,7 @@ export class TxTrace {
   }
 
   public addResult(event: FunctionResultEvent) {
-    const current = this.getLatestFunctionCallEventWithoutResult();
+    const current = this.getLatestFunctionCallEvent();
     if (!current) {
       throw new InvariantError('Result event raised without function call');
     }
@@ -89,12 +87,8 @@ export class TxTrace {
     this.stack.pop();
   }
 
-  public getLatestFunctionCallEventWithoutResult(): FunctionCallEvent | undefined {
+  public getLatestFunctionCallEvent(): FunctionCallEvent | undefined {
     if (this.stack.length === 0) return undefined;
     return this.stack[this.stack.length - 1];
-  }
-
-  public getLatestFunctionCallEvent(): FunctionCallEvent | undefined {
-    return this.latestFunctionCallEvent;
   }
 }

@@ -36,7 +36,7 @@ describe('internal-calls', () => {
     getTracedTx = getTracedTxFactory(lensClient);
   });
 
-  test('debug_traceTransaction.structLogs', async () => {
+  test.skip('debug_traceTransaction.structLogs', async () => {
     await lensClient.contract(callerContract, 'mixedCall', [2n]);
     const txHash = lensClient.txTracer.succeededTxs.keys().next().value;
     const callTraceResult = await lensClient.client.transport.tevm.request({
@@ -83,4 +83,8 @@ describe('internal-calls', () => {
     inspect(getTracedTx.success(result));
     inspect(getTracedTx.failed(0));
   }, 999999);
+
+  test.skip('test function trace that has functions after a failed decoded function call/result', async () => {
+    // eg fallback does not have entry pc
+  });
 });

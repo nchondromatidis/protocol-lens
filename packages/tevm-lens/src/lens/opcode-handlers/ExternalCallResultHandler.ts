@@ -26,7 +26,7 @@ export class ExternalCallResultHandler extends HandlerBase {
   public readonly decodedLogsTxCache: Map<TempTxId, DecodedLogsCache> = new Map();
   public readonly decodedErrorsTxCache: Map<TempTxId, DecodedErrorsCache> = new Map();
 
-  async handle(resultEvent: EvmResult, tracingId: string, parentFunctionCallEvent: FunctionCallEvent) {
+  async handle(resultEvent: EvmResult, tracingId: string, functionCallEvent: FunctionCallEvent) {
     // base function result object
     const returnData = bytesToHex(resultEvent.execResult.returnValue);
     const functionResultEvent: FunctionResultEvent = {
@@ -42,20 +42,20 @@ export class ExternalCallResultHandler extends HandlerBase {
     const decodeData: Array<ContractLogDecodingData & DecodeFunctionResulData> = [];
 
     // new contract
-    if (parentFunctionCallEvent.callType === 'CREATE' || parentFunctionCallEvent.callType === 'CREATE2') {
+    if (functionCallEvent.callType === 'CREATE' || functionCallEvent.callType === 'CREATE2') {
       if (!resultEvent.createdAddress) {
         throw new InvariantError('CREATE/CREATE2 function call without createdAddress');
       }
       functionResultEvent.isCreate = true;
       functionResultEvent.createdAddress = resultEvent.createdAddress.toString();
-      const createdContractFQN = parentFunctionCallEvent.createdContractFQN;
+      const createdContractFQN = functionCallEvent.createdContractFQN;
       if (createdContractFQN) {
         functionResultEvent.createdContractFQN = createdContractFQN;
 
         const createdContractAbi = this.debugMetadata.artifacts.getArtifactAbi(createdContractFQN);
         decodeData.push({
           contractAddress: functionResultEvent.createdAddress,
-          functionName: parentFunctionCallEvent.functionName,
+          functionName: functionCallEvent.functionName,
           contractFQN: createdContractFQN,
           abi: createdContractAbi,
           contractRole: 'NORMAL',
@@ -67,15 +67,15 @@ export class ExternalCallResultHandler extends HandlerBase {
 
     // call
     if (
-      parentFunctionCallEvent.to &&
-      (parentFunctionCallEvent.callType === 'CALL' || parentFunctionCallEvent.callType === 'STATICCALL')
+      functionCallEvent.to &&
+      (functionCallEvent.callType === 'CALL' || functionCallEvent.callType === 'STATICCALL')
     ) {
-      const contractFQN = parentFunctionCallEvent.contractFQN;
+      const contractFQN = functionCallEvent.contractFQN;
       const contractAbi = this.debugMetadata.artifacts.getArtifactAbi(contractFQN);
       decodeData.push({
-        contractAddress: parentFunctionCallEvent.to,
+        contractAddress: functionCallEvent.to,
         contractFQN: contractFQN,
-        functionName: parentFunctionCallEvent.functionName,
+        functionName: functionCallEvent.functionName,
         abi: contractAbi,
         contractRole: 'NORMAL',
       });
@@ -83,27 +83,27 @@ export class ExternalCallResultHandler extends HandlerBase {
 
     // delegate call
     if (
-      parentFunctionCallEvent.to &&
-      parentFunctionCallEvent.implAddress &&
-      parentFunctionCallEvent.implContractFQN &&
-      parentFunctionCallEvent.callType === 'DELEGATECALL'
+      functionCallEvent.to &&
+      functionCallEvent.implAddress &&
+      functionCallEvent.implContractFQN &&
+      functionCallEvent.callType === 'DELEGATECALL'
     ) {
-      const contractFQN = parentFunctionCallEvent.contractFQN;
+      const contractFQN = functionCallEvent.contractFQN;
       const contractAbi = this.debugMetadata.artifacts.getArtifactAbi(contractFQN);
       decodeData.push({
-        contractAddress: parentFunctionCallEvent.to,
+        contractAddress: functionCallEvent.to,
         contractFQN: contractFQN,
-        functionName: parentFunctionCallEvent.functionName,
+        functionName: functionCallEvent.functionName,
         abi: contractAbi,
         contractRole: 'DELEGATECALL',
       });
 
-      const implContractFQN = parentFunctionCallEvent.implContractFQN;
+      const implContractFQN = functionCallEvent.implContractFQN;
       const implAbi = this.debugMetadata.artifacts.getArtifactAbi(implContractFQN);
       decodeData.push({
-        contractAddress: parentFunctionCallEvent.implAddress,
+        contractAddress: functionCallEvent.implAddress,
         contractFQN: implContractFQN,
-        functionName: parentFunctionCallEvent.functionName,
+        functionName: functionCallEvent.functionName,
         abi: implAbi,
         contractRole: 'IMPLEMENTATION',
       });
@@ -130,10 +130,10 @@ export class ExternalCallResultHandler extends HandlerBase {
 
     // External function call, selector not matching any ABI
     if (!decodedResult) {
-      if (parentFunctionCallEvent.contractFQN && parentFunctionCallEvent.functionName && parentFunctionCallEvent.type) {
-        const contractFQN = parentFunctionCallEvent.implContractFQN ?? parentFunctionCallEvent.contractFQN;
+      if (functionCallEvent.contractFQN && functionCallEvent.functionName && functionCallEvent.type) {
+        const contractFQN = functionCallEvent.implContractFQN ?? functionCallEvent.contractFQN;
         const functionIndex = this.debugMetadata.functions.getBy(
-          QueryBy.contractAndNameOrKind(contractFQN, parentFunctionCallEvent.functionName, parentFunctionCallEvent.type)
+          QueryBy.contractAndNameOrKind(contractFQN, functionCallEvent.functionName, functionCallEvent.type)
         );
 
         functionResultEvent.returnValue = decodeFunctionReturnWithFunctionIndex({ returnData, functionIndex });
@@ -149,8 +149,8 @@ export class ExternalCallResultHandler extends HandlerBase {
 
         const lensLog: LensLog = {
           rawData: rawLog,
-          functionName: parentFunctionCallEvent.functionName,
-          functionType: parentFunctionCallEvent.functionType,
+          functionName: functionCallEvent.functionName,
+          functionType: functionCallEvent.functionType,
           contractFQN: decodedLog?.contractFQN,
           args: decodedLog?.decodedArgs,
           eventName: decodedLog?.decodedEventName,

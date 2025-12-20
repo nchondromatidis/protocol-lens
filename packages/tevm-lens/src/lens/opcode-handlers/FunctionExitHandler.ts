@@ -2,32 +2,39 @@ import { HandlerBase } from './HandlerBase.ts';
 
 import type { InterpreterStep } from 'tevm/evm';
 import type { FunctionCallEvent, FunctionResultEvent } from '../tx-tracer/TxTrace.ts';
-import type { PC } from './trace-metadata.ts';
+import type { RuntimeTraceMetadata } from './trace-metadata.ts';
 
 export class FunctionExitHandler extends HandlerBase {
   public async handle(
     stepEvent: InterpreterStep,
+    executionContext: RuntimeTraceMetadata['executionContext'],
     functionCallEvent: FunctionCallEvent,
-    functionExits: Map<PC, FunctionCallEvent>
+    functionExits: RuntimeTraceMetadata['functionExits']
   ) {
-    if (functionCallEvent.callType !== 'INTERNAL') return undefined; // already decoded
-    const pc = BigInt(stepEvent.pc);
-    if (!functionExits.has(pc)) return undefined;
+    if (functionCallEvent.callType !== 'INTERNAL') {
+      // already decoded by ExternalCallResultHandler
+      return undefined;
+    }
 
-    const functionCallEvent2 = functionExits.get(pc)!;
-    const functionResultEvent: FunctionResultEvent = {
-      type: 'FunctionResultEvent',
-      returnValueRaw: '',
-      isError: false,
-      isCreate: false,
-      logs: [],
-    };
+    let contractAddress = stepEvent.address.toString();
+    const currentDepthExecutionContext = executionContext.get(stepEvent.depth)!;
 
-    console.log(
-      'FunctionExitHandler',
-      functionCallEvent2.callType,
-      functionCallEvent2.contractFQN,
-      functionCallEvent2.functionName
-    );
+    if (currentDepthExecutionContext.functionCallEvent.callType === 'DELEGATECALL')
+      contractAddress = currentDepthExecutionContext.functionCallEvent.implAddress!;
+
+    const pc = stepEvent.pc;
+    if (functionExits.get(contractAddress)?.has(pc)) {
+      const functionResultEvent: FunctionResultEvent = {
+        type: 'FunctionResultEvent',
+        returnValueRaw: '',
+        isError: false,
+        isCreate: false,
+        logs: [],
+      };
+      functionExits.get(contractAddress)!.delete(pc);
+      return functionResultEvent;
+    }
+
+    return undefined;
   }
 }

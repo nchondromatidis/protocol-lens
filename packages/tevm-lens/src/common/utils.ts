@@ -36,3 +36,10 @@ export function getOrCreate<K, V>(map: Map<K, V>, key: K, create: () => V): V {
   }
   return value;
 }
+
+export function safeBigIntToNumber(bigint: bigint): number {
+  if (bigint > Number.MAX_SAFE_INTEGER || bigint < Number.MIN_SAFE_INTEGER) {
+    throw new Error('BigInt is outside the safe integer range');
+  }
+  return Number(bigint);
+}

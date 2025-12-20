@@ -1,22 +1,17 @@
 import type { FunctionCallEvent } from '../tx-tracer/TxTrace.ts';
+import type { Address } from '../types/artifact.ts';
 
-export type FunctionCallEventHandlers = {
-  externalCallHandler: boolean;
-  opcodesCallHandler: boolean;
-};
-
-export type PC = bigint;
+export type PC = number;
 export type Depth = number;
+
 export type RuntimeTraceMetadata = {
-  functionHandlers: Map<FunctionCallEvent, FunctionCallEventHandlers>;
-  functionExits: Map<PC, FunctionCallEvent>;
-  executionContext: Map<Depth, FunctionCallEvent>;
+  executionContext: Map<Depth, { functionCallEvent: FunctionCallEvent; isJumpDestReached: boolean }>;
+  functionExits: Map<Address, Map<PC, FunctionCallEvent>>;
 };
 
 export function emptyRuntimeTraceMetadata(): RuntimeTraceMetadata {
   return {
-    functionHandlers: new Map(),
-    functionExits: new Map(),
     executionContext: new Map(),
+    functionExits: new Map(),
   };
 }
