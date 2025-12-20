@@ -78,32 +78,24 @@ export class TxTracer {
 
     if (!result) return;
 
-    const { functionCallEvent, functionExitPc, contractAddress } = result;
+    const { functionCallEvent, functionExitPc } = result;
 
     if (functionCallEvent !== executionContext.get(stepEvent.depth)!.functionCallEvent) {
       this.tracingTx.get(tracingId)!.addFunctionCall(functionCallEvent);
     }
 
-    if (!this.runtimeTraceMetadata.get(tracingId)!.functionExits.has(contractAddress)) {
-      this.runtimeTraceMetadata.get(tracingId)!.functionExits.set(contractAddress, new Map());
+    const depth = stepEvent.depth;
+    if (!this.runtimeTraceMetadata.get(tracingId)!.functionExits.has(depth)) {
+      this.runtimeTraceMetadata.get(tracingId)!.functionExits.set(depth, new Map());
     }
-    this.runtimeTraceMetadata
-      .get(tracingId)!
-      .functionExits.get(contractAddress)!
-      .set(functionExitPc, functionCallEvent);
+    this.runtimeTraceMetadata.get(tracingId)!.functionExits.get(depth)!.set(functionExitPc, functionCallEvent);
   }
 
   public async handleFunctionExitHandler(stepEvent: InterpreterStep, tracingId: string) {
-    const executionContext = this.runtimeTraceMetadata.get(tracingId)!.executionContext;
     const functionCallEvent = this.tracingTx.get(tracingId)!.getLatestFunctionCallEvent()!;
     const functionExits = this.runtimeTraceMetadata.get(tracingId)!.functionExits;
 
-    const functionResultEvent = await this.functionExitHandler.handle(
-      stepEvent,
-      executionContext,
-      functionCallEvent,
-      functionExits
-    );
+    const functionResultEvent = await this.functionExitHandler.handle(stepEvent, functionCallEvent, functionExits);
 
     if (functionResultEvent) this.tracingTx.get(tracingId)!.addResult(functionResultEvent);
   }

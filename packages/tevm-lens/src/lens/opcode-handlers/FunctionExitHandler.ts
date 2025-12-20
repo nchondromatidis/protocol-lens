@@ -7,23 +7,18 @@ import type { RuntimeTraceMetadata } from './trace-metadata.ts';
 export class FunctionExitHandler extends HandlerBase {
   public async handle(
     stepEvent: InterpreterStep,
-    executionContext: RuntimeTraceMetadata['executionContext'],
     functionCallEvent: FunctionCallEvent,
     functionExits: RuntimeTraceMetadata['functionExits']
   ) {
+    // TODO: maybe check executionContext, like in  FunctionEntryHandler
     if (functionCallEvent.callType !== 'INTERNAL') {
       // already decoded by ExternalCallResultHandler
       return undefined;
     }
 
-    let contractAddress = stepEvent.address.toString();
-    const currentDepthExecutionContext = executionContext.get(stepEvent.depth)!;
-
-    if (currentDepthExecutionContext.functionCallEvent.callType === 'DELEGATECALL')
-      contractAddress = currentDepthExecutionContext.functionCallEvent.implAddress!;
-
     const pc = stepEvent.pc;
-    if (functionExits.get(contractAddress)?.has(pc)) {
+    const depth = stepEvent.depth;
+    if (functionExits.get(depth)?.has(pc)) {
       const functionResultEvent: FunctionResultEvent = {
         type: 'FunctionResultEvent',
         returnValueRaw: '',
@@ -31,7 +26,8 @@ export class FunctionExitHandler extends HandlerBase {
         isCreate: false,
         logs: [],
       };
-      functionExits.get(contractAddress)!.delete(pc);
+      // console.log('FunctionResultEvent', functionCallEvent.contractFQN, functionCallEvent.functionName);
+      functionExits.get(depth)!.delete(pc);
       return functionResultEvent;
     }
 

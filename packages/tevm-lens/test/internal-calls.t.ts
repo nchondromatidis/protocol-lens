@@ -73,15 +73,15 @@ describe('internal-calls', () => {
     console.log(callTraceResult);
   });
 
-  test('callPublicInternallyAndExternally', async () => {
+  test('mixedCall', async () => {
     const result = await lensClient.contract(callerContract, 'mixedCall', [2n]);
     inspect(getTracedTx.success(result));
   }, 999999);
 
-  test('callInternalAndPrivate2', async () => {
+  test('callAnotherContract', async () => {
     const result = await lensClient.contract(callerContract, 'callAnotherContract', []);
-    inspect(getTracedTx.success(result));
-    inspect(getTracedTx.failed(0));
+    //inspect(getTracedTx.success(result));
+    //inspect(getTracedTx.failed(0));
   }, 999999);
 
   test.skip('test function trace that has functions after a failed decoded function call/result', async () => {

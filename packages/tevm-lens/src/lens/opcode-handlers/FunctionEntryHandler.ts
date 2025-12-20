@@ -4,7 +4,6 @@ import type { InterpreterStep } from 'tevm/evm';
 import { QueryBy } from '../indexes/FunctionIndexesRegistry.ts';
 import type { FunctionCallEvent } from '../tx-tracer/TxTrace.ts';
 import type { PC, RuntimeTraceMetadata } from './trace-metadata.ts';
-import type { Address } from '../types/artifact.ts';
 import { safeBigIntToNumber } from '../../common/utils.ts';
 
 // Handles JUMPDEST opcode with PC that is a function entry (taken from solidity.output.contracts.evm...functionDebugData)
@@ -13,7 +12,7 @@ export class FunctionEntryHandler extends HandlerBase {
     stepEvent: InterpreterStep,
     executionContext: RuntimeTraceMetadata['executionContext'],
     parentFunctionCallEvent: FunctionCallEvent
-  ): Promise<{ functionCallEvent: FunctionCallEvent; functionExitPc: PC; contractAddress: Address } | undefined> {
+  ): Promise<{ functionCallEvent: FunctionCallEvent; functionExitPc: PC } | undefined> {
     if (stepEvent.opcode.name !== 'JUMPDEST') return undefined;
 
     // identify contract and function using contract address and pc
@@ -33,6 +32,8 @@ export class FunctionEntryHandler extends HandlerBase {
     // console.log(stepEvent.address.toString(), stepEvent.pc, stepEvent.depth);
     // console.log('functionData', contractFQN, stepEvent.pc, functionData.contractFQN, functionData.nameOrKind);
 
+    const stackTop = stepEvent.stack.length - 1;
+
     // the first JUMPDEST on a new context must match external call calldata
     if (!executionContext.get(stepEvent.depth)!.isJumpDestReached) {
       const isJumpDestReached =
@@ -41,13 +42,10 @@ export class FunctionEntryHandler extends HandlerBase {
         functionData.kind === parentFunctionCallEvent.functionType;
       if (isJumpDestReached) {
         executionContext.get(stepEvent.depth)!.isJumpDestReached = true;
-        const functionExitPc = safeBigIntToNumber(stepEvent.stack[functionData.parameterSlots]);
 
-        return {
-          functionCallEvent: parentFunctionCallEvent,
-          functionExitPc,
-          contractAddress,
-        };
+        const functionExitPc = safeBigIntToNumber(stepEvent.stack[stackTop - functionData.parameterSlots]);
+
+        return { functionCallEvent: parentFunctionCallEvent, functionExitPc };
       }
       return undefined;
     }
@@ -72,8 +70,8 @@ export class FunctionEntryHandler extends HandlerBase {
       implAddress: parentFunctionCallEvent.implAddress,
     };
 
-    const functionExitPc = safeBigIntToNumber(stepEvent.stack[functionData.parameterSlots]);
+    const functionExitPc = safeBigIntToNumber(stepEvent.stack[stackTop - functionData.parameterSlots]);
 
-    return { functionCallEvent, functionExitPc, contractAddress };
+    return { functionCallEvent, functionExitPc };
   }
 }
