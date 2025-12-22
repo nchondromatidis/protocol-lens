@@ -6,7 +6,17 @@ import type { FunctionCallEvent } from '../tx-tracer/TxTrace.ts';
 import type { PC, RuntimeTraceMetadata } from './trace-metadata.ts';
 import { safeBigIntToNumber } from '../../common/utils.ts';
 
-// Handles JUMPDEST opcode with PC that is a function entry (taken from solidity.output.contracts.evm...functionDebugData)
+/*
+ * Detects internal function calls. <br>
+ * Handles JUMPDEST opcode with PC that is a function entry from solidity.output.contracts.evm...functionDebugData. <br>
+ * Ignores the first function call that starts the execution context (already decoded by calldata). <br>
+ * <b> Detects the program counter for this function to exit </b>
+ * <b> No argument fetching or decoding takes place for internal functions </b>
+ *
+ * <i>
+ * context@depth.address --labeledContracts--> contractFQN --debugMetadata.functions--> functionData--> function call
+ * </i>
+ */
 export class FunctionEntryHandler extends HandlerBase {
   public async handle(
     stepEvent: InterpreterStep,

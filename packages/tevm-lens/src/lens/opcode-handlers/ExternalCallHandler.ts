@@ -10,8 +10,14 @@ import {
 } from '../abi-decoders/functionCallDecoder.ts';
 import { QueryBy } from '../indexes/FunctionIndexesRegistry.ts';
 
-// Handles opcodes: 'CALL' | 'DELEGATECALL' | 'STATICCALL' | 'CREATE' | 'CREATE2'
-// All of these opcodes are abstracted as `Message` object from tevm
+/*
+ * Detects and decodes external function calls. <br>
+ * Handles opcodes: 'CALL' | 'DELEGATECALL' | 'STATICCALL' | 'CREATE' | 'CREATE2'. <br>
+ * All of these opcodes are abstracted as `Message` object from tevm. <br>
+ * <b> Marks the start of an execution context at depth X. </b>
+ *
+ * event.to --labeledContracts--> contractFQN --debugMetadata.artifacts--> ABIs  + calldata --decoders--> function call
+ */
 export class ExternalCallHandler extends HandlerBase {
   public async handle(callEvent: Message) {
     // base function call object

@@ -20,8 +20,16 @@ import type { RawLog } from '../types/artifact.ts';
 
 type TempTxId = string;
 
-// Handles function results (return, exits, logs, errors) initiated from external calls
-// All of these opcodes are abstracted as `EvmResult` object from tevm
+/*
+ * Detects and decodes external function call result data and logs. <br>
+ * Handles function results (return, exits, logs, errors) initiated from external calls. <br>
+ * All of these opcodes are abstracted as `EvmResult` object from tevm. <br>
+ * <b> Marks the end of an execution context at depth X. </b>
+ *
+ * <i>
+ * functionCall.contractFQN --debugMetadata.artifacts--> ABIs  + returnValue + logValues --decoders--> function call result
+ * </i>
+ */
 export class ExternalCallResultHandler extends HandlerBase {
   public readonly decodedLogsTxCache: Map<TempTxId, DecodedLogsCache> = new Map();
   public readonly decodedErrorsTxCache: Map<TempTxId, DecodedErrorsCache> = new Map();
