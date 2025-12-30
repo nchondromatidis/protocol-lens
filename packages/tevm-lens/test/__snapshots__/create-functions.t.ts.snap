@@ -1,0 +1,205 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`create-functions > create2Contract 1`] = `
+{
+  "args": [
+    "0x1111111111111111111111111111111111111111111111111111111111111111",
+  ],
+  "callType": "CALL",
+  "called": [
+    {
+      "args": [
+        6n,
+      ],
+      "callType": "CREATE2",
+      "called": [],
+      "create2Salt": "0x1111111111111111111111111111111111111111111111111111111111111111",
+      "createdContractFQN": "test-contracts/create-functions/CalleeContract.sol:CalleeContract",
+      "depth": 1,
+      "from": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+      "functionLineEnd": 9,
+      "functionLineStart": 7,
+      "functionName": "",
+      "functionSource": "test-contracts/create-functions/CalleeContract.sol",
+      "functionType": "constructor",
+      "precompile": false,
+      "rawData": "0x608060405234801561000f575f5ffd5b506040516101ac3803806101ac833981810160405281019061003191906100a5565b7fdd970dd9b5bfe707922155b058a407655cb18288b807e2216442bca8ad83d6b55f604051610060919061016c565b60405180910390a150610198565b5f5ffd5b5f819050919050565b61008481610072565b811461008e575f5ffd5b50565b5f8151905061009f8161007b565b92915050565b5f602082840312156100ba576100b961006e565b5b5f6100c784828501610091565b91505092915050565b5f82825260208201905092915050565b7f43616c6c6565436f6e7472616374206465706c6f7965640000000000000000005f82015250565b5f6101146017836100d0565b915061011f826100e0565b602082019050919050565b5f819050919050565b5f819050919050565b5f61015661015161014c8461012a565b610133565b610072565b9050919050565b6101668161013c565b82525050565b5f6040820190508181035f83015261018381610108565b9050610192602083018461015d565b92915050565b6008806101a45f395ff3fe60806040525f5ffd0000000000000000000000000000000000000000000000000000000000000006",
+      "result": {
+        "createdAddress": "0xe74a3f966da604c941ea2849b4ccd7faf772a429",
+        "createdContractFQN": "test-contracts/create-functions/CalleeContract.sol:CalleeContract",
+        "isCreate": true,
+        "isError": false,
+        "logs": [
+          {
+            "args": {
+              "message": "CalleeContract deployed",
+              "value": 0n,
+            },
+            "contractFQN": "test-contracts/create-functions/CalleeContract.sol:CalleeContract",
+            "eventName": "Log",
+            "eventSignature": "Log(string,uint256)",
+            "functionName": "",
+            "functionType": "constructor",
+            "rawData": [
+              "0xe74a3f966da604c941ea2849b4ccd7faf772a429",
+              [
+                "0xdd970dd9b5bfe707922155b058a407655cb18288b807e2216442bca8ad83d6b5",
+              ],
+              "0x00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001743616c6c6565436f6e7472616374206465706c6f796564000000000000000000",
+            ],
+          },
+        ],
+        "returnValueRaw": "0x60806040525f5ffd",
+        "type": "FunctionResultEvent",
+      },
+      "to": undefined,
+      "type": "FunctionCallEvent",
+      "value": 0n,
+    },
+  ],
+  "contractFQN": "test-contracts/create-functions/CallerContract.sol:CallerContract",
+  "depth": 0,
+  "from": "0x0000000000000000000000000000000000000000",
+  "functionLineEnd": 15,
+  "functionLineStart": 13,
+  "functionName": "create2Contract",
+  "functionSource": "test-contracts/create-functions/CallerContract.sol",
+  "functionType": "function",
+  "precompile": false,
+  "rawData": "0x51925bb31111111111111111111111111111111111111111111111111111111111111111",
+  "result": {
+    "isCreate": false,
+    "isError": false,
+    "logs": [
+      {
+        "args": {
+          "message": "CalleeContract deployed",
+          "value": 0n,
+        },
+        "contractFQN": "test-contracts/create-functions/CalleeContract.sol:CalleeContract",
+        "eventName": "Log",
+        "eventSignature": "Log(string,uint256)",
+        "functionName": "create2Contract",
+        "functionType": "function",
+        "rawData": [
+          "0xe74a3f966da604c941ea2849b4ccd7faf772a429",
+          [
+            "0xdd970dd9b5bfe707922155b058a407655cb18288b807e2216442bca8ad83d6b5",
+          ],
+          "0x00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001743616c6c6565436f6e7472616374206465706c6f796564000000000000000000",
+        ],
+      },
+    ],
+    "returnValue": {
+      "ok": true,
+      "value": undefined,
+    },
+    "returnValueRaw": "0x",
+    "type": "FunctionResultEvent",
+  },
+  "to": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+  "type": "FunctionCallEvent",
+  "value": 0n,
+}
+`;
+
+exports[`create-functions > deployContract 1`] = `
+{
+  "args": [],
+  "callType": "CALL",
+  "called": [
+    {
+      "args": [
+        4n,
+      ],
+      "callType": "CREATE",
+      "called": [],
+      "create2Salt": undefined,
+      "createdContractFQN": "test-contracts/create-functions/CalleeContract.sol:CalleeContract",
+      "depth": 1,
+      "from": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+      "functionLineEnd": 9,
+      "functionLineStart": 7,
+      "functionName": "",
+      "functionSource": "test-contracts/create-functions/CalleeContract.sol",
+      "functionType": "constructor",
+      "precompile": false,
+      "rawData": "0x608060405234801561000f575f5ffd5b506040516101ac3803806101ac833981810160405281019061003191906100a5565b7fdd970dd9b5bfe707922155b058a407655cb18288b807e2216442bca8ad83d6b55f604051610060919061016c565b60405180910390a150610198565b5f5ffd5b5f819050919050565b61008481610072565b811461008e575f5ffd5b50565b5f8151905061009f8161007b565b92915050565b5f602082840312156100ba576100b961006e565b5b5f6100c784828501610091565b91505092915050565b5f82825260208201905092915050565b7f43616c6c6565436f6e7472616374206465706c6f7965640000000000000000005f82015250565b5f6101146017836100d0565b915061011f826100e0565b602082019050919050565b5f819050919050565b5f819050919050565b5f61015661015161014c8461012a565b610133565b610072565b9050919050565b6101668161013c565b82525050565b5f6040820190508181035f83015261018381610108565b9050610192602083018461015d565b92915050565b6008806101a45f395ff3fe60806040525f5ffd0000000000000000000000000000000000000000000000000000000000000004",
+      "result": {
+        "createdAddress": "0xa16e02e87b7454126e5e10d957a927a7f5b5d2be",
+        "createdContractFQN": "test-contracts/create-functions/CalleeContract.sol:CalleeContract",
+        "isCreate": true,
+        "isError": false,
+        "logs": [
+          {
+            "args": {
+              "message": "CalleeContract deployed",
+              "value": 0n,
+            },
+            "contractFQN": "test-contracts/create-functions/CalleeContract.sol:CalleeContract",
+            "eventName": "Log",
+            "eventSignature": "Log(string,uint256)",
+            "functionName": "",
+            "functionType": "constructor",
+            "rawData": [
+              "0xa16e02e87b7454126e5e10d957a927a7f5b5d2be",
+              [
+                "0xdd970dd9b5bfe707922155b058a407655cb18288b807e2216442bca8ad83d6b5",
+              ],
+              "0x00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001743616c6c6565436f6e7472616374206465706c6f796564000000000000000000",
+            ],
+          },
+        ],
+        "returnValueRaw": "0x60806040525f5ffd",
+        "type": "FunctionResultEvent",
+      },
+      "to": undefined,
+      "type": "FunctionCallEvent",
+      "value": 0n,
+    },
+  ],
+  "contractFQN": "test-contracts/create-functions/CallerContract.sol:CallerContract",
+  "depth": 0,
+  "from": "0x0000000000000000000000000000000000000000",
+  "functionLineEnd": 11,
+  "functionLineStart": 9,
+  "functionName": "deployContract",
+  "functionSource": "test-contracts/create-functions/CallerContract.sol",
+  "functionType": "function",
+  "precompile": false,
+  "rawData": "0x6cd5c39b",
+  "result": {
+    "isCreate": false,
+    "isError": false,
+    "logs": [
+      {
+        "args": {
+          "message": "CalleeContract deployed",
+          "value": 0n,
+        },
+        "contractFQN": "test-contracts/create-functions/CalleeContract.sol:CalleeContract",
+        "eventName": "Log",
+        "eventSignature": "Log(string,uint256)",
+        "functionName": "deployContract",
+        "functionType": "function",
+        "rawData": [
+          "0xa16e02e87b7454126e5e10d957a927a7f5b5d2be",
+          [
+            "0xdd970dd9b5bfe707922155b058a407655cb18288b807e2216442bca8ad83d6b5",
+          ],
+          "0x00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001743616c6c6565436f6e7472616374206465706c6f796564000000000000000000",
+        ],
+      },
+    ],
+    "returnValue": {
+      "ok": true,
+      "value": undefined,
+    },
+    "returnValueRaw": "0x",
+    "type": "FunctionResultEvent",
+  },
+  "to": "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+  "type": "FunctionCallEvent",
+  "value": 0n,
+}
+`;
