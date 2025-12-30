@@ -2,8 +2,6 @@
 
 - temv-lens
   - Features
-    - Convert source to `source:line` format
-    - Register call and result line numbers
     - Next milestone:
       - FunctionEntryHandler
         - Decode arguments
@@ -16,6 +14,7 @@
         - use solc instead of hardhat to be able to be used directly in browser
       - Detect/decode precompiles
       - add logger
+      - Register call and result line numbers
     - Refactor
       - break decoding function call: function call, fallback handlers
       - break decoding result: error, result

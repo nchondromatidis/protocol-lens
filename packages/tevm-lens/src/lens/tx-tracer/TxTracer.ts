@@ -75,12 +75,7 @@ export class TxTracer {
     }
     const executionContext = this.runtimeTraceMetadata.get(tracingId)!.executionContext;
 
-    const result = await this.functionEntryHandler.handle(
-      stepEvent,
-      tracingId,
-      executionContext,
-      parentFunctionCallEvent
-    );
+    const result = await this.functionEntryHandler.handle(stepEvent, executionContext, parentFunctionCallEvent);
 
     if (!result) return;
 

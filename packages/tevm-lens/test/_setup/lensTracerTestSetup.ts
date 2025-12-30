@@ -1,7 +1,7 @@
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { buildClient } from '../../src/lens/client.ts';
 import { TestResourceLoader } from './TestResourceLoader.ts';
-import type { ArtifactMap, FunctionIndexes, CallSiteIndexes, ProtocolName } from './artifacts';
+import type { ArtifactMap, FunctionIndexes, ProtocolName } from './artifacts';
 import { DebugMetadata } from '../../src/lens/indexes/DebugMetadata.ts';
 import { AddressLabeler } from '../../src/lens/indexes/AddressLabeler.ts';
 import { TxTracer } from '../../src/lens/tx-tracer/TxTracer.ts';
@@ -14,7 +14,6 @@ import { ExternalCallHandler } from '../../src/lens/opcode-handlers/ExternalCall
 import { ExternalCallResultHandler } from '../../src/lens/opcode-handlers/ExternalCallResultHandler.ts';
 import { FunctionEntryHandler } from '../../src/lens/opcode-handlers/FunctionEntryHandler.ts';
 import { FunctionExitHandler } from '../../src/lens/opcode-handlers/FunctionExitHandler.ts';
-import { CallSiteIndexesRegistry } from '../../src/lens/indexes/CallSiteIndexesRegistry.ts';
 
 export async function lensTracerTestSetup<ProjectNameT extends ProtocolName, RootT extends string>(
   projectName: ProjectNameT,
@@ -23,19 +22,11 @@ export async function lensTracerTestSetup<ProjectNameT extends ProtocolName, Roo
   const deployerAccount = privateKeyToAccount(generatePrivateKey());
   const client = await buildClient(deployerAccount);
 
-  const resourceLoader = new TestResourceLoader<
-    ArtifactMap,
-    ProtocolName,
-    ProjectNameT,
-    RootT,
-    FunctionIndexes,
-    CallSiteIndexes
-  >(root);
+  const resourceLoader = new TestResourceLoader<ArtifactMap, ProtocolName, ProjectNameT, RootT, FunctionIndexes>(root);
 
   const artifactsProvider = new ArtifactsProvider();
   const functionIndexesRegistry = new FunctionIndexesRegistry();
-  const opcodeIndexesRegistry = new CallSiteIndexesRegistry();
-  const debugMetadata = new DebugMetadata(artifactsProvider, functionIndexesRegistry, opcodeIndexesRegistry);
+  const debugMetadata = new DebugMetadata(artifactsProvider, functionIndexesRegistry);
 
   const addressLabeler = new AddressLabeler();
   const externalCallHandler = new ExternalCallHandler(debugMetadata, addressLabeler);
@@ -62,9 +53,6 @@ export async function lensTracerTestSetup<ProjectNameT extends ProtocolName, Roo
 
   const functionIndexes = await resourceLoader.getFunctionIndexes(projectName);
   await debugMetadata.functions.registerFunctionIndexes(functionIndexes);
-
-  const jumpOpcodeIndexes = await resourceLoader.getJumpOpcodeIndexes(projectName);
-  await debugMetadata.callsites.registerCallSiteIndexes(jumpOpcodeIndexes);
 
   await tevmSetAccount(lensClient.client, {
     address: deployerAccount.address,

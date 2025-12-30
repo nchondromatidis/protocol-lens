@@ -13,9 +13,6 @@ const plugin: HardhatPlugin = {
     task('index-functions', 'Creates indexes for all functions.')
       .setAction(() => import('./tasks/index-functions/index.ts'))
       .build(),
-    task('index-callsites', 'Creates indexes for function calls.')
-      .setAction(() => import('./tasks/index-callsites/index.ts'))
-      .build(),
     task('list-contracts-per-protocol', 'Creates a list of all contracts per protocol.')
       .setAction(() => import('./tasks/list-contracts-per-protocol/list-contracts-per-protocol.ts'))
       .build(),

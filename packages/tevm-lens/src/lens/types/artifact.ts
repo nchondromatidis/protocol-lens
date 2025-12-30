@@ -62,13 +62,3 @@ export type LensFunctionIndex = {
   linearizationOrderNumber: number;
 };
 export type LensSourceFunctionIndexes = Array<LensFunctionIndex>;
-
-// opcodes index
-export type LensCallSiteIndex = {
-  callSitePc: number;
-  jumpDestPc: number;
-  callSiteLineStart: number;
-  callSiteLineEnd: number;
-  source: string;
-  contractFQN: string;
-};
