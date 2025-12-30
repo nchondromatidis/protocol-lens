@@ -5,6 +5,9 @@ import { QueryBy } from '../indexes/FunctionIndexesRegistry.ts';
 import type { FunctionCallEvent } from '../tx-tracer/TxTrace.ts';
 import type { PC, RuntimeTraceMetadata } from './trace-metadata.ts';
 import { safeBigIntToNumber } from '../../common/utils.ts';
+import { isPushOpcode } from '../opcodes';
+
+type TracingId = string;
 
 /*
  * Detects internal function calls. <br>
@@ -18,11 +21,15 @@ import { safeBigIntToNumber } from '../../common/utils.ts';
  * </i>
  */
 export class FunctionEntryHandler extends HandlerBase {
+  private readonly previousStepEventsCache: Map<TracingId, Array<InterpreterStep>> = new Map();
+
   public async handle(
     stepEvent: InterpreterStep,
+    tracingId: TracingId,
     executionContext: RuntimeTraceMetadata['executionContext'],
     parentFunctionCallEvent: FunctionCallEvent
   ): Promise<{ functionCallEvent: FunctionCallEvent; functionExitPc: PC } | undefined> {
+    // this.saveStepEvent(tracingId, stepEvent);
     if (stepEvent.opcode.name !== 'JUMPDEST') return undefined;
 
     // identify contract and function using contract address and pc
@@ -38,10 +45,6 @@ export class FunctionEntryHandler extends HandlerBase {
     const functionData = this.debugMetadata.functions.getBy(QueryBy.contractFqnAndPC(contractFQN, stepEvent.pc));
     if (!functionData) return undefined;
 
-    // console.log('---------------------------------------------------------------------');
-    // console.log(stepEvent.address.toString(), stepEvent.pc, stepEvent.depth);
-    // console.log('functionData', contractFQN, stepEvent.pc, functionData.contractFQN, functionData.nameOrKind);
-
     const stackTop = stepEvent.stack.length - 1;
 
     // the first JUMPDEST on a new context must match external call calldata
@@ -55,6 +58,12 @@ export class FunctionEntryHandler extends HandlerBase {
 
         const functionExitPc = safeBigIntToNumber(stepEvent.stack[stackTop - functionData.parameterSlots]);
 
+        // const functionCallLines = this.getFunctionCallLines(tracingId, contractFQN);
+        // if (functionCallLines) {
+        //   parentFunctionCallEvent.functionCallLineStart = functionCallLines.callSiteLineStart;
+        //   parentFunctionCallEvent.functionCallLineEnd = functionCallLines.callSiteLineEnd;
+        // }
+        // this.cleanCache(tracingId);
         return { functionCallEvent: parentFunctionCallEvent, functionExitPc };
       }
       return undefined;
@@ -73,9 +82,9 @@ export class FunctionEntryHandler extends HandlerBase {
       contractFQN,
       functionName: functionData.name,
       functionType: functionData.kind,
-      lineStart: functionData.lineStart,
-      lineEnd: functionData.lineEnd,
-      source: functionData.source,
+      functionLineStart: functionData.functionLineStart,
+      functionLineEnd: functionData.functionLineEnd,
+      functionSource: functionData.source,
     };
     if (parentFunctionCallEvent.implAddress) {
       functionCallEvent.implContractFQN = parentFunctionCallEvent.implContractFQN;
@@ -83,6 +92,40 @@ export class FunctionEntryHandler extends HandlerBase {
     }
     const functionExitPc = safeBigIntToNumber(stepEvent.stack[stackTop - functionData.parameterSlots]);
 
+    // const functionCallLines = this.getFunctionCallLines(tracingId, contractFQN);
+    // if (functionCallLines) {
+    //   parentFunctionCallEvent.functionCallLineStart = functionCallLines.callSiteLineStart;
+    //   parentFunctionCallEvent.functionCallLineEnd = functionCallLines.callSiteLineEnd;
+    // }
+
+    // this.cleanCache(tracingId);
     return { functionCallEvent, functionExitPc };
   }
+
+  // public cleanCache(tracingId: TracingId) {
+  //   this.previousStepEventsCache.delete(tracingId);
+  // }
+
+  // private saveStepEvent(tracingId: TracingId, stepEvent: InterpreterStep) {
+  //   if (isPushOpcode(stepEvent.opcode.name)) {
+  //     const jumpStepEvents = this.previousStepEventsCache.get(tracingId) ?? [];
+  //     jumpStepEvents.push(stepEvent);
+  //     this.previousStepEventsCache.set(tracingId, jumpStepEvents);
+  //   }
+  // }
+  //
+  // private getFunctionCallLines(tracingId: TracingId, contractFQN: string | undefined) {
+  //   if (contractFQN && this.previousStepEventsCache.has(tracingId)) {
+  //     const length = this.previousStepEventsCache.get(tracingId)!.length;
+  //     for (let i = 0; i <= length - 1; i++) {
+  //       const stepEvent = this.previousStepEventsCache.get(tracingId)![i];
+  //       const opcodeIndex = this.debugMetadata.callsites.getCallSiteIndexBy(contractFQN, stepEvent.pc);
+  //       if (opcodeIndex) {
+  //         this.cleanCache(tracingId);
+  //         return opcodeIndex;
+  //       }
+  //     }
+  //   }
+  //   return undefined;
+  // }
 }

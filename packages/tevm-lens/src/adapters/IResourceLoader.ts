@@ -1,10 +1,16 @@
-import type { LensArtifactsMap, LensProjects, LensSourceFunctionIndexes } from '../lens/types/artifact.ts';
+import type {
+  LensCallSiteIndex,
+  LensArtifactsMap,
+  LensProjects,
+  LensSourceFunctionIndexes,
+} from '../lens/types/artifact.ts';
 
 export interface IResourceLoader<
   ArtifactMapT extends object,
   ProjectsT extends LensProjects,
   ProjectT extends ProjectsT,
   FunctionIndexesT extends LensSourceFunctionIndexes,
+  JumpOpcodeIndexesT extends Array<LensCallSiteIndex>,
   RootT extends string,
   LensArtifactsMapT extends LensArtifactsMap<ArtifactMapT, ProjectsT, ProjectT, RootT>,
 > {
@@ -29,4 +35,6 @@ export interface IResourceLoader<
   getProtocolArtifacts(protocolName: ProjectsT): Promise<Array<LensArtifactsMapT[keyof LensArtifactsMapT & string]>>;
 
   getFunctionIndexes(protocolName: ProjectsT): Promise<FunctionIndexesT>;
+
+  getJumpOpcodeIndexes(protocolName: LensProjects): Promise<JumpOpcodeIndexesT>;
 }

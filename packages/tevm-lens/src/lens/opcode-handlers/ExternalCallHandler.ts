@@ -111,9 +111,9 @@ export class ExternalCallHandler extends HandlerBase {
           1
         )
       );
-      functionCallEvent.lineStart = functionIndex?.lineStart;
-      functionCallEvent.lineEnd = functionIndex?.lineEnd;
-      functionCallEvent.source = functionIndex?.source;
+      functionCallEvent.functionLineStart = functionIndex?.functionLineStart;
+      functionCallEvent.functionLineEnd = functionIndex?.functionLineEnd;
+      functionCallEvent.functionSource = functionIndex?.source;
     }
 
     // External function call, selector not matching ABI
@@ -127,9 +127,9 @@ export class ExternalCallHandler extends HandlerBase {
 
         functionCallEvent.functionName = functionIndex?.name;
         functionCallEvent.functionType = functionIndex?.kind;
-        functionCallEvent.lineStart = functionIndex?.lineStart;
-        functionCallEvent.lineEnd = functionIndex?.lineEnd;
-        functionCallEvent.source = functionIndex?.source;
+        functionCallEvent.functionLineStart = functionIndex?.functionLineStart;
+        functionCallEvent.functionLineEnd = functionIndex?.functionLineEnd;
+        functionCallEvent.functionSource = functionIndex?.source;
         functionCallEvent.args = decodeFunctionCallWithFunctionIndexes({ callData, functionIndex });
       }
     }

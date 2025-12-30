@@ -7,7 +7,6 @@ import type { ArtifactMap, ProtocolName } from './_setup/artifacts';
 import type { GetContractReturnType } from 'viem';
 import { getTracedTxFactory } from './_setup/utils.ts';
 import { lensTracerTestSetup } from './_setup/lensTracerTestSetup.ts';
-import { inspect } from './_setup/utils/inspect.ts';
 
 describe('inheritance', () => {
   let lensClient: LensClient<ArtifactMap, ProtocolName, 'inheritance', 'test-contracts'>;

@@ -6,7 +6,7 @@ import { getTracedTxFactory } from './_setup/utils.ts';
 import type { ArtifactMap, ProtocolName } from './_setup/artifacts';
 import type { GetContractReturnType } from 'viem';
 
-describe('function traces - create-functions', () => {
+describe('create-functions', () => {
   let lensClient: LensClient<ArtifactMap, ProtocolName, 'create-functions', 'test-contracts'>;
   let callerContract: GetContractReturnType<
     ArtifactMap['test-contracts/create-functions/CallerContract.sol:CallerContract']['abi']

@@ -19,6 +19,8 @@ export type LensArtifact = {
   readonly linkReferences: Record<string, Record<string, unknown>>;
 };
 
+export type LensProjects = string;
+
 // Object must be:
 // - values satisfy LensArtifact type
 // - key formated as `LensArtifact['sourceName']:LensArtifact['contractName']`
@@ -38,34 +40,35 @@ export type LensArtifactsMap<
     : never]: Extract<ArtifactMapT[K], LensArtifact>;
 };
 
-export type LensContractFQN<
-  ArtifactMapT extends object,
-  ProjectsT extends LensProjects,
-  ProjectT extends ProjectsT,
-  RootT extends string,
-> = keyof LensArtifactsMap<ArtifactMapT, ProjectsT, ProjectT, RootT> & string;
-export type LensProjects = string;
-
 export type FunctionCallTypes = 'function' | 'constructor' | 'fallback' | 'receive' | 'freeFunction';
 
-// function index schema
+export type RawLog = [address: Hex, topics: Hex[], data: Hex];
+
+// function index
 export type LensFunctionIndex = {
   nameOrKind: string;
   name: string;
   kind: FunctionCallTypes;
-  functionSelector: string | undefined;
-  functionHumanReadableABI: string | undefined;
-  lineStart: number;
-  lineEnd: number;
+  selector: string | undefined;
+  humanReadableABI: string | undefined;
+  functionLineStart: number;
+  functionLineEnd: number;
   source: string;
   contractFQN: string;
-  pc: number;
+  jumpDestPc: number;
   visibility: 'external' | 'public' | 'internal' | 'private';
   parameterSlots: number;
   returnSlots: number;
   linearizationOrderNumber: number;
 };
-
 export type LensSourceFunctionIndexes = Array<LensFunctionIndex>;
 
-export type RawLog = [address: Hex, topics: Hex[], data: Hex];
+// opcodes index
+export type LensCallSiteIndex = {
+  callSitePc: number;
+  jumpDestPc: number;
+  callSiteLineStart: number;
+  callSiteLineEnd: number;
+  source: string;
+  contractFQN: string;
+};

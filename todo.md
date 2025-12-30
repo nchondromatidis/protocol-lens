@@ -2,7 +2,7 @@
 
 - temv-lens
   - Features
-    - inheritance. Function inheritance order.
+    - Convert source to `source:line` format
     - Register call and result line numbers
     - Next milestone:
       - FunctionEntryHandler

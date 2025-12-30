@@ -1,4 +1,9 @@
-import type { LensArtifactsMap, LensProjects, LensSourceFunctionIndexes } from '../../src/lens/types/artifact.ts';
+import type {
+  LensCallSiteIndex,
+  LensArtifactsMap,
+  LensProjects,
+  LensSourceFunctionIndexes,
+} from '../../src/lens/types/artifact.ts';
 import { promises as fs } from 'fs';
 import type { IResourceLoader } from '../../src/adapters/IResourceLoader.ts';
 import * as path from 'node:path';
@@ -9,18 +14,27 @@ export class TestResourceLoader<
   ProjectT extends ProjectsT,
   RootT extends string,
   FunctionIndexesT extends LensSourceFunctionIndexes,
+  JumpOpcodeIndexesT extends Array<LensCallSiteIndex>,
   LensArtifactsMapT extends LensArtifactsMap<ArtifactMapT, ProjectsT, ProjectT, RootT> = LensArtifactsMap<
     ArtifactMapT,
     ProjectsT,
     ProjectT,
     RootT
   >,
-> implements IResourceLoader<ArtifactMapT, ProjectsT, ProjectT, FunctionIndexesT, RootT, LensArtifactsMapT>
-{
+> implements IResourceLoader<
+  ArtifactMapT,
+  ProjectsT,
+  ProjectT,
+  FunctionIndexesT,
+  JumpOpcodeIndexesT,
+  RootT,
+  LensArtifactsMapT
+> {
   artifactsPath = path.join(__dirname, 'artifacts');
   artifactsContractsPath;
   contractFqnListFileName = 'contract-fqn-list.json';
   sourceFunctionIndexFileName = 'function-indexes.json';
+  jumpOpcodeIndexFileName = 'callsite-indexes.json';
 
   constructor(root: string) {
     this.artifactsContractsPath = path.join(__dirname, 'artifacts', root);
@@ -74,5 +88,11 @@ export class TestResourceLoader<
     );
     const sourceFunctionIndexJson = await fs.readFile(sourceFunctionIndexFilePath, 'utf-8');
     return JSON.parse(sourceFunctionIndexJson) as FunctionIndexesT;
+  }
+
+  async getJumpOpcodeIndexes(protocolName: LensProjects): Promise<JumpOpcodeIndexesT> {
+    const jumpOpcodesIndexFilePath = path.join(this.artifactsContractsPath, protocolName, this.jumpOpcodeIndexFileName);
+    const sourceFunctionIndexJson = await fs.readFile(jumpOpcodesIndexFilePath, 'utf-8');
+    return JSON.parse(sourceFunctionIndexJson) as JumpOpcodeIndexesT;
   }
 }

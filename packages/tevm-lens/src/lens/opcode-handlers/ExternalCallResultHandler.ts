@@ -18,7 +18,7 @@ import { getOrCreate } from '../../common/utils.ts';
 import { QueryBy } from '../indexes/FunctionIndexesRegistry.ts';
 import type { RawLog } from '../types/artifact.ts';
 
-type TempTxId = string;
+type TracingId = string;
 
 /*
  * Detects and decodes external function call result data and logs. <br>
@@ -31,10 +31,10 @@ type TempTxId = string;
  * </i>
  */
 export class ExternalCallResultHandler extends HandlerBase {
-  public readonly decodedLogsTxCache: Map<TempTxId, DecodedLogsCache> = new Map();
-  public readonly decodedErrorsTxCache: Map<TempTxId, DecodedErrorsCache> = new Map();
+  public readonly decodedLogsTxCache: Map<TracingId, DecodedLogsCache> = new Map();
+  public readonly decodedErrorsTxCache: Map<TracingId, DecodedErrorsCache> = new Map();
 
-  async handle(resultEvent: EvmResult, tracingId: string, functionCallEvent: FunctionCallEvent) {
+  async handle(resultEvent: EvmResult, tracingId: TracingId, functionCallEvent: FunctionCallEvent) {
     // base function result object
     const returnData = bytesToHex(resultEvent.execResult.returnValue);
     const functionResultEvent: FunctionResultEvent = {
@@ -172,9 +172,9 @@ export class ExternalCallResultHandler extends HandlerBase {
     return functionResultEvent;
   }
 
-  public cleanCache(tempId: TempTxId) {
-    this.decodedLogsTxCache.delete(tempId);
-    this.decodedErrorsTxCache.delete(tempId);
+  public cleanCache(tracingId: TracingId) {
+    this.decodedLogsTxCache.delete(tracingId);
+    this.decodedErrorsTxCache.delete(tracingId);
   }
 
   private convertToRawLog(log: [address: Uint8Array, topics: Uint8Array[], data: Uint8Array]): RawLog {

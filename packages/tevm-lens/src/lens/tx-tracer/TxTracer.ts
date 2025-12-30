@@ -44,6 +44,7 @@ export class TxTracer {
     this.tracingTx.delete(tracingId);
     this.runtimeTraceMetadata.delete(tracingId);
     this.externalCallResultHandler.cleanCache(tracingId);
+    // this.functionEntryHandler.cleanCache(tracingId);
   }
 
   //** Event Handlers **/
@@ -74,7 +75,12 @@ export class TxTracer {
     }
     const executionContext = this.runtimeTraceMetadata.get(tracingId)!.executionContext;
 
-    const result = await this.functionEntryHandler.handle(stepEvent, executionContext, parentFunctionCallEvent);
+    const result = await this.functionEntryHandler.handle(
+      stepEvent,
+      tracingId,
+      executionContext,
+      parentFunctionCallEvent
+    );
 
     if (!result) return;
 

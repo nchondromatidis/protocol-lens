@@ -20,9 +20,11 @@ export type FunctionCallEvent = {
   functionName?: string;
   functionType?: string;
   args?: unknown;
-  lineStart?: number;
-  lineEnd?: number;
-  source?: string;
+  functionLineStart?: number;
+  functionLineEnd?: number;
+  functionSource?: string;
+  functionCallLineStart?: number;
+  functionCallLineEnd?: number;
   create2Salt?: Hex;
   createdContractFQN?: string;
   called?: Array<FunctionCallEvent>;

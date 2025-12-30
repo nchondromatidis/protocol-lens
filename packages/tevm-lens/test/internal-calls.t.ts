@@ -4,6 +4,7 @@ import type { ArtifactMap, ProtocolName } from './_setup/artifacts';
 import { getTracedTxFactory } from './_setup/utils.ts';
 import { lensTracerTestSetup } from './_setup/lensTracerTestSetup.ts';
 import type { GetContractReturnType } from 'viem';
+import { inspect } from './_setup/utils/inspect.ts';
 
 describe('internal-calls', () => {
   let lensClient: LensClient<ArtifactMap, ProtocolName, 'internal-calls', 'test-contracts'>;
@@ -70,6 +71,11 @@ describe('internal-calls', () => {
     });
 
     console.log(callTraceResult);
+  });
+
+  test('publicFunction', async () => {
+    const result = await lensClient.contract(callerContract, 'publicFunction', [2n]);
+    inspect(getTracedTx.success(result));
   });
 
   test('mixedCall', async () => {

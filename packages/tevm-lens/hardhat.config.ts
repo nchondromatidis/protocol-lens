@@ -8,6 +8,9 @@ const config: HardhatUserConfig = {
       {
         version: '0.8.30',
         settings: {
+          metadata: {
+            appendCBOR: false,
+          },
           outputSelection: {
             '*': {
               '*': ['abi', 'evm.bytecode', 'evm.deployedBytecode', 'evm.methodIdentifiers', 'storageLayout'],

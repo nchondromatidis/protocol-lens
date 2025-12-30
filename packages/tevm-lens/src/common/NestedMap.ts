@@ -70,6 +70,24 @@ export class NestedMap<K extends unknown[], V> {
   }
 
   /**
+   * Retrieves the intermediate Map at a partial key path.
+   * Usage: map.getMapAt(key1, key2, ...)
+   *
+   */
+  getMapAt<Keys extends unknown[]>(...keys: Keys): BuildNestedMap<RemainingKeys<K, Keys['length']>, V> | undefined {
+    let current: Map<any, any> | undefined = this.storage;
+
+    for (const key of keys) {
+      if (!current || !current.has(key)) {
+        return undefined as any;
+      }
+      current = current.get(key);
+    }
+
+    return current as any;
+  }
+
+  /**
    * Checks if a value exists at the specified nested keys.
    * Usage: map.has(key1, key2, ...)
    */
@@ -131,3 +149,19 @@ export class NestedMap<K extends unknown[], V> {
     return success;
   }
 }
+
+// Helper type to build nested Map structure from remaining keys
+type BuildNestedMap<Keys extends readonly unknown[], Value> = Keys extends readonly [infer First, ...infer Rest]
+  ? Rest extends []
+    ? Map<First, Value>
+    : Map<First, BuildNestedMap<Rest, Value>>
+  : never;
+
+// Helper type to get remaining keys after N keys consumed
+type RemainingKeys<Tuple extends readonly unknown[], N extends number> = N extends 0
+  ? Tuple
+  : Tuple extends readonly [unknown, ...infer Rest]
+    ? RemainingKeys<Rest, Prev[N]>
+    : [];
+
+type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
