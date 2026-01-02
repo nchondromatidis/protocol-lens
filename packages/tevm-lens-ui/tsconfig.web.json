@@ -1,7 +1,11 @@
 {
   "extends": "@defi-notes/config/tsconfig.web.json",
   "compilerOptions": {
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["src"]
+  "include": ["src", "docs"]
 }
