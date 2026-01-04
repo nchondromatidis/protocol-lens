@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types/hre';
 import createDebug from 'debug';
-import { DEBUG_PREFIX } from '../../debug.ts';
+import { DEBUG_PREFIX } from '../../debug';
 import { groupByFolder } from '../../_utils/paths';
 
 const debug = createDebug(`${DEBUG_PREFIX}:list-folder-contracts`);

@@ -1,32 +1,32 @@
 import { task } from 'hardhat/config';
 import type { HardhatPlugin } from 'hardhat/types/plugins';
 
-import './type-extensions.ts';
+import './type-extensions';
 import { TaskDefinitionType } from 'hardhat/types/tasks';
 
 const plugin: HardhatPlugin = {
   id: 'hardhat-tevm-lens',
   hookHandlers: {
-    config: () => import('./hooks/config.ts'),
+    config: () => import('./hooks/config'),
   },
   tasks: [
     task('index-functions', 'Creates indexes for all functions.')
-      .setAction(() => import('./tasks/index-functions/index.ts'))
+      .setAction(() => import('./tasks/index-functions/index'))
       .build(),
     task('list-contracts-per-protocol', 'Creates a list of all contracts per protocol.')
-      .setAction(() => import('./tasks/list-contracts-per-protocol/list-contracts-per-protocol.ts'))
+      .setAction(() => import('./tasks/list-contracts-per-protocol/list-contracts-per-protocol'))
       .build(),
     task('list-protocols', 'Creates a list of all protocols.')
-      .setAction(() => import('./tasks/list-protocols/list-protocols.ts'))
+      .setAction(() => import('./tasks/list-protocols/list-protocols'))
       .build(),
     task('type-barrel', 'Creates an artifacts index.d.ts for artifacts folder.')
-      .setAction(() => import('./tasks/type-barrel/type-barrel.ts'))
+      .setAction(() => import('./tasks/type-barrel/type-barrel'))
       .build(),
     {
       type: TaskDefinitionType.TASK_OVERRIDE,
       id: ['build'],
       description: 'Compile contracts and run post-processing',
-      action: () => import('./tasks/compile-override.ts'),
+      action: () => import('./tasks/compile-override'),
       options: {},
     },
   ],
