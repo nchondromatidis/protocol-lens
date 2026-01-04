@@ -1,13 +1,13 @@
 import { test, beforeEach, describe, expect } from 'vitest';
 import type { LensClient } from '../src/lens/LensClient.ts';
-import type { ArtifactMap, ProtocolName } from './_setup/artifacts';
+import type { ArtifactMap } from './_setup/artifacts';
 import { getTracedTxFactory } from './_setup/utils.ts';
-import { lensTracerTestSetup } from './_setup/lensTracerTestSetup.ts';
+import { type LensArtifactsMapSlice, lensTracerTestSetup } from './_setup/lensTracerTestSetup.ts';
 import type { GetContractReturnType } from 'viem';
 import { inspect } from './_setup/utils/inspect.ts';
 
 describe('internal-calls', () => {
-  let lensClient: LensClient<ArtifactMap, ProtocolName, 'internal-calls', 'test-contracts'>;
+  let lensClient: LensClient<LensArtifactsMapSlice<ArtifactMap, 'test-contracts', 'internal-calls'>>;
   let callerContract: GetContractReturnType<
     ArtifactMap['test-contracts/internal-calls/CallerContract.sol:CallerContract']['abi']
   >;
@@ -15,7 +15,7 @@ describe('internal-calls', () => {
   let getTracedTx: ReturnType<typeof getTracedTxFactory>;
 
   beforeEach(async () => {
-    const { lensClient: _lensClient } = await lensTracerTestSetup('internal-calls', 'test-contracts');
+    const { lensClient: _lensClient } = await lensTracerTestSetup('test-contracts', 'internal-calls');
     lensClient = _lensClient;
 
     // deploy

@@ -6,16 +6,9 @@ import * as path from 'node:path';
 export class TestResourceLoader<
   ArtifactMapT extends object,
   ProjectsT extends LensProjects,
-  ProjectT extends ProjectsT,
-  RootT extends string,
   FunctionIndexesT extends LensSourceFunctionIndexes,
-  LensArtifactsMapT extends LensArtifactsMap<ArtifactMapT, ProjectsT, ProjectT, RootT> = LensArtifactsMap<
-    ArtifactMapT,
-    ProjectsT,
-    ProjectT,
-    RootT
-  >,
-> implements IResourceLoader<ArtifactMapT, ProjectsT, ProjectT, FunctionIndexesT, RootT, LensArtifactsMapT> {
+  LensArtifactsMapT extends LensArtifactsMap<ArtifactMapT> = LensArtifactsMap<ArtifactMapT>,
+> implements IResourceLoader<ArtifactMapT, ProjectsT, FunctionIndexesT, LensArtifactsMapT> {
   artifactsPath = path.join(__dirname, 'artifacts');
   artifactsContractsPath;
   contractFqnListFileName = 'contract-fqn-list.json';

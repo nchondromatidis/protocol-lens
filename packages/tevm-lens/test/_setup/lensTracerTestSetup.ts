@@ -14,15 +14,24 @@ import { ExternalCallHandler } from '../../src/lens/opcode-handlers/ExternalCall
 import { ExternalCallResultHandler } from '../../src/lens/opcode-handlers/ExternalCallResultHandler.ts';
 import { FunctionEntryHandler } from '../../src/lens/opcode-handlers/FunctionEntryHandler.ts';
 import { FunctionExitHandler } from '../../src/lens/opcode-handlers/FunctionExitHandler.ts';
+import type { LensArtifact, LensArtifactsMap } from '../../src/lens/types/artifact.ts';
+
+export type LensArtifactsMapSlice<MapT extends LensArtifactsMap<any>, RootT extends string, ProjectT extends string> = {
+  [K in keyof MapT as MapT[K] extends LensArtifact
+    ? MapT[K]['sourceName'] extends `${RootT}/${ProjectT}/${string}`
+      ? K
+      : never
+    : never]: MapT[K];
+};
 
 export async function lensTracerTestSetup<ProjectNameT extends ProtocolName, RootT extends string>(
-  projectName: ProjectNameT,
-  root: RootT
+  root: RootT,
+  projectName: ProjectNameT
 ) {
   const deployerAccount = privateKeyToAccount(generatePrivateKey());
   const client = await buildClient(deployerAccount);
 
-  const resourceLoader = new TestResourceLoader<ArtifactMap, ProtocolName, ProjectNameT, RootT, FunctionIndexes>(root);
+  const resourceLoader = new TestResourceLoader<ArtifactMap, ProtocolName, FunctionIndexes>(root);
 
   const artifactsProvider = new ArtifactsProvider();
   const functionIndexesRegistry = new FunctionIndexesRegistry();
@@ -41,7 +50,7 @@ export async function lensTracerTestSetup<ProjectNameT extends ProtocolName, Roo
     functionExitHandler
   );
 
-  const lensClient = new LensClient<ArtifactMap, ProtocolName, ProjectNameT, RootT>(
+  const lensClient = new LensClient<LensArtifactsMapSlice<ArtifactMap, RootT, ProjectNameT>>(
     client,
     debugMetadata,
     addressLabeler,

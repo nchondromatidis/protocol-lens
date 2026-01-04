@@ -3,13 +3,13 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 import type { LensClient } from '../src/lens/LensClient.ts';
-import type { ArtifactMap, ProtocolName } from './_setup/artifacts';
+import type { ArtifactMap } from './_setup/artifacts';
 import type { GetContractReturnType } from 'viem';
 import { getTracedTxFactory } from './_setup/utils.ts';
-import { lensTracerTestSetup } from './_setup/lensTracerTestSetup.ts';
+import { type LensArtifactsMapSlice, lensTracerTestSetup } from './_setup/lensTracerTestSetup.ts';
 
 describe('inheritance', () => {
-  let lensClient: LensClient<ArtifactMap, ProtocolName, 'inheritance', 'test-contracts'>;
+  let lensClient: LensClient<LensArtifactsMapSlice<ArtifactMap, 'test-contracts', 'inheritance'>>;
 
   let aContract: GetContractReturnType<ArtifactMap['test-contracts/inheritance/A.sol:A']['abi']>;
   let a2Contract: GetContractReturnType<ArtifactMap['test-contracts/inheritance/A2.sol:A2']['abi']>;
@@ -17,7 +17,7 @@ describe('inheritance', () => {
   let getTracedTx: ReturnType<typeof getTracedTxFactory>;
 
   beforeEach(async () => {
-    const { lensClient: _lensClient } = await lensTracerTestSetup('inheritance', 'test-contracts');
+    const { lensClient: _lensClient } = await lensTracerTestSetup('test-contracts', 'inheritance');
     lensClient = _lensClient;
 
     // deploy

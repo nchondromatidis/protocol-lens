@@ -24,18 +24,10 @@ export type LensProjects = string;
 // Object must be:
 // - values satisfy LensArtifact type
 // - key formated as `LensArtifact['sourceName']:LensArtifact['contractName']`
-// - `LensArtifact['sourceName']` formated as  `${RootT}/${ProjectT}/contracts/`
-export type LensArtifactsMap<
-  ArtifactMapT extends object,
-  ProjectsT extends LensProjects,
-  ProjectT extends ProjectsT,
-  RootT extends string,
-> = {
+export type LensArtifactsMap<ArtifactMapT extends object> = {
   [K in keyof ArtifactMapT as ArtifactMapT[K] extends LensArtifact
     ? K extends `${ArtifactMapT[K]['sourceName']}:${ArtifactMapT[K]['contractName']}`
-      ? ArtifactMapT[K]['sourceName'] extends `${RootT}/${ProjectT}/${string}`
-        ? K
-        : never
+      ? K
       : never
     : never]: Extract<ArtifactMapT[K], LensArtifact>;
 };

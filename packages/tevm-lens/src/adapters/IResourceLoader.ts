@@ -3,10 +3,8 @@ import type { LensArtifactsMap, LensProjects, LensSourceFunctionIndexes } from '
 export interface IResourceLoader<
   ArtifactMapT extends object,
   ProjectsT extends LensProjects,
-  ProjectT extends ProjectsT,
   FunctionIndexesT extends LensSourceFunctionIndexes,
-  RootT extends string,
-  LensArtifactsMapT extends LensArtifactsMap<ArtifactMapT, ProjectsT, ProjectT, RootT>,
+  LensArtifactsMapT extends LensArtifactsMap<ArtifactMapT>,
 > {
   getArtifact<LensContractFqnT extends keyof LensArtifactsMapT & string>(
     contractFQN: LensContractFqnT

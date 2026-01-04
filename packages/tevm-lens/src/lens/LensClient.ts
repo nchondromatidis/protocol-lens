@@ -15,7 +15,7 @@ import { DebugMetadata } from './indexes/DebugMetadata.ts';
 import { AddressLabeler } from './indexes/AddressLabeler.ts';
 import { TxTracer } from './tx-tracer/TxTracer.ts';
 import { InvalidArgument, InvariantError } from '../common/errors.ts';
-import type { Address, Hex, LensArtifactsMap, LensProjects } from './types/artifact.ts';
+import type { Address, Hex, LensArtifactsMap } from './types/artifact.ts';
 import type { InterpreterStep } from 'tevm/evm';
 import { hardhatLinkExternalLibToBytecode } from '../utils/hardhat.ts';
 
@@ -23,15 +23,7 @@ export type Next = () => void;
 
 export class LensClient<
   ArtifactMapT extends object,
-  ProjectsT extends LensProjects,
-  ProjectT extends ProjectsT,
-  RootT extends string,
-  LensArtifactsMapT extends LensArtifactsMap<ArtifactMapT, ProjectsT, ProjectT, RootT> = LensArtifactsMap<
-    ArtifactMapT,
-    ProjectsT,
-    ProjectT,
-    RootT
-  >,
+  LensArtifactsMapT extends LensArtifactsMap<ArtifactMapT> = LensArtifactsMap<ArtifactMapT>,
 > {
   constructor(
     public readonly client: Client<TevmTransport>,

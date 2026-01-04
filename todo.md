@@ -22,6 +22,7 @@
       - break decoding result: error, result
       - convert anemic to a rich domain model
       - Replace tevm objects for external calls and results with raw data (opcodes, stack, memory)
+      - Rethink ArtifactMap generics
 - tevm-lens-ui
     - txTrace -> components
 - analysis
