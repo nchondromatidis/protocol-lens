@@ -194,17 +194,17 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
 // --- Main Export Component ---
 
 interface TransactionTraceViewerProps {
-  event: FunctionCallEvent;
+  functionTrace: FunctionCallEvent;
   className?: string;
 }
 
-export const FunctionTraceViewer: React.FC<TransactionTraceViewerProps> = ({ event, className }) => {
+export const FunctionTraceViewer: React.FC<TransactionTraceViewerProps> = ({ functionTrace, className }) => {
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set(['root']));
 
   const handleExpandAll = useCallback(() => {
-    const allPaths = getAllPaths(event);
+    const allPaths = getAllPaths(functionTrace);
     setExpandedPaths(allPaths);
-  }, [event]);
+  }, [functionTrace]);
 
   const handleCollapseAll = useCallback(() => {
     setExpandedPaths(new Set(['root']));
@@ -257,7 +257,13 @@ export const FunctionTraceViewer: React.FC<TransactionTraceViewerProps> = ({ eve
       {/* Main Content Area with Custom Scrollbar */}
       <div className="flex-1 overflow-auto p-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-zinc-600">
         <div className="min-w-max pb-10">
-          <TraceNode event={event} path="root" depth={0} expandedPaths={expandedPaths} onToggle={handleToggle} />
+          <TraceNode
+            event={functionTrace}
+            path="root"
+            depth={0}
+            expandedPaths={expandedPaths}
+            onToggle={handleToggle}
+          />
         </div>
       </div>
     </div>

@@ -1,8 +1,12 @@
 import { Group, Panel, Separator } from 'react-resizable-panels';
-import { sample1 } from '../../docs/sample-data.ts';
+import type { FunctionCallEvent } from '@defi-notes/tevm-lens/src/lens/tx-tracer/TxTrace.ts';
 import { FunctionTraceViewer } from '@/components/FunctionTraceViewer.tsx';
 
-export function TraceViewerLayout() {
+interface TraceViewerLayoutProps {
+  functionTrace: FunctionCallEvent;
+}
+
+export function TraceViewerLayout({ functionTrace }: TraceViewerLayoutProps) {
   return (
     <Group orientation="vertical" className="h-screen">
       <Panel defaultSize={60} className="overflow-hidden border">
@@ -12,7 +16,7 @@ export function TraceViewerLayout() {
       </Panel>
       <Separator />
       <Panel defaultSize={40} className="overflow-auto p-4 border">
-        <FunctionTraceViewer event={sample1} />
+        <FunctionTraceViewer functionTrace={functionTrace} />
       </Panel>
     </Group>
   );
