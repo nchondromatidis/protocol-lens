@@ -69,7 +69,7 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
 
   // Layout Constants
   const INDENT_PX = 20;
-  const BADGE_COL_WIDTH = '7rem'; // Width of the column containing the badge
+  const BADGE_COL_WIDTH = '7rem'; // 112px total width allocated for badge column
   const BADGE_WIDTH = 'w-24'; // Fixed width of the badge itself
 
   const contract = event.contractFQN || event.to || 'Unknown';
@@ -79,13 +79,11 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
 
   // -- Handlers --
 
-  // Only toggles expansion
   const handleExpandClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggle(path);
   };
 
-  // Logs to console (empty handler per requirement)
   const handleRowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     console.log('Row clicked:', event);
@@ -96,10 +94,9 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
       {/* Row Container */}
       <div
         className={cn(
-          'flex items-center hover:bg-white/5 py-0.5 pr-2 group transition-colors',
+          'flex items-center hover:bg-white/5 py-0.5 pr-2 group transition-colors cursor-pointer',
           isError && 'bg-red-950/10'
         )}
-        // Row click triggers log
         onClick={handleRowClick}
       >
         {/* 1. Badge Column (Fixed Left) */}
@@ -110,7 +107,7 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
           <span
             className={cn(
               'text-[10px] font-bold py-0.5 rounded border text-center uppercase tracking-wider truncate',
-              BADGE_WIDTH, // Fixed width
+              BADGE_WIDTH,
               getBadgeStyles(String(event.callType), isError)
             )}
           >
@@ -118,7 +115,7 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
           </span>
         </div>
 
-        {/* 2. Indentation & Tree Structure */}
+        {/* 2. Indentation Spacer */}
         <div
           className="flex-shrink-0 relative flex items-center justify-end"
           style={{ width: `${depth * INDENT_PX}px` }}
@@ -126,7 +123,7 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
 
         {/* 3. Expand/Collapse Arrow - CLICKABLE AREA */}
         <div
-          className="flex-shrink-0 w-6 h-6 flex justify-center items-center text-zinc-500 cursor-pointer hover:text-zinc-300"
+          className="flex-shrink-0 w-6 h-6 flex justify-center items-center text-zinc-500 hover:text-zinc-300"
           onClick={handleExpandClick}
         >
           {isError ? (
@@ -143,7 +140,7 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
         </div>
 
         {/* 4. Content */}
-        <div className="ml-1 flex flex-wrap items-center gap-x-1 break-all cursor-text">
+        <div className="ml-1 flex flex-wrap items-center gap-x-1 break-all">
           <span className="text-blue-400 font-medium">{contract}</span>
           <span className="text-zinc-400">.</span>
           <span className="text-purple-300 font-semibold">{method}</span>
@@ -173,7 +170,6 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
           <div
             className="absolute bg-zinc-700/50 w-px bottom-0 top-0"
             style={{
-              // badge col + indent depth + half icon width (approx)
               left: `calc(${BADGE_COL_WIDTH} + ${(depth + 1) * INDENT_PX}px - 0.5rem)`,
             }}
           />
@@ -259,7 +255,7 @@ export const FunctionTraceViewer: React.FC<TransactionTraceViewerProps> = ({ eve
       </div>
 
       {/* Main Content Area with Custom Scrollbar */}
-      <div className="flex-1 overflow-auto p-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-zinc-600">
+      <div className="flex-1 overflow-auto p-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-zinc-600">
         <div className="min-w-max pb-10">
           <TraceNode event={event} path="root" depth={0} expandedPaths={expandedPaths} onToggle={handleToggle} />
         </div>
