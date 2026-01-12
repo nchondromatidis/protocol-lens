@@ -2,7 +2,9 @@ import type { FunctionDefinition, SourceUnit, VariableDeclaration } from 'solidi
 import { type ASTDereferencer, findAll } from 'solidity-ast/utils.js'; // force common.js
 import { trySync } from './type-utils';
 import { keccak_256 } from '@noble/hashes/sha3.js';
-import { bytesToHex, utf8ToBytes } from '@noble/hashes/utils.js';
+import { bytesToHex, utf8ToBytes } from '@noble/hashes/utils.js'; // force common.js
+
+// ast
 
 export function findAstById(deref: ASTDereferencer, astId: number) {
   return trySync(() => deref.withSourceUnit('*', astId));
@@ -16,10 +18,6 @@ export function findContractDefinition(contractFQNSourceUnit: SourceUnit, contra
     throw new Error(`No ContractDefinition for contractName=${contractName}, freeFunction not supported yet`);
   }
   return contractFQNContractAst;
-}
-
-export function findFunctionDefinitions(contractFQNSourceUnit: SourceUnit) {
-  return Array.from(findAll('FunctionDefinition', contractFQNSourceUnit));
 }
 
 // function selector

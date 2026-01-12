@@ -18,7 +18,7 @@ export function getSrcLocation(location: string, decodeSrc: SrcDecoder, debug: D
     const lineStart = Number(start.split(':')[1]);
     const lineEnd = Number(end.split(':')[1]);
 
-    return { lineStart, lineEnd, source: userSource };
+    return { lineStart, lineEnd, userSource };
   } catch (e: unknown) {
     debug(`Location not found: ${location}: ${e}`);
     return undefined;

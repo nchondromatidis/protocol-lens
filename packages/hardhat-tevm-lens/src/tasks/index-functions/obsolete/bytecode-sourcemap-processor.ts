@@ -4,8 +4,11 @@ import { createByteCodeIndex } from '../../../_utils/bytecode';
 import { decompressSourceMap } from '../../../_utils/sourcemap';
 import { trySync } from '../../../_utils/type-utils';
 
-/** @deprecated obsolete: cannot reliably determine function entry/exit/callsite pc */
-export function convertToFunctionIndex1(
+/**
+ * @deprecated
+ * bytecode: cannot reliably determine function entry/exit/callsite pc
+ */
+export function convertToFunctionIndex(
   contractFQN: string,
   opcodesMnemonicsString: string | undefined,
   sourcemap: string | undefined,

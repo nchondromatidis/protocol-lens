@@ -1,14 +1,3 @@
-export function groupSourcesPerProtocol<T extends { source: string }>(data: T[]) {
-  const protocolFunctionIndexes: Record<string, Array<T>> = {};
-  for (const functionData of data) {
-    const secondFolder = functionData.source.split('/')[1];
-    if (!protocolFunctionIndexes[secondFolder]) protocolFunctionIndexes[secondFolder] = [];
-    protocolFunctionIndexes[secondFolder].push(functionData);
-  }
-
-  return protocolFunctionIndexes;
-}
-
 export function groupByFolder(files: string[], folderNumber: number): Record<string, string[]> {
   return files.reduce<Record<string, string[]>>((acc, filePath) => {
     const groupFolder = filePath.split('/')[folderNumber];
@@ -17,4 +6,23 @@ export function groupByFolder(files: string[], folderNumber: number): Record<str
 
     return acc;
   }, {});
+}
+
+export function groupByPathSegment<T, K extends keyof T>(
+  items: T[],
+  propertyKey: K,
+  segmentIndex: number
+): Record<string, Array<T>> {
+  const groupedItems: Record<string, Array<T>> = {};
+
+  for (const item of items) {
+    const propertyValue = item[propertyKey];
+    if (typeof propertyValue !== 'string') continue;
+    const segment = propertyValue.split('/')[segmentIndex];
+    if (!segment) continue;
+    if (!groupedItems[segment]) groupedItems[segment] = [];
+    groupedItems[segment].push(item);
+  }
+
+  return groupedItems;
 }

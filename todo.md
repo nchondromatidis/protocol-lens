@@ -2,7 +2,7 @@
 
 - temv-lens
   - Features
-    - Next milestone:
+    - Next milestones:
       - FunctionEntryHandler
         - Decode arguments
       - FunctionExitHandler
@@ -12,11 +12,11 @@
       - Indexer: 
         - detect/decode public variables getters
         - use solc instead of hardhat to be able to be used directly in browser
-      - Detect/decode precompiles
       - add logger
       - Register call and result line numbers
       - Inline libs detection
       - Precompile detection
+      - Minify json indexes for prod vs dev
     - Refactor
       - break decoding function call: function call, fallback handlers
       - break decoding result: error, result

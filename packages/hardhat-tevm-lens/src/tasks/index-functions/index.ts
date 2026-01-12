@@ -4,12 +4,12 @@ import type { HardhatRuntimeEnvironment } from 'hardhat/types/hre';
 import { fileURLToPath } from 'node:url';
 import type { FunctionIndexes } from './types';
 import { getBuildInfoPair, getBuildInfoPairsPath } from '../../_utils/build-info';
-import { createFunctionDataIndexes } from './index-functions';
 import { debug } from './_debug';
-import { groupSourcesPerProtocol } from '../../_utils/paths';
+import { groupByPathSegment } from '../../_utils/paths';
 import { getSharedState, setSharedState } from '../tasks-shared-state';
+import { createFunctionDataIndexes } from './ast-processor';
 
-//*************************************** TYPES ***************************************//
+//************************************** COPY TYPES ***************************************//
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -36,10 +36,10 @@ export default async function (_taskArgs: Record<string, any>, hre: HardhatRunti
 
   for (const buildInfoPairPath of buildInfoPairPaths) {
     const buildInfoPair = getBuildInfoPair(buildInfoPairPath);
-    createFunctionDataIndexes(buildInfoPair, functionIndexes);
+    createFunctionDataIndexes(buildInfoPair, functionIndexes, debug);
   }
 
-  const protocolFunctionEntryIndexes = groupSourcesPerProtocol(functionIndexes);
+  const protocolFunctionEntryIndexes = groupByPathSegment(functionIndexes, 'source', 1);
 
   for (const [protocol, sourceFunctionIndexes] of Object.entries(protocolFunctionEntryIndexes)) {
     const protocolSourceFunctionIndexesPath = path.join(artifactsContractPath, protocol, 'function-indexes.json');

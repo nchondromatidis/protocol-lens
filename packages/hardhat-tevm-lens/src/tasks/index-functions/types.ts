@@ -11,10 +11,8 @@ export type FunctionIndex = {
   functionLineEnd: number;
   source: string;
   contractFQN: string;
-  jumpDestPc: number;
   parameterSlots: number;
   returnSlots: number;
-  linearizationOrderNumber: number;
 };
 
 export type FunctionIndexes = Array<FunctionIndex>;

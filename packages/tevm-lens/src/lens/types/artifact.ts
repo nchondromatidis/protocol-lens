@@ -45,9 +45,7 @@ export type LensFunctionIndex = {
   functionLineEnd: number;
   source: string;
   contractFQN: string;
-  jumpDestPc: number;
   visibility: 'external' | 'public' | 'internal' | 'private';
   parameterSlots: number;
   returnSlots: number;
-  linearizationOrderNumber: number;
 };

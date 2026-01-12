@@ -26,6 +26,8 @@ function createProtocolsType(values: string[], protocolsTypeFilePath: string) {
   debug('Created protocol list types:', protocolsTypeFilePath);
 }
 
+//*************************************** MAIN ***************************************//
+
 export default async function (_taskArgs: Record<string, any>, hre: HardhatRuntimeEnvironment) {
   debug('List protocols task started');
 

@@ -11,19 +11,22 @@ const plugin: HardhatPlugin = {
   },
   tasks: [
     task('index-functions', 'Creates indexes for all functions.')
-      .setAction(() => import('./tasks/index-functions/index'))
+      .setAction(() => import('./tasks/index-functions'))
+      .build(),
+    task('index-pc-locations', 'Creates indexes that maps pc with source locations for specific opcodes.')
+      .setAction(() => import('./tasks/index-pc-locations'))
       .build(),
     task('add-source', 'Creates source.json in each source containing source code and ast.')
-      .setAction(() => import('./tasks/add-source/index'))
+      .setAction(() => import('./tasks/add-source'))
       .build(),
     task('list-contracts-per-protocol', 'Creates a list of all contracts per protocol.')
-      .setAction(() => import('./tasks/list-contracts-per-protocol/list-contracts-per-protocol'))
+      .setAction(() => import('./tasks/list-contracts-per-protocol'))
       .build(),
     task('list-protocols', 'Creates a list of all protocols.')
-      .setAction(() => import('./tasks/list-protocols/list-protocols'))
+      .setAction(() => import('./tasks/list-protocols'))
       .build(),
     task('type-barrel', 'Creates an artifacts index.d.ts for artifacts folder.')
-      .setAction(() => import('./tasks/type-barrel/type-barrel'))
+      .setAction(() => import('./tasks/type-barrel'))
       .build(),
     {
       type: TaskDefinitionType.TASK_OVERRIDE,
@@ -36,4 +39,3 @@ const plugin: HardhatPlugin = {
 };
 
 export default plugin;
-export { groupSourcesPerProtocol } from './_utils/paths';

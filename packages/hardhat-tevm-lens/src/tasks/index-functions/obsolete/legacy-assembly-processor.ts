@@ -32,8 +32,12 @@ type SrcFnDef = {
 
 //************************************* PROCESSOR ***************************************//
 
-/** @deprecated obsolete: cannot reliably determine function entry/exit/callssite pc, modern asm not parseable/stable format */
-export function convertToFunctionIndex3(
+/**
+ * @deprecated
+ * - legacy asm: cannot reliably determine function entry/exit/callsite pc
+ * - modern asm: not parseable/stable format, may brake per solidity version
+ */
+export function convertToFunctionIndex(
   legacyAssembly: CompilerOutputContract['legacyAssembly'],
   fnDefs: FunctionDefinition[]
 ) {

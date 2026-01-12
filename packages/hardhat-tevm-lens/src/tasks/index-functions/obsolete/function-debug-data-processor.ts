@@ -1,12 +1,14 @@
 import type { CompilerOutputBytecode } from 'hardhat/types/solidity';
 import { type ASTDereferencer, findAll, isNodeType } from 'solidity-ast/utils.js';
-import type { SrcDecoder } from 'solidity-ast/utils';
-import type { ContractDefinition } from 'solidity-ast';
-import { findAstById, toFunctionSelector, toHumanReadableAbi } from '../../../_utils/ast';
+import { astDereferencer, srcDecoder, type SrcDecoder } from 'solidity-ast/utils.js';
+import type { ContractDefinition, SourceUnit } from 'solidity-ast';
+import { findAstById, findContractDefinition, toFunctionSelector, toHumanReadableAbi } from '../../../_utils/ast';
 import { getSrcLocation } from '../../../_utils/source-location';
-import type { FunctionIndex } from '../types';
+import type { FunctionIndex, FunctionIndexes } from '../types';
 import type { Debugger } from 'debug';
 import { isNotUndefined } from '../../../_utils/type-utils';
+import type { BuildInfoPair } from '../../../_utils/build-info';
+import { toUserSource } from '../../../_utils/hardhat';
 
 //*************************************** TYPES ***************************************//
 
@@ -24,7 +26,62 @@ declare module 'hardhat/types/solidity' {
   }
 }
 
-/** @deprecated obsolete: cannot determine function exit/callsite pc + only available on solidity >= 0.8.0 */
+//*************************************** PREPARE ***************************************//
+
+/**
+ * @deprecated
+ * functionDebugData: cannot determine function exit/callsite pc + only available on solidity >= 0.8.0
+ */
+export function createFunctionDataIndexes(
+  buildInfoPair: BuildInfoPair,
+  functionIndexes: FunctionIndexes, // mutates
+  debug: Debugger
+) {
+  const { buildInfoInput, buildInfoOutput, buildInfoOutputPath } = buildInfoPair;
+  const contracts = buildInfoOutput.output.contracts;
+  if (!contracts) {
+    throw new Error(`No contracts found in build info output: ${buildInfoOutputPath}`);
+  }
+
+  const deref = astDereferencer(buildInfoOutput.output);
+
+  const decodeSrc = srcDecoder(buildInfoInput.input, buildInfoOutput.output);
+
+  for (const [inputSourceName, contractsData] of Object.entries(contracts)) {
+    for (const [contractName, contractData] of Object.entries(contractsData)) {
+      const contractFQN = toUserSource(`${inputSourceName}:${contractName}`);
+
+      const contractFQNSourceUnit = buildInfoOutput.output.sources![inputSourceName]?.ast as SourceUnit;
+      const contractFQNContractAst = findContractDefinition(contractFQNSourceUnit, contractName);
+
+      debug(`Indexing contract: ${contractFQN}`);
+
+      const deployedBytecodeFunctionData = convertToFunctionIndex2(
+        contractFQN,
+        contractFQNContractAst,
+        contractData.evm?.deployedBytecode?.functionDebugData,
+        decodeSrc,
+        deref,
+        debug
+      );
+
+      const bytecodeFunctionData = convertToFunctionIndex2(
+        contractFQN,
+        contractFQNContractAst,
+        contractData.evm?.bytecode?.functionDebugData,
+        decodeSrc,
+        deref,
+        debug
+      );
+
+      if (deployedBytecodeFunctionData) functionIndexes.push(...deployedBytecodeFunctionData);
+      if (bytecodeFunctionData) functionIndexes.push(...bytecodeFunctionData);
+    }
+  }
+}
+
+//*************************************** INDEX ***************************************//
+
 export function convertToFunctionIndex2(
   contractFQN: string,
   contractFqnAst: ContractDefinition,
@@ -49,7 +106,7 @@ export function convertToFunctionIndex2(
 
       if (isNodeType('FunctionDefinition', node)) {
         const fnDef = node;
-        const sourceLine = getSrcLocation(node.src, decodeSrc, debug);
+        const srcLocation = getSrcLocation(node.src, decodeSrc, debug);
 
         const functionHumanReadableABI = toHumanReadableAbi(fnDef, deref);
         let functionSelector = fnDef.functionSelector;
@@ -81,14 +138,14 @@ export function convertToFunctionIndex2(
             humanReadableABI: functionHumanReadableABI,
             selector: functionSelector,
             src: fnDef.src,
-            functionLineStart: sourceLine?.lineStart ?? -2,
-            functionLineEnd: sourceLine?.lineEnd ?? -2,
-            source: sourceLine?.source ?? '',
+            functionLineStart: srcLocation?.lineStart ?? -2,
+            functionLineEnd: srcLocation?.lineEnd ?? -2,
+            source: srcLocation?.userSource ?? '',
             contractFQN,
-            jumpDestPc: functionData.entryPoint,
+            // jumpDestPc: functionData.entryPoint,
             parameterSlots: functionData.parameterSlots,
             returnSlots: functionData.returnSlots,
-            linearizationOrderNumber,
+            // linearizationOrderNumber,
           };
           functionIndexes.push(functionIndex);
         }

@@ -9,9 +9,15 @@ const debug = createDebug(`${DEBUG_PREFIX}:list-folder-contracts`);
 
 async function getAllFullyQualifiedNames(hre: HardhatRuntimeEnvironment) {
   return Array.from(await hre.artifacts.getAllFullyQualifiedNames()).filter(
-    (it) => !it.includes('function-indexes') && !it.includes('contract-fqn-list') && !it.includes('source')
+    (it) =>
+      !it.includes('function-indexes') &&
+      !it.includes('contract-fqn-list') &&
+      !it.includes('source') &&
+      !it.includes('pc-locations-index')
   );
 }
+
+//*************************************** MAIN ***************************************//
 
 export default async function (_taskArgs: Record<string, any>, hre: HardhatRuntimeEnvironment) {
   debug('List contracts per protocol task started');

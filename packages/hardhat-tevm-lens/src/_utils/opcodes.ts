@@ -1,3 +1,5 @@
+//*************************************** PUSH ***************************************//
+
 const pushOpcodes = [
   'PUSH1',
   'PUSH2',
@@ -45,8 +47,22 @@ export function getPushSizeOrZero(opcodeName: string): number {
   return 0;
 }
 
+//************************************ EXTERNAL CALLS ***************************************//
+
 const externalCallOpcodes = ['CALL', 'CALLCODE', 'DELEGATECALL', 'STATICCALL', 'CREATE', 'CREATE2'];
 
 export function isExternalCallOpcode(opcodeName: string): boolean {
   return externalCallOpcodes.includes(opcodeName);
+}
+
+//*************************************** JUMP ***************************************//
+
+const jumpOpcodes = ['JUMP', 'JUMPI'];
+
+export function isJumpOpcode(opcodeName: string): boolean {
+  return jumpOpcodes.includes(opcodeName);
+}
+
+export function isJumpDestOpcode(opcodeName: string): boolean {
+  return opcodeName === 'JUMPDEST';
 }

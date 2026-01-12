@@ -107,8 +107,7 @@ export class ExternalCallHandler extends HandlerBase {
         QueryBy.contractAndNameOrKind(
           decodedFunctionCall.contractFQN,
           decodedFunctionCall.decodedFunctionName,
-          decodedFunctionCall.type,
-          0
+          decodedFunctionCall.type
         )
       );
       functionCallEvent.functionLineStart = functionIndex?.functionLineStart;
@@ -122,7 +121,7 @@ export class ExternalCallHandler extends HandlerBase {
       const contractFQN = functionCallEvent.implContractFQN ?? functionCallEvent.contractFQN;
       if (contractFQN) {
         const functionIndex = this.debugMetadata.functions.getBy(
-          QueryBy.contractAndSelector(contractFQN, functionSelector, 0)
+          QueryBy.contractAndSelector(contractFQN, functionSelector)
         );
 
         functionCallEvent.functionName = functionIndex?.name;
