@@ -1,5 +1,5 @@
 import { HandlerBase } from '../HandlerBase.ts';
-import type { EvmResult } from 'tevm/evm';
+import type { ExternalCallResultEvmEvent } from '../_events/lens-evm-events.ts';
 import { bytesToHex } from 'viem';
 import type { FunctionCallEvent, FunctionResultEvent, LensLog } from '../../CallTrace.ts';
 import {
@@ -14,9 +14,8 @@ import {
   decodeFunctionReturnWithFunctionIndex,
 } from '../../abi-decoders/functionResultDecoder.ts';
 import { InvariantError } from '../../../common/errors.ts';
-import { getOrCreate } from '../../../common/utils.ts';
 import { QueryBy } from '../../indexes/FunctionIndexesRegistry.ts';
-import type { RawLog, TracingId } from '../../types.ts';
+import type { RawLog } from '../../types.ts';
 
 /*
  * Detects and decodes external function call result data and logs. <br>
@@ -29,10 +28,10 @@ import type { RawLog, TracingId } from '../../types.ts';
  * </i>
  */
 export class ExternalCallResultHandler extends HandlerBase {
-  public readonly decodedLogsTxCache: Map<TracingId, DecodedLogsCache> = new Map();
-  public readonly decodedErrorsTxCache: Map<TracingId, DecodedErrorsCache> = new Map();
+  private decodedLogsTxCache: DecodedLogsCache = new DecodedLogsCache();
+  private decodedErrorsTxCache: DecodedErrorsCache = new DecodedErrorsCache();
 
-  async handle(resultEvent: EvmResult, tracingId: TracingId, functionCallEvent: FunctionCallEvent) {
+  async handle(resultEvent: ExternalCallResultEvmEvent, functionCallEvent: FunctionCallEvent) {
     // base function result object
     const returnData = bytesToHex(resultEvent.execResult.returnValue);
     const functionResultEvent: FunctionResultEvent = {
@@ -53,7 +52,7 @@ export class ExternalCallResultHandler extends HandlerBase {
         throw new InvariantError('CREATE/CREATE2 function call without createdAddress');
       }
       functionResultEvent.isCreate = true;
-      functionResultEvent.createdAddress = resultEvent.createdAddress.toString();
+      functionResultEvent.createdAddress = resultEvent.createdAddress;
       const createdContractFQN = functionCallEvent.createdContractFQN;
       if (createdContractFQN) {
         functionResultEvent.createdContractFQN = createdContractFQN;
@@ -67,7 +66,7 @@ export class ExternalCallResultHandler extends HandlerBase {
           contractRole: 'NORMAL',
         });
 
-        this.addressLabeler.markContractAddress(resultEvent.createdAddress.toString(), createdContractFQN);
+        this.addressLabeler.markContractAddress(resultEvent.createdAddress, createdContractFQN);
       }
     }
 
@@ -116,14 +115,13 @@ export class ExternalCallResultHandler extends HandlerBase {
     }
 
     // decoding result
-    const tracingErrorsCache = getOrCreate(this.decodedErrorsTxCache, tracingId, () => new DecodedErrorsCache());
     const decodedResult = await decodeFunctionResultMultipleAbisWithCache(
       {
         decodeData: decodeData,
         data: returnData,
         isError: functionResultEvent.isError,
       },
-      tracingErrorsCache
+      this.decodedErrorsTxCache
     );
     if (decodedResult && !decodedResult.isSuccess) {
       functionResultEvent.errorName = decodedResult.decodedError.errorName;
@@ -150,8 +148,7 @@ export class ExternalCallResultHandler extends HandlerBase {
     if (resultEvent.execResult.logs) {
       for (const ethJsLog of resultEvent.execResult.logs) {
         const rawLog = this.convertToRawLog(ethJsLog);
-        const tracingLogCache = getOrCreate(this.decodedLogsTxCache, tracingId, () => new DecodedLogsCache());
-        const decodedLog = await decodeLogMultipleAbisWithCache({ decodeData, log: rawLog }, tracingLogCache);
+        const decodedLog = await decodeLogMultipleAbisWithCache({ decodeData, log: rawLog }, this.decodedLogsTxCache);
 
         const lensLog: LensLog = {
           rawData: rawLog,
@@ -170,9 +167,9 @@ export class ExternalCallResultHandler extends HandlerBase {
     return functionResultEvent;
   }
 
-  public cleanCache(tracingId: TracingId) {
-    this.decodedLogsTxCache.delete(tracingId);
-    this.decodedErrorsTxCache.delete(tracingId);
+  public reset() {
+    this.decodedLogsTxCache = new DecodedLogsCache();
+    this.decodedErrorsTxCache = new DecodedErrorsCache();
   }
 
   private convertToRawLog(log: [address: Uint8Array, topics: Uint8Array[], data: Uint8Array]): RawLog {

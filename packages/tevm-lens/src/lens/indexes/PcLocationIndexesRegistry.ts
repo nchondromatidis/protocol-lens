@@ -1,10 +1,10 @@
-import type { JumpType, LensFunctionIndex, LensPcLocationIndex } from '../types.ts';
+import type { LensFunctionIndex, LensPcLocationIndex } from '../types.ts';
 import { NestedMap } from '../../common/NestedMap.ts';
 
 export class PcLocationIndexesRegistry {
   protected contactFunctions = new NestedMap<[contractFQN: string], LensFunctionIndex[]>();
   protected contactOpcodes = new NestedMap<
-    [contractFQN: string, jumpType: JumpType, pc: number],
+    [contractFQN: string, pc: number],
     LensPcLocationIndex['pcLocations'][number]
   >();
   protected contractLocationSources = new NestedMap<[contractFQN: string, locationSourceIndex: number], string>();
@@ -29,7 +29,7 @@ export class PcLocationIndexesRegistry {
     // contactOpcodes index
     for (const pcLocationIndex of pcLocationIndexes) {
       for (const pcLocation of pcLocationIndex.pcLocations) {
-        this.contactOpcodes.set(pcLocationIndex.contractFQN, pcLocation[1], pcLocation[0], pcLocation);
+        this.contactOpcodes.set(pcLocationIndex.contractFQN, pcLocation[0], pcLocation);
       }
     }
 
@@ -41,8 +41,8 @@ export class PcLocationIndexesRegistry {
     }
   }
 
-  public getFunction(contractFQN: string, jumpType: JumpType, pc: number): LensFunctionIndex | undefined {
-    const pcLocation = this.contactOpcodes.get(contractFQN, jumpType, pc);
+  public getFunctionIndex(contractFQN: string, pc: number): LensFunctionIndex | undefined {
+    const pcLocation = this.contactOpcodes.get(contractFQN, pc);
     if (!pcLocation) return undefined;
 
     const start = pcLocation[2][0];

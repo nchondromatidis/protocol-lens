@@ -2,7 +2,7 @@ import { HandlerBase } from '../HandlerBase.ts';
 
 import type { InterpreterStep } from 'tevm/evm';
 import type { FunctionCallEvent } from '../../CallTrace.ts';
-import { CallStack, type PC, type RuntimeTraceMetadata } from '../trace-metadata.ts';
+import { type PC, type RuntimeTraceMetadata } from '../trace-metadata.ts';
 import { safeBigIntToNumber } from '../../../common/utils.ts';
 
 /*
@@ -20,8 +20,7 @@ export class FunctionEntryHandler extends HandlerBase {
   public async handle(
     stepEvent: InterpreterStep,
     executionContext: RuntimeTraceMetadata['executionContext'],
-    parentFunctionCallEvent: FunctionCallEvent,
-    callStack: CallStack
+    parentFunctionCallEvent: FunctionCallEvent
   ): Promise<{ functionCallEvent: FunctionCallEvent; functionExitPc: PC } | undefined> {
     if (stepEvent.opcode.name !== 'JUMPDEST') return undefined;
 
@@ -35,10 +34,10 @@ export class FunctionEntryHandler extends HandlerBase {
     const contractFQN = this.addressLabeler.getContractFqnForAddress(contractAddress);
     if (!contractFQN) return undefined;
 
-    const functionIndex = this.debugMetadata.pcLocations.getFunction(contractFQN, 'i', stepEvent.pc);
+    const functionIndex = this.debugMetadata.pcLocations.getFunctionIndex(contractFQN, stepEvent.pc);
     if (!functionIndex) return undefined;
 
-    const functionData = callStack.push(functionIndex);
+    const functionData = functionIndex;
     console.log(functionIndex.name);
     if (!functionData) return undefined;
 

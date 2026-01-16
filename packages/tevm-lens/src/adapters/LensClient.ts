@@ -10,7 +10,6 @@ import {
 } from 'viem';
 import type { ContractResult, Message } from 'tevm/actions';
 import type { EvmResult } from 'tevm/evm';
-import { randomId } from '../common/utils.ts';
 import { DebugMetadata } from '../lens/indexes/DebugMetadata.ts';
 import { AddressLabeler } from '../lens/indexes/AddressLabeler.ts';
 import { CallTracer } from '../lens/CallTracer.ts';
@@ -29,7 +28,7 @@ export class LensClient<
     public readonly client: Client<TevmTransport>,
     public readonly debugMetadata: DebugMetadata,
     public readonly addressLabeler: AddressLabeler,
-    public readonly txTracer: CallTracer
+    public readonly callTracer: CallTracer
   ) {}
 
   async deploy<ContractFQNT extends keyof LensArtifactsMapT & string>(
@@ -65,8 +64,7 @@ export class LensClient<
     value?: bigint,
     traceTx = true
   ): Promise<ContractResult<TAbi, TFunctionName>> {
-    const tracingId = randomId();
-    if (traceTx) this.txTracer.startTracing(tracingId);
+    if (traceTx) this.callTracer.reset();
     const contractTxResult = await tevmContract(this.client, {
       to: contract.address,
       code: undefined,
@@ -77,22 +75,23 @@ export class LensClient<
       args: args,
       throwOnFail: false,
       onStep: async (event: InterpreterStep, next?: Next) => {
-        if (traceTx) await this.txTracer.route(event, tracingId);
+        if (traceTx) await this.callTracer.register(event);
         next?.();
       },
       onBeforeMessage: async (event: Message, next?: Next) => {
-        if (traceTx) await this.txTracer.route(event, tracingId);
+        if (traceTx) await this.callTracer.register(event);
         next?.();
       },
       onAfterMessage: async (event: EvmResult, next?: Next) => {
-        if (traceTx) await this.txTracer.route(event, tracingId);
+        if (traceTx) await this.callTracer.register(event);
         next?.();
       },
     });
+    await this.callTracer.process();
     if (contractTxResult.errors) {
-      if (traceTx) this.txTracer.stopTracing(contractTxResult.txHash!, tracingId, 'failed');
+      if (traceTx) this.callTracer.save(contractTxResult.txHash!, 'failed');
     } else {
-      if (traceTx) this.txTracer.stopTracing(contractTxResult.txHash!, tracingId, 'success');
+      if (traceTx) this.callTracer.save(contractTxResult.txHash!, 'success');
     }
 
     return contractTxResult;

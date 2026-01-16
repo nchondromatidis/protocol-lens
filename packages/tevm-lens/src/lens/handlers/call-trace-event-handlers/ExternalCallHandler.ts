@@ -1,5 +1,5 @@
 import { HandlerBase } from '../HandlerBase.ts';
-import type { Message } from 'tevm/actions';
+import type { ExternalCallEvmEvent } from '../_events/lens-evm-events.ts';
 import { type Abi, bytesToHex } from 'viem';
 import type { FunctionCallEvent } from '../../CallTrace.ts';
 import type { Address } from '../../types.ts';
@@ -22,15 +22,14 @@ import { QueryBy } from '../../indexes/FunctionIndexesRegistry.ts';
  * </>
  */
 export class ExternalCallHandler extends HandlerBase {
-  public async handle(callEvent: Message) {
+  public async handle(callEvent: ExternalCallEvmEvent) {
     // base function call object
-    const callData = bytesToHex(callEvent.data);
     const functionCallEvent: FunctionCallEvent = {
       type: 'FunctionCallEvent',
-      to: callEvent?.to?.toString(),
-      from: callEvent.caller.toString(),
+      to: callEvent?.to,
+      from: callEvent.caller,
       depth: callEvent.depth,
-      rawData: callData,
+      rawData: callEvent.data,
       value: callEvent.value,
       callType: 'EXTERNAL',
       precompile: callEvent.isCompiled,
@@ -45,7 +44,7 @@ export class ExternalCallHandler extends HandlerBase {
       functionCallEvent.callType = 'CREATE';
       if (callEvent.salt) functionCallEvent.callType = 'CREATE2';
       functionCallEvent.create2Salt = callEvent.salt ? bytesToHex(callEvent.salt) : undefined;
-      const result = this.debugMetadata.artifacts.getContractFqnFromCallData(callData);
+      const result = this.debugMetadata.artifacts.getContractFqnFromCallData(callEvent.data);
       bytecode = result.bytecode;
       const newContractFQN = result.newContractFQN;
       functionCallEvent.createdContractFQN = newContractFQN;
@@ -58,7 +57,7 @@ export class ExternalCallHandler extends HandlerBase {
     if (callEvent.to) {
       functionCallEvent.callType = 'CALL';
       if (callEvent.isStatic) functionCallEvent.callType = 'STATICCALL';
-      const contractFQN = this.addressLabeler.getContractFqnForAddress(callEvent.to.toString());
+      const contractFQN = this.addressLabeler.getContractFqnForAddress(callEvent.to);
       functionCallEvent.contractFQN = contractFQN;
       const { contractAbi, linkLibraries } = this.debugMetadata.artifacts.getAllAbisRelatedTo(contractFQN);
       // called contract
@@ -74,7 +73,7 @@ export class ExternalCallHandler extends HandlerBase {
       functionCallEvent.callType = 'DELEGATECALL';
 
       // delegate call caller contract
-      functionCallEvent.contractFQN = this.addressLabeler.getContractFqnForAddress(callEvent.to.toString());
+      functionCallEvent.contractFQN = this.addressLabeler.getContractFqnForAddress(callEvent.to);
 
       // callEvent type missing _codeAddress, but implementation has it
       const codeAddress = (callEvent as any)['_codeAddress'].toString() as Address;
@@ -92,7 +91,7 @@ export class ExternalCallHandler extends HandlerBase {
     // decode called function: name, type, args
     const decodedFunctionCall = decodeFunctionCallMultipleAbis({
       decodeData: decodingData,
-      rawData: callData,
+      rawData: callEvent.data,
       precompile: functionCallEvent.precompile,
       value: callEvent.value,
       createdBytecode: bytecode,
@@ -117,7 +116,7 @@ export class ExternalCallHandler extends HandlerBase {
 
     // External function call, selector not matching ABI
     if (!decodedFunctionCall) {
-      const functionSelector = callData.slice(2, 10);
+      const functionSelector = callEvent.data.slice(2, 10);
       const contractFQN = functionCallEvent.implContractFQN ?? functionCallEvent.contractFQN;
       if (contractFQN) {
         const functionIndex = this.debugMetadata.functions.getBy(
@@ -129,7 +128,7 @@ export class ExternalCallHandler extends HandlerBase {
         functionCallEvent.functionLineStart = functionIndex?.functionLineStart;
         functionCallEvent.functionLineEnd = functionIndex?.functionLineEnd;
         functionCallEvent.functionSource = functionIndex?.source;
-        functionCallEvent.args = decodeFunctionCallWithFunctionIndexes({ callData, functionIndex });
+        functionCallEvent.args = decodeFunctionCallWithFunctionIndexes({ callData: callEvent.data, functionIndex });
       }
     }
 

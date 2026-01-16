@@ -38,7 +38,7 @@ describe('internal-calls', () => {
 
   test.skip('debug_traceTransaction.structLogs', async () => {
     await lensClient.contract(callerContract, 'mixedCall', [2n]);
-    const txHash = lensClient.txTracer.succeededTxs.keys().next().value;
+    const txHash = lensClient.callTracer.succeededTxs.keys().next().value;
     const callTraceResult = await lensClient.client.transport.tevm.request({
       method: 'debug_traceTransaction',
       params: [
@@ -58,7 +58,7 @@ describe('internal-calls', () => {
 
   test.skip('debug_traceTransaction.callTracer', async () => {
     await lensClient.contract(callerContract, 'mixedCall', [2n]);
-    const txHash = lensClient.txTracer.succeededTxs.keys().next().value;
+    const txHash = lensClient.callTracer.succeededTxs.keys().next().value;
     const callTraceResult = await lensClient.client.transport.tevm.request({
       method: 'debug_traceTransaction',
       params: [
@@ -75,13 +75,13 @@ describe('internal-calls', () => {
 
   test('publicFunction', async () => {
     const result = await lensClient.contract(callerContract, 'publicFunction', [2n]);
-    //inspect(getTracedTx.success(result));
-  }, 9999);
+    inspect(getTracedTx.success(result));
+  });
 
   test('mixedCall', async () => {
     const result = await lensClient.contract(callerContract, 'mixedCall', [2n]);
-    //expect(getTracedTx.success(result)).toMatchSnapshot();
-  }, 9999);
+    expect(getTracedTx.success(result)).toMatchSnapshot();
+  });
 
   test('callAnotherContract', async () => {
     const result = await lensClient.contract(callerContract, 'callAnotherContract', []);

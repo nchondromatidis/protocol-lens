@@ -1,12 +1,3 @@
-export function randomId(length = 6) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
 type Ok<T> = { ok: true; value: T };
 type Err<E = unknown> = { ok: false; error: E };
 type Result<T, E = unknown> = Ok<T> | Err<E>;
@@ -43,3 +34,10 @@ export function safeBigIntToNumber(bigint: bigint): number {
   }
   return Number(bigint);
 }
+
+export type DeepReadonly<T> =
+  T extends Array<infer U>
+    ? ReadonlyArray<DeepReadonly<U>>
+    : T extends object
+      ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+      : T;
