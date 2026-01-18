@@ -51,7 +51,7 @@ export const sample1: FunctionCallEvent = {
           called: [],
           result: {
             type: 'FunctionResultEvent',
-            returnValueRaw: '',
+            returnValueRaw: '0x',
             isError: false,
             isCreate: false,
             logs: [],
@@ -60,7 +60,7 @@ export const sample1: FunctionCallEvent = {
       ],
       result: {
         type: 'FunctionResultEvent',
-        returnValueRaw: '',
+        returnValueRaw: '0x',
         isError: false,
         isCreate: false,
         logs: [],
@@ -84,7 +84,7 @@ export const sample1: FunctionCallEvent = {
       called: [],
       result: {
         type: 'FunctionResultEvent',
-        returnValueRaw: '',
+        returnValueRaw: '0x',
         isError: false,
         isCreate: false,
         logs: [],
@@ -108,7 +108,7 @@ export const sample1: FunctionCallEvent = {
       called: [],
       result: {
         type: 'FunctionResultEvent',
-        returnValueRaw: '',
+        returnValueRaw: '0x',
         isError: false,
         isCreate: false,
         logs: [],
@@ -126,8 +126,8 @@ export const sample1: FunctionCallEvent = {
       contractFQN: 'test-contracts/internal-calls/CallerContract.sol:CallerContract',
       functionName: 'publicFunction',
       functionType: 'function',
-      functionLineStart: 41,
-      functionLineEnd: 44,
+      functionLineStart: 40,
+      functionLineEnd: 43,
       functionSource: 'test-contracts/internal-calls/CallerContract.sol',
       called: [
         {
@@ -164,7 +164,7 @@ export const sample1: FunctionCallEvent = {
               called: [],
               result: {
                 type: 'FunctionResultEvent',
-                returnValueRaw: '',
+                returnValueRaw: '0x',
                 isError: false,
                 isCreate: false,
                 logs: [],
@@ -173,7 +173,7 @@ export const sample1: FunctionCallEvent = {
           ],
           result: {
             type: 'FunctionResultEvent',
-            returnValueRaw: '',
+            returnValueRaw: '0x',
             isError: false,
             isCreate: false,
             logs: [],
@@ -182,7 +182,7 @@ export const sample1: FunctionCallEvent = {
       ],
       result: {
         type: 'FunctionResultEvent',
-        returnValueRaw: '',
+        returnValueRaw: '0x',
         isError: false,
         isCreate: false,
         logs: [],
@@ -201,8 +201,8 @@ export const sample1: FunctionCallEvent = {
       functionName: 'publicFunction',
       functionType: 'function',
       args: [2n],
-      functionLineStart: 41,
-      functionLineEnd: 44,
+      functionLineStart: 40,
+      functionLineEnd: 43,
       functionSource: 'test-contracts/internal-calls/CallerContract.sol',
       called: [
         {
@@ -239,7 +239,7 @@ export const sample1: FunctionCallEvent = {
               called: [],
               result: {
                 type: 'FunctionResultEvent',
-                returnValueRaw: '',
+                returnValueRaw: '0x',
                 isError: false,
                 isCreate: false,
                 logs: [],
@@ -248,7 +248,7 @@ export const sample1: FunctionCallEvent = {
           ],
           result: {
             type: 'FunctionResultEvent',
-            returnValueRaw: '',
+            returnValueRaw: '0x',
             isError: false,
             isCreate: false,
             logs: [],
@@ -303,8 +303,8 @@ export const sample1: FunctionCallEvent = {
       contractFQN: 'test-contracts/internal-calls/CallerContract.sol:CallerContract',
       functionName: 'publicFunction',
       functionType: 'function',
-      functionLineStart: 41,
-      functionLineEnd: 44,
+      functionLineStart: 40,
+      functionLineEnd: 43,
       functionSource: 'test-contracts/internal-calls/CallerContract.sol',
       called: [
         {
@@ -341,7 +341,7 @@ export const sample1: FunctionCallEvent = {
               called: [],
               result: {
                 type: 'FunctionResultEvent',
-                returnValueRaw: '',
+                returnValueRaw: '0x',
                 isError: false,
                 isCreate: false,
                 logs: [],
@@ -350,7 +350,7 @@ export const sample1: FunctionCallEvent = {
           ],
           result: {
             type: 'FunctionResultEvent',
-            returnValueRaw: '',
+            returnValueRaw: '0x',
             isError: false,
             isCreate: false,
             logs: [],
@@ -359,7 +359,7 @@ export const sample1: FunctionCallEvent = {
       ],
       result: {
         type: 'FunctionResultEvent',
-        returnValueRaw: '',
+        returnValueRaw: '0x',
         isError: false,
         isCreate: false,
         logs: [],

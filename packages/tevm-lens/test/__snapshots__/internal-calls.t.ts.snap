@@ -21,7 +21,7 @@ exports[`internal-calls > callAnotherContract 1`] = `
           "functionSource": "test-contracts/internal-calls/CalleeContract.sol",
           "functionType": "function",
           "precompile": false,
-          "rawData": "",
+          "rawData": "0x",
           "result": {
             "isCreate": false,
             "isError": false,
@@ -45,7 +45,7 @@ exports[`internal-calls > callAnotherContract 1`] = `
           "functionSource": "test-contracts/internal-calls/CalleeContract.sol",
           "functionType": "function",
           "precompile": false,
-          "rawData": "",
+          "rawData": "0x",
           "result": {
             "isCreate": false,
             "isError": false,
@@ -273,7 +273,7 @@ exports[`internal-calls > mixedCall 1`] = `
           "functionSource": "test-contracts/internal-calls/CallerContract.sol",
           "functionType": "function",
           "precompile": false,
-          "rawData": "",
+          "rawData": "0x",
           "result": {
             "isCreate": false,
             "isError": false,
@@ -295,7 +295,7 @@ exports[`internal-calls > mixedCall 1`] = `
       "functionSource": "test-contracts/internal-calls/CallerContract.sol",
       "functionType": "function",
       "precompile": false,
-      "rawData": "",
+      "rawData": "0x",
       "result": {
         "isCreate": false,
         "isError": false,
@@ -319,7 +319,7 @@ exports[`internal-calls > mixedCall 1`] = `
       "functionSource": "test-contracts/internal-calls/CallerContract.sol",
       "functionType": "function",
       "precompile": false,
-      "rawData": "",
+      "rawData": "0x",
       "result": {
         "isCreate": false,
         "isError": false,
@@ -343,7 +343,7 @@ exports[`internal-calls > mixedCall 1`] = `
       "functionSource": "test-contracts/internal-calls/CallerContract.sol",
       "functionType": "function",
       "precompile": false,
-      "rawData": "",
+      "rawData": "0x",
       "result": {
         "isCreate": false,
         "isError": false,
@@ -373,7 +373,7 @@ exports[`internal-calls > mixedCall 1`] = `
               "functionSource": "test-contracts/internal-calls/CallerContract.sol",
               "functionType": "function",
               "precompile": false,
-              "rawData": "",
+              "rawData": "0x",
               "result": {
                 "isCreate": false,
                 "isError": false,
@@ -395,7 +395,7 @@ exports[`internal-calls > mixedCall 1`] = `
           "functionSource": "test-contracts/internal-calls/CallerContract.sol",
           "functionType": "function",
           "precompile": false,
-          "rawData": "",
+          "rawData": "0x",
           "result": {
             "isCreate": false,
             "isError": false,
@@ -417,7 +417,7 @@ exports[`internal-calls > mixedCall 1`] = `
       "functionSource": "test-contracts/internal-calls/CallerContract.sol",
       "functionType": "function",
       "precompile": false,
-      "rawData": "",
+      "rawData": "0x",
       "result": {
         "isCreate": false,
         "isError": false,
@@ -450,7 +450,7 @@ exports[`internal-calls > mixedCall 1`] = `
               "functionSource": "test-contracts/internal-calls/CallerContract.sol",
               "functionType": "function",
               "precompile": false,
-              "rawData": "",
+              "rawData": "0x",
               "result": {
                 "isCreate": false,
                 "isError": false,
@@ -472,7 +472,7 @@ exports[`internal-calls > mixedCall 1`] = `
           "functionSource": "test-contracts/internal-calls/CallerContract.sol",
           "functionType": "function",
           "precompile": false,
-          "rawData": "",
+          "rawData": "0x",
           "result": {
             "isCreate": false,
             "isError": false,
@@ -565,7 +565,7 @@ exports[`internal-calls > mixedCall 1`] = `
               "functionSource": "test-contracts/internal-calls/CallerContract.sol",
               "functionType": "function",
               "precompile": false,
-              "rawData": "",
+              "rawData": "0x",
               "result": {
                 "isCreate": false,
                 "isError": false,
@@ -587,7 +587,7 @@ exports[`internal-calls > mixedCall 1`] = `
           "functionSource": "test-contracts/internal-calls/CallerContract.sol",
           "functionType": "function",
           "precompile": false,
-          "rawData": "",
+          "rawData": "0x",
           "result": {
             "isCreate": false,
             "isError": false,
@@ -609,7 +609,7 @@ exports[`internal-calls > mixedCall 1`] = `
       "functionSource": "test-contracts/internal-calls/CallerContract.sol",
       "functionType": "function",
       "precompile": false,
-      "rawData": "",
+      "rawData": "0x",
       "result": {
         "isCreate": false,
         "isError": false,
@@ -834,7 +834,7 @@ exports[`internal-calls > publicFunction 1`] = `
           "functionSource": "test-contracts/internal-calls/CallerContract.sol",
           "functionType": "function",
           "precompile": false,
-          "rawData": "",
+          "rawData": "0x",
           "result": {
             "isCreate": false,
             "isError": false,
@@ -856,7 +856,7 @@ exports[`internal-calls > publicFunction 1`] = `
       "functionSource": "test-contracts/internal-calls/CallerContract.sol",
       "functionType": "function",
       "precompile": false,
-      "rawData": "",
+      "rawData": "0x",
       "result": {
         "isCreate": false,
         "isError": false,
@@ -1004,7 +1004,7 @@ exports[`internal-calls > test function fallback 1`] = `
               "functionSource": "test-contracts/internal-calls/CallerContract.sol",
               "functionType": "function",
               "precompile": false,
-              "rawData": "",
+              "rawData": "0x",
               "result": {
                 "isCreate": false,
                 "isError": false,
@@ -1026,7 +1026,7 @@ exports[`internal-calls > test function fallback 1`] = `
           "functionSource": "test-contracts/internal-calls/CallerContract.sol",
           "functionType": "function",
           "precompile": false,
-          "rawData": "",
+          "rawData": "0x",
           "result": {
             "isCreate": false,
             "isError": false,
@@ -1048,7 +1048,7 @@ exports[`internal-calls > test function fallback 1`] = `
       "functionSource": "test-contracts/internal-calls/CallerContract.sol",
       "functionType": "function",
       "precompile": false,
-      "rawData": "",
+      "rawData": "0x",
       "result": {
         "isCreate": false,
         "isError": false,

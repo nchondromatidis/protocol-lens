@@ -60,7 +60,7 @@ export class FunctionEntryHandler extends HandlerBase {
       to: internalCallEvent.opcodeStepEvent.to,
       from: executionContext.get(depth)!.functionCallEvent.from,
       depth,
-      rawData: '',
+      rawData: '0x',
       value: 0n,
       callType: 'INTERNAL',
       precompile: false,

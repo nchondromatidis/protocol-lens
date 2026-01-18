@@ -79,7 +79,7 @@ describe('internal-calls', () => {
 
   test('mixedCall', async () => {
     const result = await lensClient.contract(callerContract, 'mixedCall', [2n]);
-    expect(getTracedTx.success(result)).toMatchSnapshot();
+    expect(getTracedTx.success(result, true)).toMatchSnapshot();
   });
 
   test('callAnotherContract', async () => {
