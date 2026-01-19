@@ -1,5 +1,5 @@
 import type { Hex, LensArtifact } from '../types.ts';
-import { hardhatGetReferencesFQN } from '../../utils/hardhat.ts';
+import { hardhatGetReferencesFQN } from '../utils/hardhat-utils.ts';
 import type { Abi } from 'viem';
 
 type Bytecode = Hex;

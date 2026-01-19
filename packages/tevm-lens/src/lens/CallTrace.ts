@@ -1,4 +1,4 @@
-import { InvariantError } from '../common/errors.ts';
+import { InvariantError } from './_common/errors.ts';
 import type { Address, Hex } from './types.ts';
 
 type External = 'EXTERNAL';

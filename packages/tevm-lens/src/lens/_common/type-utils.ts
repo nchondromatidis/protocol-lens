@@ -19,22 +19,6 @@ export function trySync<T, E = unknown>(fn: () => T): Result<T, E> {
   }
 }
 
-export function getOrCreate<K, V>(map: Map<K, V>, key: K, create: () => V): V {
-  let value = map.get(key);
-  if (!value) {
-    value = create();
-    map.set(key, value);
-  }
-  return value;
-}
-
-export function safeBigIntToNumber(bigint: bigint): number {
-  if (bigint > Number.MAX_SAFE_INTEGER || bigint < Number.MIN_SAFE_INTEGER) {
-    throw new Error('BigInt is outside the safe integer range');
-  }
-  return Number(bigint);
-}
-
 export type DeepReadonly<T> =
   T extends Array<infer U>
     ? ReadonlyArray<DeepReadonly<U>>

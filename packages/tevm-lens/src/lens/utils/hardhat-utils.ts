@@ -1,8 +1,8 @@
 import { type Address, type Hex, keccak256, toHex } from 'viem';
-import { InvalidArgument } from '../common/errors.ts';
+import { InvalidArgument } from '../_common/errors.ts';
 
 export function hardhatLinkExternalLibToBytecode(bytecode: Hex, libraryFqn: string, libraryAddress: Address) {
-  const hash = keccak256(toHex(hardhatConvertFromContractFQNToSourceInput(libraryFqn)));
+  const hash = keccak256(toHex(hardhatToCompilerSourceInput(libraryFqn)));
   const tagContent = hash.slice(2, 2 + 34);
   const tag = `__$${tagContent}$__`;
 
@@ -14,11 +14,11 @@ export function hardhatLinkExternalLibToBytecode(bytecode: Hex, libraryFqn: stri
   return bytecode.replaceAll(tag, libraryAddressNoPrefix) as Hex;
 }
 
-export function hardhatConvertFromContractFQNToSourceInput(contractFQN: string): string {
+export function hardhatToCompilerSourceInput(contractFQN: string): string {
   return 'project/' + contractFQN;
 }
 
-export function hardhatConvertFromSourceInputToContractFQN(contractSourceInput: string): string {
+export function hardhatUserSourceInput(contractSourceInput: string): string {
   return contractSourceInput?.replace('project/', '');
 }
 
@@ -28,7 +28,7 @@ export function hardhatGetReferencesFQN(
   if (!linkReferences) return [];
   return Object.entries(linkReferences).flatMap(([inputSource, contractObj]) =>
     Object.keys(contractObj).map((contract) => {
-      return hardhatConvertFromSourceInputToContractFQN(`${inputSource}:${contract}`);
+      return hardhatUserSourceInput(`${inputSource}:${contract}`);
     })
   );
 }

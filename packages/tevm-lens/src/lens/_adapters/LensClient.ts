@@ -10,13 +10,13 @@ import {
 } from 'viem';
 import type { ContractResult, Message } from 'tevm/actions';
 import type { EvmResult } from 'tevm/evm';
-import { DebugMetadata } from '../lens/indexes/DebugMetadata.ts';
-import { AddressLabeler } from '../lens/indexes/AddressLabeler.ts';
-import { CallTracer } from '../lens/CallTracer.ts';
-import { InvalidArgument, InvariantError } from '../common/errors.ts';
-import type { Address, Hex, LensArtifactsMap } from '../lens/types.ts';
+import { DebugMetadata } from '../indexes/DebugMetadata.ts';
+import { AddressLabeler } from '../indexes/AddressLabeler.ts';
+import { CallTracer } from '../CallTracer.ts';
+import { InvalidArgument, InvariantError } from '../_common/errors.ts';
+import type { Address, Hex, LensArtifactsMap } from '../types.ts';
 import type { InterpreterStep } from 'tevm/evm';
-import { hardhatLinkExternalLibToBytecode } from '../utils/hardhat.ts';
+import { hardhatLinkExternalLibToBytecode } from '../utils/hardhat-utils.ts';
 
 export type Next = () => void;
 

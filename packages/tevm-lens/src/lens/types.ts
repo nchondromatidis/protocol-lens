@@ -1,4 +1,4 @@
-import { type Abi, isHex } from 'viem';
+import { type Abi } from 'viem';
 
 // tracing
 export type TracingId = string;
@@ -7,11 +7,6 @@ export type TxId = Hex;
 // hex types
 export type Address = `0x${string}`;
 export type Hex = `0x${string}`;
-
-export function safeCastToHex(value: string): Hex {
-  if (!isHex(value)) throw new Error(`Invalid hex string: ${value}`);
-  return value;
-}
 
 // Artifact schema
 export type LensArtifact = {
@@ -63,7 +58,7 @@ export type Location = [startLine: number, endLine: number, sourceIndex: number]
 export type LensPcLocationIndex = {
   contractFQN: ContractFQN;
   locationSources: Array<string>;
-  pcLocations: Array<[PC, JumpType, Location]>;
+  pcLocations: Array<[PC, JumpType, Location]>; // PcLocationReadable
 };
 
 export type PcLocationReadable = {

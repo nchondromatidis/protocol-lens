@@ -13,7 +13,7 @@ import {
   decodeFunctionResultMultipleAbisWithCache,
   decodeFunctionReturnWithFunctionIndex,
 } from '../../abi-decoders/functionResultDecoder.ts';
-import { InvariantError } from '../../../common/errors.ts';
+import { InvariantError } from '../../_common/errors.ts';
 import { QueryBy } from '../../indexes/FunctionIndexesRegistry.ts';
 import type { RawLog } from '../../types.ts';
 

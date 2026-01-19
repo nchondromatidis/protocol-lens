@@ -3,7 +3,7 @@ import type { ProtocolName } from './artifacts';
 import { tevmSetAccount } from 'tevm';
 import { ETHER_1 } from './utils/constants.ts';
 import type { LensArtifact, LensArtifactsMap } from '../../src/lens/types.ts';
-import { buildCallTracer } from '../../src';
+import { buildCallTracer } from '../../src/lens';
 
 export type LensArtifactsMapSlice<MapT extends LensArtifactsMap<any>, RootT extends string, ProjectT extends string> = {
   [K in keyof MapT as MapT[K] extends LensArtifact

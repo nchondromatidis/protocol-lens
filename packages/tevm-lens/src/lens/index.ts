@@ -1,21 +1,21 @@
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { buildClient } from './adapters/client.ts';
-import { ArtifactsProvider } from './lens/indexes/ArtifactsProvider.ts';
-import { FunctionIndexesRegistry } from './lens/indexes/FunctionIndexesRegistry.ts';
-import { DebugMetadata } from './lens/indexes/DebugMetadata.ts';
-import { AddressLabeler } from './lens/indexes/AddressLabeler.ts';
-import { ExternalCallHandler } from './lens/handlers/call-trace-event-handlers/ExternalCallHandler.ts';
-import { ExternalCallResultHandler } from './lens/handlers/call-trace-event-handlers/ExternalCallResultHandler.ts';
-import { FunctionEntryHandler } from './lens/handlers/call-trace-event-handlers/FunctionEntryHandler.ts';
-import { FunctionExitHandler } from './lens/handlers/call-trace-event-handlers/FunctionExitHandler.ts';
-import { CallTracer } from './lens/CallTracer.ts';
-import { LensClient } from './adapters/LensClient.ts';
-import type { LensArtifactsMap } from './lens/types.ts';
-import { PcLocationIndexesRegistry } from './lens/indexes/PcLocationIndexesRegistry.ts';
-import { OpcodeMatcher } from './lens/handlers/evm-events-handlers/OpcodeMatcher.ts';
-import { EvmEventsHandler } from './lens/handlers/EvmEventsHandler.ts';
-import { EventStore } from './lens/handlers/evm-events-handlers/EventStore.ts';
-import { CallTraceEventHandler } from './lens/handlers/CallTraceEventHandler.ts';
+import { buildClient } from './_adapters/client.ts';
+import { ArtifactsProvider } from './indexes/ArtifactsProvider.ts';
+import { FunctionIndexesRegistry } from './indexes/FunctionIndexesRegistry.ts';
+import { DebugMetadata } from './indexes/DebugMetadata.ts';
+import { AddressLabeler } from './indexes/AddressLabeler.ts';
+import { ExternalCallHandler } from './handlers/call-trace-event-handlers/ExternalCallHandler.ts';
+import { ExternalCallResultHandler } from './handlers/call-trace-event-handlers/ExternalCallResultHandler.ts';
+import { FunctionEntryHandler } from './handlers/call-trace-event-handlers/FunctionEntryHandler.ts';
+import { FunctionExitHandler } from './handlers/call-trace-event-handlers/FunctionExitHandler.ts';
+import { CallTracer } from './CallTracer.ts';
+import { LensClient } from './_adapters/LensClient.ts';
+import type { LensArtifactsMap } from './types.ts';
+import { PcLocationIndexesRegistry } from './indexes/PcLocationIndexesRegistry.ts';
+import { OpcodeMatcher } from './handlers/evm-events-handlers/OpcodeMatcher.ts';
+import { EvmEventsHandler } from './handlers/EvmEventsHandler.ts';
+import { EventStore } from './handlers/evm-events-handlers/EventStore.ts';
+import { CallTraceEventHandler } from './handlers/CallTraceEventHandler.ts';
 
 export async function buildCallTracer<
   ArtifactMapT extends object,

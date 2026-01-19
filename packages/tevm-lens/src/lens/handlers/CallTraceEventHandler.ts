@@ -4,9 +4,9 @@ import { FunctionEntryHandler } from './call-trace-event-handlers/FunctionEntryH
 import { FunctionExitHandler } from './call-trace-event-handlers/FunctionExitHandler.ts';
 import { CallTrace } from '../CallTrace.ts';
 import { emptyRuntimeTraceMetadata, type RuntimeTraceMetadata } from './trace-metadata.ts';
-import { InvariantError } from '../../common/errors.ts';
+import { InvariantError } from '../_common/errors.ts';
 
-import type { DeepReadonly } from '../../common/utils.ts';
+import type { DeepReadonly } from '../_common/type-utils.ts';
 import {
   type CallTraceEvents,
   type InternalFunctionCallEvent,
