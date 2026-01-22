@@ -23,6 +23,10 @@
       - convert anemic to a rich domain model
       - Replace tevm objects for external calls and results with raw data (opcodes, stack, memory)
       - Rethink ArtifactMap generics
+- hardhat-temv-lens
+  - add support for find reference and go to definition
+    - compilation unit: use slang reference <-> definition
+    - cross compilation unit: manual import
 - tevm-lens-ui
     - txTrace -> components
 - analysis

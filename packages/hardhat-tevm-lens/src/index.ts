@@ -16,9 +16,6 @@ const plugin: HardhatPlugin = {
     task('index-pc-locations', 'Creates indexes that maps pc with source locations for specific opcodes.')
       .setAction(() => import('./tasks/index-pc-locations'))
       .build(),
-    task('add-source', 'Creates source.json in each source containing source code and ast.')
-      .setAction(() => import('./tasks/add-source'))
-      .build(),
     task('list-contracts-per-protocol', 'Creates a list of all contracts per protocol.')
       .setAction(() => import('./tasks/list-contracts-per-protocol'))
       .build(),

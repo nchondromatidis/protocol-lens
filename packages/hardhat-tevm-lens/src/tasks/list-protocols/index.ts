@@ -26,6 +26,13 @@ function createProtocolsType(values: string[], protocolsTypeFilePath: string) {
   debug('Created protocol list types:', protocolsTypeFilePath);
 }
 
+function createProtocolsJson(values: string[], protocolsJsonFilePath: string) {
+  const unique = Array.from(new Set(values)).sort();
+  const json = JSON.stringify(unique, null, 2);
+  fs.writeFileSync(protocolsJsonFilePath, json);
+  debug('Created protocol list JSON:', protocolsJsonFilePath);
+}
+
 //*************************************** MAIN ***************************************//
 
 export default async function (_taskArgs: Record<string, any>, hre: HardhatRuntimeEnvironment) {
@@ -35,9 +42,11 @@ export default async function (_taskArgs: Record<string, any>, hre: HardhatRunti
 
   const protocolList = await glob('*/', { cwd: artifactsContractPath });
   const protocolsTypeFilePath = path.join(artifactsContractPath, 'protocols-list.d.ts');
-  debug('Paths:', { protocolsTypeFilePath });
+  const protocolsJsonFilePath = path.join(artifactsContractPath, 'protocols-list.json');
+  debug('Paths:', { protocolsTypeFilePath, protocolsJsonFilePath });
 
   createProtocolsType(protocolList, protocolsTypeFilePath);
+  createProtocolsJson(protocolList, protocolsJsonFilePath);
 
   debug('List protocols task ended');
 }
