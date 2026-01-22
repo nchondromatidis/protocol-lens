@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Protocols (copied from packages/protocols)
+public/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
