@@ -11,7 +11,9 @@
   "types": "types/index.d.ts",
   "scripts": {
     "check:types": "tsc --noEmit",
-    "build": "make build"
+    "build": "make build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "devDependencies": {
     "@defi-notes/config": "workspace:*",
