@@ -21,6 +21,9 @@ async function copySymlinkRecursive(src: string, dest: string, include: string[]
     // Include check (glob patterns relative to src)
     if (!include.some((pattern) => minimatch(relativePath, pattern, { dot: true }))) continue;
 
+    // Skip non-Solidity files
+    if (!filePath.endsWith('.sol')) continue;
+
     const targetPath = path.join(dest, relativePath);
     const stat = await fs.lstat(filePath);
 
