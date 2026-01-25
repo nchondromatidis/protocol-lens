@@ -23,7 +23,7 @@ export type Next = () => void;
 
 export class LensClient<
   ArtifactMapT extends object,
-  LensArtifactsMapT extends LensArtifactsMap<ArtifactMapT> = LensArtifactsMap<ArtifactMapT>,
+  in out LensArtifactsMapT extends LensArtifactsMap<ArtifactMapT> = LensArtifactsMap<ArtifactMapT>,
 > {
   constructor(
     public deployerAccount: PrivateKeyAccount,

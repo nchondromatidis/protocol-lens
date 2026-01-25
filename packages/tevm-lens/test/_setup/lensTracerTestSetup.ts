@@ -1,5 +1,4 @@
 import { TestResourceLoader } from './TestResourceLoader.ts';
-import type { ProtocolName } from './artifacts';
 import { tevmSetAccount } from 'tevm';
 import { ETHER_1 } from './utils/constants.ts';
 import type { LensArtifact, LensArtifactsMap } from '../../src/lens/types.ts';
@@ -13,26 +12,45 @@ export type LensArtifactsMapSlice<MapT extends LensArtifactsMap<any>, RootT exte
     : never]: MapT[K];
 };
 
-export async function lensTracerTestSetup<ProjectNameT extends ProtocolName, RootT extends string>(
-  root: RootT,
-  projectName: ProjectNameT
-) {
-  const resourceLoader = new TestResourceLoader(root);
-  const { lensClient, debugMetadata, deployerAccount } = await buildCallTracer();
+type ExtractRoot<MapT extends LensArtifactsMap<any>> = {
+  [K in keyof MapT]: MapT[K] extends LensArtifact
+    ? MapT[K]['sourceName'] extends `${infer R}/${string}`
+      ? R
+      : never
+    : never;
+}[keyof MapT];
 
-  const artifacts = await resourceLoader.getProtocolArtifacts(projectName);
-  await debugMetadata.artifacts.registerArtifacts(artifacts);
+type ExtractProject<MapT extends LensArtifactsMap<any>, RootT extends string> = {
+  [K in keyof MapT]: MapT[K] extends LensArtifact
+    ? MapT[K]['sourceName'] extends `${RootT}/${infer P}/${any}`
+      ? P
+      : never
+    : never;
+}[keyof MapT];
 
-  const functionIndexes = await resourceLoader.getFunctionIndexes(projectName);
-  await debugMetadata.functions.register(functionIndexes);
+export function createLensTracerTestSetup<MapT extends LensArtifactsMap<any>>() {
+  return async function lensTracerTestSetup<
+    RootT extends ExtractRoot<MapT>,
+    ProjectNameT extends ExtractProject<MapT, RootT>,
+  >(root: RootT, projectName: ProjectNameT) {
+    const resourceLoader = new TestResourceLoader(root);
+    const { lensClient, debugMetadata, deployerAccount } =
+      await buildCallTracer<LensArtifactsMapSlice<MapT, RootT, ProjectNameT>>();
 
-  const pcLocationIndexes = await resourceLoader.getPcLocationIndexes(projectName);
-  await debugMetadata.pcLocations.register(functionIndexes, pcLocationIndexes);
+    const artifacts = await resourceLoader.getProtocolArtifacts(projectName);
+    await debugMetadata.artifacts.registerArtifacts(artifacts);
 
-  await tevmSetAccount(lensClient.client, {
-    address: deployerAccount.address,
-    balance: ETHER_1,
-  });
+    const functionIndexes = await resourceLoader.getFunctionIndexes(projectName);
+    await debugMetadata.functions.register(functionIndexes);
 
-  return { lensClient };
+    const pcLocationIndexes = await resourceLoader.getPcLocationIndexes(projectName);
+    await debugMetadata.pcLocations.register(functionIndexes, pcLocationIndexes);
+
+    await tevmSetAccount(lensClient.client, {
+      address: deployerAccount.address,
+      balance: ETHER_1,
+    });
+
+    return { lensClient };
+  };
 }

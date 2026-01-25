@@ -17,10 +17,7 @@ import { EvmEventsHandler } from './handlers/EvmEventsHandler.ts';
 import { EventStore } from './handlers/evm-events-handlers/EventStore.ts';
 import { CallTraceEventHandler } from './handlers/CallTraceEventHandler.ts';
 
-export async function buildCallTracer<
-  ArtifactMapT extends object,
-  LensArtifactsMapT extends LensArtifactsMap<ArtifactMapT> = LensArtifactsMap<ArtifactMapT>,
->() {
+export async function buildCallTracer<LensArtifactsMapT extends LensArtifactsMap<any>>() {
   const deployerAccount = privateKeyToAccount(generatePrivateKey());
   const client = await buildClient(deployerAccount);
 

@@ -1,13 +1,14 @@
 import { test, beforeEach, describe, expect } from 'vitest';
 import { LensClient } from '../src/lens/_adapters/LensClient.ts';
 import { ETHER_1, ZERO_ADDRESS } from './_setup/utils/constants.ts';
-import { type LensArtifactsMapSlice, lensTracerTestSetup } from './_setup/lensTracerTestSetup.ts';
+import { createLensTracerTestSetup, type LensArtifactsMapSlice } from './_setup/lensTracerTestSetup.ts';
 import { getTracedTxFactory } from './_setup/utils.ts';
 import type { ArtifactMap } from './_setup/artifacts';
 import type { GetContractReturnType } from 'viem';
+import type { LensArtifactsMap } from '../src/lens/types.ts';
 
 describe('external-calls', () => {
-  let lensClient: LensClient<LensArtifactsMapSlice<ArtifactMap, 'test-contracts', 'external-calls'>>;
+  let lensClient: LensClient<LensArtifactsMapSlice<LensArtifactsMap<ArtifactMap>, 'test-contracts', 'external-calls'>>;
   let callerContract: GetContractReturnType<
     ArtifactMap['test-contracts/external-calls/CallerContract.sol:CallerContract']['abi']
   >;
@@ -15,7 +16,10 @@ describe('external-calls', () => {
   let getTracedTx: ReturnType<typeof getTracedTxFactory>;
 
   beforeEach(async () => {
-    const { lensClient: _lensClient } = await lensTracerTestSetup('test-contracts', 'external-calls');
+    const { lensClient: _lensClient } = await createLensTracerTestSetup<LensArtifactsMap<ArtifactMap>>()(
+      'test-contracts',
+      'external-calls'
+    );
     lensClient = _lensClient;
 
     // deploy
@@ -82,7 +86,7 @@ describe('external-calls', () => {
     // Revert to snapshot
     await lensClient.revert();
 
-    // Verify balance restored to initial state
+    // Verify balance restored in the initial state
     const balanceAfterRevert = await lensClient.client.getBalance({ address: calleeContractAddress });
     expect(balanceAfterRevert).toBe(initialBalance);
   });
