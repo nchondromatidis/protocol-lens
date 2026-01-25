@@ -12,9 +12,9 @@ interface TraceViewerLayoutProps {
 export function TraceViewerLayout({ functionTrace, sourceCode }: TraceViewerLayoutProps) {
   return (
     <Group orientation="vertical" className="h-screen">
-      <Panel defaultSize={60} className="overflow-hidden p-4 border">
+      <Panel defaultSize={60} className="overflow-hidden px-4 pt-4 border">
         <Group orientation="horizontal" className="h-full">
-          <Panel defaultSize={20} minSize={10} className="overflow-hidden h-full">
+          <Panel defaultSize={20} minSize={10} className="overflow-hidden h-full pr-4 border-r">
             <ProjectFilesViewer></ProjectFilesViewer>
           </Panel>
           <Panel defaultSize={70} minSize={20} className="overflow-hidden ml-4 h-full">

@@ -1,4 +1,5 @@
-export function getContractName(contractFQN: string) {
-  const [contractName, ,] = contractFQN.split(':');
+export function getContractName(contractFQN?: string) {
+  if (!contractFQN) return undefined;
+  const [, contractName] = contractFQN.split(':');
   return contractName;
 }

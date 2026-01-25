@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { ChevronRight, ChevronDown, AlertTriangle, Maximize2, Minimize2, Activity, ArrowRight } from 'lucide-react';
 import { cn, scrollbarsDark } from '@/lib/utils.ts';
 import type { FunctionCallEvent } from '@defi-notes/tevm-lens/src/lens/CallTrace.ts';
+import { getContractName } from '@defi-notes/tevm-lens/src/client-utils';
 
 // --- Helper Functions ---
 
@@ -72,10 +73,14 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
   const BADGE_COL_WIDTH = '7rem'; // 112px total width allocated for badge column
   const BADGE_WIDTH = 'w-24'; // Fixed width of the badge itself
 
-  const contract = event.contractFQN || event.to || 'Unknown';
-  const method = event.functionName || 'fallback';
+  let contract = getContractName(event.contractFQN) || event.to || 'Unknown';
+  const method = event.functionName || event.functionType;
   const argsText = formatArgs(event.args);
   const resultText = event.result?.returnValue ? formatResult(event.result.returnValue) : '';
+
+  if (['CREATE', 'CREATE2'].includes(event.callType)) {
+    contract = getContractName(event.createdContractFQN) || 'Unknown';
+  }
 
   // -- Handlers --
 
