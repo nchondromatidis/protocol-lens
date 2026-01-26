@@ -1,5 +1,5 @@
 {
-  "name": "@defi-notes/hardhat-tevm-lens",
+  "name": "@defi-notes/hardhat-evm-lens",
   "version": "1.0.0",
   "description": "Augments hardhat artifacts with build info data",
   "license": "MIT",

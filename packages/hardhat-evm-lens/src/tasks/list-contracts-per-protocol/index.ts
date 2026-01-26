@@ -13,7 +13,8 @@ async function getAllFullyQualifiedNames(hre: HardhatRuntimeEnvironment) {
       !it.includes('function-indexes') &&
       !it.includes('contract-fqn-list') &&
       !it.includes('source') &&
-      !it.includes('pc-locations-index')
+      !it.includes('pc-locations-index') &&
+      !it.includes('protocols-list')
   );
 }
 

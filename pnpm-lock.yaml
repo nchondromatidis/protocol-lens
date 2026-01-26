@@ -8,7 +8,7 @@ importers:
 
   .: {}
 
-  apps/docs:
+  apps/notes:
     dependencies:
       '@astrojs/starlight':
         specifier: ^0.36.2
@@ -90,113 +90,7 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.1)
 
-  packages/hardhat-tevm-lens:
-    dependencies:
-      '@noble/hashes':
-        specifier: ^2.0.1
-        version: 2.0.1
-      debug:
-        specifier: ^4.4.3
-        version: 4.4.3
-      glob:
-        specifier: ^11.1.0
-        version: 11.1.0
-      solidity-ast:
-        specifier: ^0.4.61
-        version: 0.4.61
-      ts-morph:
-        specifier: ^20.0.0
-        version: 20.0.0
-      zod:
-        specifier: ^4.1.12
-        version: 4.1.13
-    devDependencies:
-      '@defi-notes/config':
-        specifier: workspace:*
-        version: link:../config
-      '@eslint/js':
-        specifier: ^9.36.0
-        version: 9.39.2
-      '@types/debug':
-        specifier: ^4.1.12
-        version: 4.1.12
-      '@types/node':
-        specifier: ^24.5.2
-        version: 24.10.4
-      eslint:
-        specifier: ^9.36.0
-        version: 9.39.2(jiti@2.6.1)
-      eslint-config-prettier:
-        specifier: ^10.1.8
-        version: 10.1.8(eslint@9.39.2(jiti@2.6.1))
-      eslint-plugin-prettier:
-        specifier: ^5.5.4
-        version: 5.5.4(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))(prettier@3.7.4)
-      hardhat:
-        specifier: ^3.0.14
-        version: 3.1.0
-      prettier:
-        specifier: 3.7.4
-        version: 3.7.4
-      tsx:
-        specifier: ^4.19.4
-        version: 4.21.0
-      typescript:
-        specifier: ~5.9.3
-        version: 5.9.3
-
-  packages/protocols:
-    devDependencies:
-      '@defi-notes/config':
-        specifier: workspace:*
-        version: link:../config
-      '@defi-notes/hardhat-tevm-lens':
-        specifier: workspace:*
-        version: link:../hardhat-tevm-lens
-      '@eslint/js':
-        specifier: ^9.36.0
-        version: 9.39.2
-      '@types/node':
-        specifier: ^24.5.2
-        version: 24.10.4
-      eslint:
-        specifier: ^9.36.0
-        version: 9.39.2(jiti@2.6.1)
-      eslint-config-prettier:
-        specifier: ^10.1.8
-        version: 10.1.8(eslint@9.39.2(jiti@2.6.1))
-      eslint-plugin-prettier:
-        specifier: ^5.5.4
-        version: 5.5.4(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))(prettier@3.7.4)
-      forge-std:
-        specifier: github:foundry-rs/forge-std#v1.9.4
-        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
-      glob:
-        specifier: ^11.0.3
-        version: 11.1.0
-      hardhat:
-        specifier: ^3.0.14
-        version: 3.1.0
-      minimatch:
-        specifier: ^10.0.3
-        version: 10.1.1
-      prettier:
-        specifier: 3.7.4
-        version: 3.7.4
-      remove:
-        specifier: ^0.1.5
-        version: 0.1.5
-      ts-morph:
-        specifier: ^20.0.0
-        version: 20.0.0
-      tsx:
-        specifier: ^4.19.4
-        version: 4.21.0
-      typescript:
-        specifier: ~5.9.3
-        version: 5.9.3
-
-  packages/tevm-lens:
+  packages/evm-lens:
     dependencies:
       tevm:
         specifier: ^1.0.0-next.149
@@ -208,9 +102,9 @@ importers:
       '@defi-notes/config':
         specifier: workspace:*
         version: link:../config
-      '@defi-notes/hardhat-tevm-lens':
+      '@defi-notes/hardhat-evm-lens':
         specifier: workspace:*
-        version: link:../hardhat-tevm-lens
+        version: link:../hardhat-evm-lens
       '@defi-notes/protocols':
         specifier: workspace:*
         version: link:../protocols
@@ -245,14 +139,14 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.1)
 
-  packages/tevm-lens-ui:
+  packages/evm-lens-ui:
     dependencies:
       '@codemirror/theme-one-dark':
         specifier: ^6.1.2
         version: 6.1.3
-      '@defi-notes/tevm-lens':
+      '@defi-notes/evm-lens':
         specifier: workspace:*
-        version: link:../tevm-lens
+        version: link:../evm-lens
       '@headless-tree/core':
         specifier: ^1.6.3
         version: 1.6.3
@@ -368,6 +262,112 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.1)
+
+  packages/hardhat-evm-lens:
+    dependencies:
+      '@noble/hashes':
+        specifier: ^2.0.1
+        version: 2.0.1
+      debug:
+        specifier: ^4.4.3
+        version: 4.4.3
+      glob:
+        specifier: ^11.1.0
+        version: 11.1.0
+      solidity-ast:
+        specifier: ^0.4.61
+        version: 0.4.61
+      ts-morph:
+        specifier: ^20.0.0
+        version: 20.0.0
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.13
+    devDependencies:
+      '@defi-notes/config':
+        specifier: workspace:*
+        version: link:../config
+      '@eslint/js':
+        specifier: ^9.36.0
+        version: 9.39.2
+      '@types/debug':
+        specifier: ^4.1.12
+        version: 4.1.12
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.10.4
+      eslint:
+        specifier: ^9.36.0
+        version: 9.39.2(jiti@2.6.1)
+      eslint-config-prettier:
+        specifier: ^10.1.8
+        version: 10.1.8(eslint@9.39.2(jiti@2.6.1))
+      eslint-plugin-prettier:
+        specifier: ^5.5.4
+        version: 5.5.4(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))(prettier@3.7.4)
+      hardhat:
+        specifier: ^3.0.14
+        version: 3.1.0
+      prettier:
+        specifier: 3.7.4
+        version: 3.7.4
+      tsx:
+        specifier: ^4.19.4
+        version: 4.21.0
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+
+  packages/protocols:
+    devDependencies:
+      '@defi-notes/config':
+        specifier: workspace:*
+        version: link:../config
+      '@defi-notes/hardhat-evm-lens':
+        specifier: workspace:*
+        version: link:../hardhat-evm-lens
+      '@eslint/js':
+        specifier: ^9.36.0
+        version: 9.39.2
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.10.4
+      eslint:
+        specifier: ^9.36.0
+        version: 9.39.2(jiti@2.6.1)
+      eslint-config-prettier:
+        specifier: ^10.1.8
+        version: 10.1.8(eslint@9.39.2(jiti@2.6.1))
+      eslint-plugin-prettier:
+        specifier: ^5.5.4
+        version: 5.5.4(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))(prettier@3.7.4)
+      forge-std:
+        specifier: github:foundry-rs/forge-std#v1.9.4
+        version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
+      glob:
+        specifier: ^11.0.3
+        version: 11.1.0
+      hardhat:
+        specifier: ^3.0.14
+        version: 3.1.0
+      minimatch:
+        specifier: ^10.0.3
+        version: 10.1.1
+      prettier:
+        specifier: 3.7.4
+        version: 3.7.4
+      remove:
+        specifier: ^0.1.5
+        version: 0.1.5
+      ts-morph:
+        specifier: ^20.0.0
+        version: 20.0.0
+      tsx:
+        specifier: ^4.19.4
+        version: 4.21.0
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
 
 packages:
 
@@ -7951,7 +7951,7 @@ snapshots:
 
   '@scure/bip32@1.7.0':
     dependencies:
-      '@noble/curves': 1.9.1
+      '@noble/curves': 1.9.7
       '@noble/hashes': 1.8.0
       '@scure/base': 1.2.6
 
@@ -11568,7 +11568,7 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      abitype: 1.1.0(typescript@5.9.3)(zod@4.1.13)
+      abitype: 1.2.2(typescript@5.9.3)(zod@4.1.13)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.9.3

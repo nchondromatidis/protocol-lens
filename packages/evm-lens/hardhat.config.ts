@@ -1,5 +1,5 @@
 import type { HardhatUserConfig } from 'hardhat/config';
-import augmentArtifacts from '@defi-notes/hardhat-tevm-lens';
+import augmentArtifacts from '@defi-notes/hardhat-evm-lens';
 
 const config: HardhatUserConfig = {
   plugins: [augmentArtifacts],
