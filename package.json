@@ -6,7 +6,6 @@
     "check-types": "pnpm -r run check:types",
     "preinstall": "npx only-allow pnpm",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deps:list": "pnpm dlx syncpack@alpha list",
     "deps:list:verbose": "pnpm dlx syncpack@alpha list --show instances",
     "deps:fix": "pnpm dlx syncpack@alpha fix",
     "deps:update:patch": "pnpm dlx syncpack@alpha update --target patch",
