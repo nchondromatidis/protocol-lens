@@ -13,7 +13,7 @@
     "./styles": "./dist/index.css"
   },
   "scripts": {
-    "check:types": "tsc --noEmit",
+    "check:types": "tsc -p tsconfig.web.json --noEmit",
     "sync:protocols:copy": "rm -rf public && mkdir -p public/protocols && cp -r ../protocols/artifacts public/protocols/ && cp -r ../protocols/contracts public/protocols/",
     "sync:protocols:symlink": "rm -rf public && mkdir -p public && ln -sfn ../../protocols/artifacts  public/artifacts && ln -sfn ../../protocols/contracts public/contracts",
     "predev:playground": "pnpm run sync:protocols:symlink",
