@@ -10,7 +10,6 @@
     }
   },
   "scripts": {
-    "postinstall": "pnpm run build",
     "check:types": "tsc --noEmit",
     "build": "rm -rf dist && tsc",
     "build:watch": "tsc --watch",
