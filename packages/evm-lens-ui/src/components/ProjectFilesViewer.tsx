@@ -22,50 +22,17 @@ export interface Item {
 }
 
 export interface ProjectFilesViewerProps {
-  items?: Record<string, Item>;
-  rootItemId?: string;
-  initialExpandedItems?: string[];
-  indent?: number;
+  items: Record<string, Item>;
+  rootItemId: string;
+  initialExpandedItems: string[];
+  indent: number;
 }
 
-const DEFAULT_ITEMS: Record<string, Item> = {
-  apis: { name: 'APIs' },
-  backend: { children: ['apis', 'infrastructure'], name: 'Backend' },
-  company: {
-    children: ['engineering', 'marketing', 'operations'],
-    name: 'Company',
-  },
-  components: { name: 'Components' },
-  content: { name: 'Content' },
-  'design-system': {
-    children: ['components', 'tokens', 'guidelines'],
-    name: 'Design System',
-  },
-  engineering: {
-    children: ['frontend', 'backend', 'platform-team'],
-    name: 'Engineering',
-  },
-  finance: { name: 'Finance' },
-  frontend: { children: ['design-system', 'web-platform'], name: 'Frontend' },
-  guidelines: { name: 'Guidelines' },
-  hr: { name: 'HR' },
-  infrastructure: { name: 'Infrastructure' },
-  marketing: { children: ['content', 'seo'], name: 'Marketing' },
-  operations: { children: ['hr', 'finance'], name: 'Operations' },
-  'platform-team': { name: 'Platform Team' },
-  seo: { name: 'SEO' },
-  tokens: { name: 'Tokens' },
-  'web-platform': { name: 'Web Platform' },
-};
-
-const DEFAULT_INDENT = 20;
-const DEFAULT_INITIAL_EXPANDED_ITEMS: string[] = ['engineering', 'frontend', 'design-system'];
-
 export default function ProjectFilesViewer({
-  items = DEFAULT_ITEMS,
-  rootItemId = 'company',
-  initialExpandedItems = DEFAULT_INITIAL_EXPANDED_ITEMS,
-  indent = DEFAULT_INDENT,
+  items,
+  rootItemId,
+  initialExpandedItems,
+  indent,
 }: ProjectFilesViewerProps) {
   const [state, setState] = useState<Partial<TreeState<Item>>>({});
 
@@ -129,7 +96,7 @@ export default function ProjectFilesViewer({
         {tree.getItems().map((item) => {
           return (
             <TreeItem item={item} key={item.getId()}>
-              <TreeItemLabel>
+              <TreeItemLabel className="py-1">
                 <span className="flex items-center gap-2">
                   {item.isFolder() ? (
                     item.isExpanded() ? (
