@@ -1,4 +1,4 @@
-import { TEST_ARTIFACTS_PATH, TestResourceLoader } from './TestResourceLoader.ts';
+import { TEST_RESOURCES_PATH, HardhatEvmLensFileRL } from './HardhatEvmLensFileRL.ts';
 import { tevmSetAccount } from 'tevm';
 import { ETHER_1 } from './utils/constants.ts';
 import type { LensArtifact, LensArtifactsMap } from '../../src/lens/types.ts';
@@ -29,13 +29,13 @@ type ExtractProject<MapT extends LensArtifactsMap<any>, RootT extends string> = 
 }[keyof MapT];
 
 export function createLensTracerTestSetup<MapT extends LensArtifactsMap<any>>(
-  artifactsPath: string = TEST_ARTIFACTS_PATH
+  resourcesPath: string = TEST_RESOURCES_PATH
 ) {
   return async function lensTracerTestSetup<
     RootT extends ExtractRoot<MapT>,
     ProjectNameT extends ExtractProject<MapT, RootT>,
   >(root: RootT, projectName: ProjectNameT) {
-    const resourceLoader = new TestResourceLoader(artifactsPath, root);
+    const resourceLoader = new HardhatEvmLensFileRL(resourcesPath, root);
     const { lensClient, debugMetadata, deployerAccount, client } =
       await buildCallTracer<LensArtifactsMapSlice<MapT, RootT, ProjectNameT>>();
 

@@ -1,33 +1,38 @@
 import type { LensArtifact, LensFunctionIndex, LensPcLocationIndex } from '../../src/lens/types.ts';
 import { promises as fs } from 'fs';
-import type { IResourceLoader } from '../../src/adapters/IResourceLoader.ts';
 import * as path from 'node:path';
+import { BaseHardhatEvmLensRL } from '../../src/adapters/resource-loader/BaseHardhatEvmLensRL.ts';
 
-export const TEST_ARTIFACTS_PATH = path.join(__dirname, 'artifacts');
-export const PROTOCOLS_ARTIFACTS_PATH = path.join(__dirname, '..', '..', '..', 'protocols', 'artifacts');
+export const TEST_RESOURCES_PATH = path.join(__dirname);
+export const PROTOCOLS_RESOURCES_PATH = path.join(__dirname, '..', '..', '..', 'protocols');
 
-export class TestResourceLoader implements IResourceLoader {
-  artifactsContractsPath;
-  contractFqnListFileName = 'contract-fqn-list.json';
-  sourceFunctionIndexFileName = 'function-indexes.json';
-  pcLocationsIndexFileName = 'pc-locations-indexes.json';
-
+export class HardhatEvmLensFileRL extends BaseHardhatEvmLensRL {
   constructor(
-    private artifactsPath: string,
-    root: string
+    protected resourcesUri: string,
+    contractsFolder: string
   ) {
-    this.artifactsContractsPath = path.join(artifactsPath, root);
+    super();
+    this.artifactsUri = path.join(this.resourcesUri, 'artifacts');
+    this.artifactsContractUri = path.join(this.artifactsUri, contractsFolder);
+  }
+
+  async getProtocols(): Promise<string[]> {
+    const protocolsListPath = path.join(this.artifactsUri, this.protocolsListFileName);
+    const protocolListJson = await fs.readFile(protocolsListPath, 'utf-8');
+    return JSON.parse(protocolListJson) as string[];
+  }
+
+  async getSource(contractFqnOrUserSource: string): Promise<string> {
+    const userSourceFileName = contractFqnOrUserSource.split(':')[0];
+    const userSourcePath = path.join(this.resourcesUri, userSourceFileName);
+    return await fs.readFile(userSourcePath, 'utf-8');
   }
 
   async getArtifact(contractFQN: string): Promise<LensArtifact> {
-    try {
-      const _path = contractFQN.replace(':', '/') + '.json';
-      const fullPath = path.join(this.artifactsPath, _path);
-      const content = await fs.readFile(fullPath, 'utf-8');
-      return JSON.parse(content) as LensArtifact;
-    } catch (error) {
-      throw new Error(`Failed to load artifact from ${contractFQN}: ${error}`);
-    }
+    const _path = contractFQN.replace(':', '/') + '.json';
+    const fullPath = path.join(this.artifactsUri, _path);
+    const content = await fs.readFile(fullPath, 'utf-8');
+    return JSON.parse(content) as LensArtifact;
   }
 
   async getArtifacts(contractFQN: string[]): Promise<LensArtifact[]> {
@@ -35,7 +40,7 @@ export class TestResourceLoader implements IResourceLoader {
   }
 
   async getProtocolContractsFqn(protocolName: string): Promise<string[]> {
-    const protocolListPath = path.join(this.artifactsContractsPath, protocolName, this.contractFqnListFileName);
+    const protocolListPath = path.join(this.artifactsContractUri, protocolName, this.contractFqnListFileName);
     const protocolListJson = await fs.readFile(protocolListPath, 'utf-8');
     return JSON.parse(protocolListJson) as string[];
   }
@@ -47,7 +52,7 @@ export class TestResourceLoader implements IResourceLoader {
 
   async getFunctionIndexes(protocolName: string): Promise<LensFunctionIndex[]> {
     const sourceFunctionIndexFilePath = path.join(
-      this.artifactsContractsPath,
+      this.artifactsContractUri,
       protocolName,
       this.sourceFunctionIndexFileName
     );
@@ -57,7 +62,7 @@ export class TestResourceLoader implements IResourceLoader {
 
   async getPcLocationIndexes(protocolName: string): Promise<LensPcLocationIndex[]> {
     const sourceFunctionIndexFilePath = path.join(
-      this.artifactsContractsPath,
+      this.artifactsContractUri,
       protocolName,
       this.pcLocationsIndexFileName
     );

@@ -9,9 +9,9 @@ import type { LensArtifactsMap } from '../src/lens/types.ts';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { getTracedTxFactory } from './_setup/utils.ts';
 import { ZERO_ADDRESS } from './_setup/utils/constants.ts';
-import type { IResourceLoader } from '../src/adapters/IResourceLoader.ts';
+import type { IResourceLoader } from '../src/adapters/resource-loader/IResourceLoader.ts';
 import { safeCastToHex } from '../src/_common/type-utils.ts';
-import { PROTOCOLS_ARTIFACTS_PATH } from './_setup/TestResourceLoader.ts';
+import { PROTOCOLS_RESOURCES_PATH } from './_setup/HardhatEvmLensFileRL.ts';
 
 describe('uniswap-v2', () => {
   let lensClient: LensClient<LensArtifactsMapSlice<LensArtifactsMap<ArtifactMap>, 'contracts', 'uniswap-v2'>>;
@@ -27,7 +27,7 @@ describe('uniswap-v2', () => {
       lensClient: _lensClient,
       client: _client,
       resourceLoader: _resourceLoader,
-    } = await createLensTracerTestSetup<LensArtifactsMap<ArtifactMap>>(PROTOCOLS_ARTIFACTS_PATH)(
+    } = await createLensTracerTestSetup<LensArtifactsMap<ArtifactMap>>(PROTOCOLS_RESOURCES_PATH)(
       'contracts',
       'uniswap-v2'
     );
