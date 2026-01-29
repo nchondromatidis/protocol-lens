@@ -1,8 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { ChevronRight, ChevronDown, AlertTriangle, Maximize2, Minimize2, Activity, ArrowRight } from 'lucide-react';
-import { cn, scrollbarsDark } from '@/lib/utils.ts';
+import { ChevronRight, ChevronDown, AlertTriangle, Maximize2, Minimize2, ArrowRight, ListTree } from 'lucide-react';
+import { cn } from '@/lib/utils.ts';
 import type { FunctionCallEvent } from '@defi-notes/evm-lens/src/lens/call-tracer/CallTrace.ts';
 import { getContractName } from '@defi-notes/evm-lens/src/client-utils';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 // --- Helper Functions ---
 
@@ -23,7 +27,6 @@ const getAllPaths = (
 const formatArgs = (args: unknown): string => {
   if (!args || typeof args !== 'object') return '';
   if (Array.isArray(args)) return args.join(', ');
-
   return Object.entries(args)
     .map(([key, value]) => `${key} = ${String(value)}`)
     .join(', ');
@@ -40,16 +43,26 @@ const formatResult = (result?: unknown): string => {
   return `(${String(result)})`;
 };
 
-const getBadgeStyles = (callType: string, isError: boolean) => {
-  if (isError) return 'bg-red-900/50 text-red-200 border-red-800';
-
+const getBadgeVariant = (callType: string, isError: boolean) => {
+  if (isError) return 'destructive';
   const type = callType.toUpperCase();
-  if (type.includes('JUMP') || type === 'INTERNAL') return 'bg-emerald-900/50 text-emerald-200 border-emerald-800';
-  if (type === 'STATICCALL' || type === 'S-CALL') return 'bg-purple-900/50 text-purple-200 border-purple-800';
-  if (type === 'DELEGATECALL') return 'bg-orange-900/50 text-orange-200 border-orange-800';
-  if (type === 'CREATE' || type === 'CREATE2') return 'bg-yellow-900/50 text-yellow-200 border-yellow-800';
+  if (type.includes('JUMP') || type === 'INTERNAL') return 'default';
+  if (type === 'STATICCALL' || type === 'S-CALL') return 'secondary';
+  if (type === 'DELEGATECALL') return 'outline';
+  if (type === 'CREATE' || type === 'CREATE2') return 'default';
+  return 'default';
+};
 
-  return 'bg-blue-900/50 text-blue-200 border-blue-800';
+const getBadgeClassName = (callType: string, isError: boolean) => {
+  if (isError) return 'bg-destructive/50 text-destructive-foreground border-destructive';
+  const type = callType.toUpperCase();
+  if (type.includes('JUMP') || type === 'INTERNAL')
+    return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
+  if (type === 'STATICCALL') return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30';
+  if (type === 'DELEGATECALL') return 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/30';
+  if (type === 'CREATE' || type === 'CREATE2')
+    return 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/30';
+  return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30';
 };
 
 // --- Sub-components ---
@@ -70,20 +83,19 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
 
   // Layout Constants
   const INDENT_PX = 20;
-  const BADGE_COL_WIDTH = '7rem'; // 112px total width allocated for badge column
-  const BADGE_WIDTH = 'w-24'; // Fixed width of the badge itself
+  const BADGE_COL_WIDTH = '7rem';
+  const BADGE_WIDTH = 'w-24';
 
-  let contract = getContractName(event.contractFQN) || event.to || 'Unknown';
+  let contractName = getContractName(event.contractFQN) || event.to || 'Unknown';
   const method = event.functionName || event.functionType;
   const argsText = formatArgs(event.args);
   const resultText = event.result?.returnValue ? formatResult(event.result.returnValue) : '';
 
   if (['CREATE', 'CREATE2'].includes(event.callType)) {
-    contract = getContractName(event.createdContractFQN) || 'Unknown';
+    contractName = getContractName(event.createdContractFQN) || 'Unknown';
   }
 
   // -- Handlers --
-
   const handleExpandClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggle(path);
@@ -95,76 +107,67 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
   };
 
   return (
-    <div className="flex flex-col relative font-mono text-sm leading-6">
+    <div className="relative">
       {/* Row Container */}
       <div
         className={cn(
-          'flex items-center hover:bg-white/5 py-0.5 pr-2 group transition-colors cursor-pointer',
-          isError && 'bg-red-950/10'
+          'flex items-center gap-2 py-1.5 px-2 rounded-md transition-colors',
+          'hover:bg-accent/50 cursor-pointer group'
         )}
         onClick={handleRowClick}
       >
         {/* 1. Badge Column (Fixed Left) */}
-        <div
-          className="flex-shrink-0 flex items-center justify-center px-2 select-none"
-          style={{ width: BADGE_COL_WIDTH }}
-        >
-          <span
-            className={cn(
-              'text-[10px] font-bold py-0.5 rounded border text-center uppercase tracking-wider truncate',
-              BADGE_WIDTH,
-              getBadgeStyles(String(event.callType), isError)
-            )}
+        <div style={{ width: BADGE_COL_WIDTH }} className="flex items-center justify-start shrink-0">
+          <Badge
+            variant={getBadgeVariant(event.callType, isError)}
+            className={cn(BADGE_WIDTH, 'font-mono h-5', getBadgeClassName(event.callType, isError))}
           >
-            {isError ? 'REVERT' : String(event.callType)}
-          </span>
+            <span className="block badgeText">{isError ? 'REVERT' : String(event.callType)}</span>
+          </Badge>
         </div>
 
         {/* 2. Indentation Spacer */}
-        <div
-          className="flex-shrink-0 relative flex items-center justify-end"
-          style={{ width: `${depth * INDENT_PX}px` }}
-        />
+        <div style={{ width: `${depth * INDENT_PX}px` }} className="shrink-0" />
 
         {/* 3. Expand/Collapse Arrow - CLICKABLE AREA */}
         <div
-          className="flex-shrink-0 w-6 h-6 flex justify-center items-center text-zinc-500 hover:text-zinc-300"
+          className="flex items-center justify-center w-5 h-5 shrink-0 hover:bg-accent rounded"
           onClick={handleExpandClick}
         >
           {isError ? (
-            <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
+            <AlertTriangle className="w-4 h-4 text-destructive" />
           ) : hasChildren ? (
             isExpanded ? (
-              <ChevronDown className="w-3.5 h-3.5" />
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
             ) : (
-              <ChevronRight className="w-3.5 h-3.5" />
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
             )
           ) : (
-            <div className="w-3.5 h-3.5" />
+            <div className="w-4 h-4" />
           )}
         </div>
 
         {/* 4. Content */}
-        <div className="ml-1 flex flex-wrap items-center gap-x-1 break-all">
-          <span className="text-blue-400 font-medium">{contract}</span>
-          <span className="text-zinc-400">.</span>
-          <span className="text-purple-300 font-semibold">{method}</span>
-          <span className="text-zinc-500">(</span>
-          <span className="text-zinc-300 text-xs">{argsText}</span>
-          <span className="text-zinc-500">)</span>
+        <div className="flex items-center gap-1 flex-1 min-w-0 text-sm">
+          <span className="font-semibold text-foreground truncate">{contractName}</span>
+          <span className="text-muted-foreground">.</span>
+          <span className="font-medium text-primary truncate">{method}</span>
+          <span className="text-muted-foreground">(</span>
+          <span className="text-muted-foreground truncate italic">{argsText}</span>
+          <span className="text-muted-foreground">)</span>
 
           {/* Return Value Arrow - Centered */}
           {resultText && (
-            <div className="flex items-center gap-1 ml-1">
-              <ArrowRight className="w-3 h-3 text-zinc-600" />
-              <span className="text-emerald-400/80 text-xs">{resultText}</span>
+            <div className="flex items-center gap-1.5 ml-2 text-accent-foreground">
+              <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+              <span className="font-mono text-xs truncate">{resultText}</span>
             </div>
           )}
         </div>
 
         {/* Right side actions */}
-        <div className="ml-auto opacity-0 group-hover:opacity-100 flex gap-2">
-          <Activity className="w-3 h-3 text-zinc-600" />
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Add action buttons here if needed */}
         </div>
       </div>
 
@@ -173,12 +176,9 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
         <div className="relative">
           {/* Vertical Trace Line */}
           <div
-            className="absolute bg-zinc-700/50 w-px bottom-0 top-0"
-            style={{
-              left: `calc(${BADGE_COL_WIDTH} + ${(depth + 1) * INDENT_PX}px - 0.5rem)`,
-            }}
+            className="absolute top-0 bottom-0 w-px bg-border"
+            style={{ left: `calc(${BADGE_COL_WIDTH} + ${(depth + 1) * INDENT_PX}px + 0.625rem)` }}
           />
-
           {event.called?.map((childEvent, idx) => (
             <TraceNode
               key={`${path}-${idx}`}
@@ -187,7 +187,7 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
               depth={depth + 1}
               expandedPaths={expandedPaths}
               onToggle={onToggle}
-              isLastChild={idx === (event.called?.length || 0) - 1}
+              isLastChild={idx === event.called!.length - 1}
             />
           ))}
         </div>
@@ -228,49 +228,42 @@ export const FunctionTraceViewer: React.FC<TransactionTraceViewerProps> = ({ fun
   }, []);
 
   return (
-    <div
-      className={cn(
-        'flex flex-col h-full bg-[#0f0f11] text-zinc-300 rounded-lg overflow-hidden border border-zinc-800',
-        className
-      )}
-    >
-      {/* Header Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-[#18181b]">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm">Trace Viewer</span>
-          <span className="px-2 py-0.5 rounded bg-zinc-800 text-xs text-zinc-400">Tx Trace</span>
+    <Card className={cn('flex flex-col h-full pb-4 pt-4 gap-0', className)}>
+      <CardHeader className="border-b bg-card p-0 m-0 [.border-b]:pb-0">
+        <div className="flex items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <ListTree className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Trace Viewer</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" onClick={handleCollapseAll} title="Collapse All">
+              <Minimize2 className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleExpandAll} title="Expand All">
+              <Maximize2 className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
+      </CardHeader>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleExpandAll}
-            className="flex items-center gap-1 px-2 py-1 text-xs hover:bg-zinc-800 rounded transition-colors text-zinc-400 hover:text-white"
-          >
-            <Maximize2 className="w-3 h-3" />
-            Expand All
-          </button>
-          <button
-            onClick={handleCollapseAll}
-            className="flex items-center gap-1 px-2 py-1 text-xs hover:bg-zinc-800 rounded transition-colors text-zinc-400 hover:text-white"
-          >
-            <Minimize2 className="w-3 h-3" />
-            Collapse All
-          </button>
-        </div>
-      </div>
-
-      {/* Main Content Area with Custom Scrollbar */}
-      <div className={cn('flex-1 overflow-auto p-2', scrollbarsDark)}>
-        <div className="min-w-max pb-10">
-          <TraceNode
-            event={functionTrace}
-            path="root"
-            depth={0}
-            expandedPaths={expandedPaths}
-            onToggle={handleToggle}
-          />
-        </div>
-      </div>
-    </div>
+      {/* Main Content Area with ScrollArea */}
+      <CardContent className="flex-1 p-0 overflow-hidden">
+        <ScrollArea className="h-full w-full">
+          <div className="p-4 min-w-max">
+            {' '}
+            {/* Add min-w-max or fixed wide width to trigger horizontal */}
+            <TraceNode
+              event={functionTrace}
+              path="root"
+              depth={0}
+              expandedPaths={expandedPaths}
+              onToggle={handleToggle}
+            />
+          </div>
+          <ScrollBar orientation="vertical" />
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      </CardContent>
+    </Card>
   );
 };

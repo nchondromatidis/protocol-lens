@@ -6,9 +6,9 @@ interface SourceCodeViewerProps {
   sourceCode?: string;
 }
 
-export function SourceCodeViewer({
-  sourceCode = '// Select a function to view its source code',
-}: SourceCodeViewerProps) {
+export function SourceCodeViewer({ sourceCode }: SourceCodeViewerProps) {
+  if (!sourceCode) return null;
+
   const extensions = [solidity];
 
   return (

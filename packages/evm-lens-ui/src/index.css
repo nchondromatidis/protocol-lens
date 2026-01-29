@@ -133,3 +133,17 @@ html, body {
     @apply bg-background text-foreground;
   }
 }
+
+
+/* badge: font-mono badge vertical alignment*/
+
+.badgeText {
+  margin-block: calc(0.5cap - 0.5lh);
+}
+@supports (text-box-trim: trim-both) {
+  .badgeText {
+    margin-block: 0;
+    text-box-trim: trim-both;
+    text-box-edge: cap alphabetic;
+  }
+}
