@@ -148,6 +148,10 @@ export class NestedMap<K extends unknown[], V> {
 
     return success;
   }
+
+  clear() {
+    this.storage = new Map();
+  }
 }
 
 // Helper type to build nested Map structure from remaining keys

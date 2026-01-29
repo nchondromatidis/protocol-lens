@@ -18,6 +18,7 @@ import type { Address, Hex, LensArtifactsMap } from './types.ts';
 import type { InterpreterStep } from 'tevm/evm';
 import { hardhatLinkExternalLibToBytecode } from './utils/hardhat-utils.ts';
 import { buildClient, type PublicTestClient } from '../adapters/client.ts';
+import type { IResourceLoader } from './_ports/IResourceLoader.ts';
 
 export type Next = () => void;
 
@@ -32,6 +33,8 @@ export class LensClient<
     public readonly addressLabeler: AddressLabeler,
     public readonly callTracer: CallTracer
   ) {}
+
+  // tracing functions
 
   async deploy<ContractFQNT extends keyof LensArtifactsMapT & string>(
     contractFQN: ContractFQNT,
@@ -99,6 +102,8 @@ export class LensClient<
     return contractTxResult;
   }
 
+  // helper functions
+
   getContract<ContractFqnT extends keyof LensArtifactsMapT & string>(address: Hex, contractFQN: ContractFqnT) {
     const contractAbi = this.debugMetadata.artifacts.getArtifactAbi(
       contractFQN
@@ -112,8 +117,20 @@ export class LensClient<
     });
   }
 
-  async revert() {
+  async registerIndexes(resourceLoader: IResourceLoader, protocolName: string) {
+    await this.debugMetadata.register(resourceLoader, protocolName);
+  }
+
+  getContractFqnForAddress(address: Address) {
+    this.addressLabeler.getContractFqnForAddress(address);
+  }
+
+  // manage state
+
+  async reset() {
     // TODO: snapshots are not supported by tevm yet, so there is complete reset
     this.client = await buildClient(this.deployerAccount);
+    this.addressLabeler.reset();
+    this.debugMetadata.reset();
   }
 }

@@ -9,14 +9,19 @@ export class ArtifactsProvider {
   protected bytecodeToContractFqnIndex: Map<Bytecode, ContractFQN> = new Map();
   protected contractFqnToArtifactIndex: Map<ContractFQN, LensArtifact> = new Map();
 
-  // create indexes
+  // manager indexes
 
-  public async registerArtifacts(artifacts: Array<LensArtifact>) {
+  public async register(artifacts: Array<LensArtifact>) {
     artifacts.forEach((it) => {
       const contractFQN = it.sourceName + ':' + it.contractName;
       this.bytecodeToContractFqnIndex.set(it.bytecode, contractFQN);
       this.contractFqnToArtifactIndex.set(contractFQN, it);
     });
+  }
+
+  public reset() {
+    this.bytecodeToContractFqnIndex.clear();
+    this.contractFqnToArtifactIndex.clear();
   }
 
   // query indexes

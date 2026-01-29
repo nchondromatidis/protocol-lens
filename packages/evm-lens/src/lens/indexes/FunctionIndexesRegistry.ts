@@ -13,6 +13,8 @@ export class FunctionIndexesRegistry {
   protected index1 = new NestedMap<[contractFQN: string, functionNameOrKind: string], LensFunctionIndex>();
   protected index2 = new NestedMap<[contractFQN: string, functionSelector: string], LensFunctionIndex>();
 
+  // manage
+
   public async register(functionIndexes: LensFunctionIndex[]) {
     for (const fnIndex of functionIndexes) {
       // create index2
@@ -24,6 +26,13 @@ export class FunctionIndexesRegistry {
       }
     }
   }
+
+  public reset() {
+    this.index1.clear();
+    this.index2.clear();
+  }
+
+  // query
 
   public getBy(query: ReturnType<typeof QueryBy.contractAndSelector>): LensFunctionIndex | undefined;
   public getBy(query: ReturnType<typeof QueryBy.contractAndNameOrKind>): LensFunctionIndex | undefined;

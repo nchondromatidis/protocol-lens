@@ -36,17 +36,10 @@ export function createLensTracerTestSetup<MapT extends LensArtifactsMap<any>>(
     ProjectNameT extends ExtractProject<MapT, RootT>,
   >(root: RootT, projectName: ProjectNameT) {
     const resourceLoader = new HardhatEvmLensFileRL(resourcesPath, root);
-    const { lensClient, debugMetadata, deployerAccount, client } =
+    const { lensClient, deployerAccount, client } =
       await buildCallTracer<LensArtifactsMapSlice<MapT, RootT, ProjectNameT>>();
 
-    const artifacts = await resourceLoader.getProtocolArtifacts(projectName);
-    await debugMetadata.artifacts.registerArtifacts(artifacts);
-
-    const functionIndexes = await resourceLoader.getFunctionIndexes(projectName);
-    await debugMetadata.functions.register(functionIndexes);
-
-    const pcLocationIndexes = await resourceLoader.getPcLocationIndexes(projectName);
-    await debugMetadata.pcLocations.register(functionIndexes, pcLocationIndexes);
+    await lensClient.registerIndexes(resourceLoader, projectName);
 
     await tevmSetAccount(lensClient.client, {
       address: deployerAccount.address,

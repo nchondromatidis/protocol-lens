@@ -9,7 +9,7 @@ import type { LensArtifactsMap } from '../src/lens/types.ts';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { getTracedTxFactory } from './_setup/utils.ts';
 import { ZERO_ADDRESS } from './_setup/utils/constants.ts';
-import type { IResourceLoader } from '../src/adapters/resource-loader/IResourceLoader.ts';
+import type { IResourceLoader } from '../src/lens/_ports/IResourceLoader.ts';
 import { safeCastToHex } from '../src/_common/type-utils.ts';
 import { PROTOCOLS_RESOURCES_PATH } from './_setup/HardhatEvmLensFileRL.ts';
 

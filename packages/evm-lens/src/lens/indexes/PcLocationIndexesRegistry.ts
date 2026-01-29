@@ -9,6 +9,8 @@ export class PcLocationIndexesRegistry {
   >();
   protected contractLocationSources = new NestedMap<[contractFQN: string, locationSourceIndex: number], string>();
 
+  // manage
+
   public async register(lensFunctionIndexes: LensFunctionIndex[], pcLocationIndexes: LensPcLocationIndex[]) {
     // contactFunctions index
     const functionsPerSource = new Map<string, LensFunctionIndex[]>();
@@ -40,6 +42,14 @@ export class PcLocationIndexesRegistry {
       }
     }
   }
+
+  reset() {
+    this.contactFunctions.clear();
+    this.contactOpcodes.clear();
+    this.contractLocationSources.clear();
+  }
+
+  // query
 
   public getFunctionIndex(contractFQN: string, pc: number): LensFunctionIndex | undefined {
     const pcLocationIndex = this.getPcLocationIndex(contractFQN, pc);

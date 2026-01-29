@@ -16,4 +16,8 @@ export class AddressLabeler {
   private toLowerCase(address: Address): Address {
     return address.toLowerCase() as Address;
   }
+
+  reset() {
+    this.addressLabel.clear();
+  }
 }

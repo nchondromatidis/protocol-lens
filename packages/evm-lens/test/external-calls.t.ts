@@ -84,7 +84,7 @@ describe('external-calls', () => {
     expect(balanceAfterCall).toBe(initialBalance + ETHER_1);
 
     // Revert to snapshot
-    await lensClient.revert();
+    await lensClient.reset();
 
     // Verify balance restored in the initial state
     const balanceAfterRevert = await lensClient.client.getBalance({ address: calleeContractAddress });

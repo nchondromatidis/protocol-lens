@@ -1,4 +1,4 @@
-import type { IResourceLoader } from './IResourceLoader.ts';
+import type { IResourceLoader } from '../../lens/_ports/IResourceLoader.ts';
 import type { LensArtifact, LensFunctionIndex, LensPcLocationIndex } from '../../lens/types.ts';
 
 export abstract class BaseHardhatEvmLensRL implements IResourceLoader {
