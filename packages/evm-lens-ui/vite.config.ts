@@ -25,6 +25,6 @@ export default defineConfig({
     },
   },
   server: {
-    open: '/playground/index.html',
+    open: 'playground/index.html',
   },
 });
