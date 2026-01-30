@@ -5,11 +5,11 @@ export default [
   ...config,
   {
     files: ['**/*.{ts,tsx}'], // Ensure this targets the correct files
-    rules: {
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-    },
+    // rules: {
+    //   'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+    // },
   },
   {
-    ignores: ['dist/', 'public/'],
+    ignores: ['dist/', 'public/', 'src/components/ui'],
   },
 ];
