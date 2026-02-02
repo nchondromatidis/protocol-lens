@@ -2,15 +2,20 @@ import { useState, useEffect } from 'react';
 import { TraceViewer } from '@/index';
 import { setupUniswapV2 } from './uniswap-v2/setup';
 import type { ReadOnlyFunctionCallEvent } from '@defi-notes/evm-lens/src/lens/call-tracer/CallTrace.ts';
-import { DEFAULT_INITIAL_EXPANDED_ITEMS, DEFAULT_ITEMS } from './mock-data/project-files';
+import { contractFQNListToProjectFiles } from '@/adapters/project-files-mapper.ts';
 
 export function TraceViewerClient() {
   const [functionTrace, setFunctionTrace] = useState<ReadOnlyFunctionCallEvent | null>(null);
+  const [projectFiles, setProjectFiles] = useState<ReturnType<typeof contractFQNListToProjectFiles> | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function init() {
-      const { lensClient, factory } = await setupUniswapV2();
+      const { lensClient, factory, resourceLoader } = await setupUniswapV2();
+
+      const contractFqns = await resourceLoader.getProtocolContractsFqn('uniswap-v2');
+      const projectFiles = contractFQNListToProjectFiles(contractFqns);
+      setProjectFiles(projectFiles);
 
       const token1 = await lensClient.deploy(
         'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
@@ -33,13 +38,14 @@ export function TraceViewerClient() {
   }, []);
 
   if (loading) return <div>Loading...</div>;
-  if (!functionTrace) return <div>No trace</div>;
+  if (!functionTrace || !projectFiles) return <div>No trace</div>;
 
   return (
     <TraceViewer
       functionTrace={functionTrace}
-      projectFiles={DEFAULT_ITEMS}
-      initialExpandedFolders={DEFAULT_INITIAL_EXPANDED_ITEMS}
+      projectFiles={projectFiles.items}
+      rootItemId={projectFiles.rootItemId}
+      initialExpandedItems={projectFiles.firstLevelFolderNames}
     />
   );
 }

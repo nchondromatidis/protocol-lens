@@ -8,30 +8,31 @@ import React from 'react';
 interface TraceViewerLayoutProps {
   functionTrace: ReadOnlyFunctionCallEvent;
   projectFiles: Record<string, Item>;
-  initialExpandedFolders: string[];
+  rootItemId: string;
+  initialExpandedItems: string[];
   initialFileOpened?: string;
 }
 
 export const TraceViewer: React.FC<TraceViewerLayoutProps> = ({
   functionTrace,
   projectFiles,
-  initialExpandedFolders,
+  rootItemId,
+  initialExpandedItems,
 }: TraceViewerLayoutProps) => {
   const sourceCode = undefined;
-  const rootItemId = 'company';
 
   return (
     <Group orientation="vertical" className="h-screen">
-      <Panel defaultSize={60} className="overflow-hidden px-4 pt-4 border">
+      <Panel defaultSize={60} className="overflow-hidden   border">
         <Group orientation="horizontal" className="h-full">
-          <Panel defaultSize="30%" maxSize={350} className="overflow-hidden h-full pr-4 border-r">
+          <Panel defaultSize="30%" maxSize={500} className="overflow-hidden h-full px-4 py-4 border-r">
             <ProjectFilesViewer
               items={projectFiles}
-              initialExpandedItems={initialExpandedFolders}
+              initialExpandedItems={initialExpandedItems}
               rootItemId={rootItemId}
             ></ProjectFilesViewer>
           </Panel>
-          <Panel defaultSize="70%" className="overflow-hidden ml-4 h-full">
+          <Panel defaultSize="70%" className="overflow-hidden ml-4 px-4 py-4 h-full">
             <SourceCodeViewer sourceCode={sourceCode} />
           </Panel>
         </Group>
