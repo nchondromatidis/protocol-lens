@@ -7,7 +7,6 @@ import type { ArtifactMap } from '@defi-notes/protocols/artifacts';
 import { createLensTracerTestSetup, type LensArtifactsMapSlice } from './_setup/lensTracerTestSetup.ts';
 import type { LensArtifactsMap } from '../src/lens/types.ts';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { getTracedTxFactory } from './_setup/utils.ts';
 import { ZERO_ADDRESS } from './_setup/utils/constants.ts';
 import type { IResourceLoader } from '../src/lens/_ports/IResourceLoader.ts';
 import { safeCastToHex } from '../src/_common/type-utils.ts';
@@ -18,7 +17,6 @@ describe('uniswap-v2', () => {
   let factory: GetContractReturnType<
     ArtifactMap['contracts/uniswap-v2/v2-core/contracts/UniswapV2Factory.sol:UniswapV2Factory']['abi']
   >;
-  let getTracedTx: ReturnType<typeof getTracedTxFactory>;
   let client: Awaited<ReturnType<typeof buildClient>>;
   let resourceLoader: IResourceLoader;
 
@@ -48,8 +46,6 @@ describe('uniswap-v2', () => {
       factoryDeployResult.createdAddress!,
       'contracts/uniswap-v2/v2-core/contracts/UniswapV2Factory.sol:UniswapV2Factory'
     );
-
-    getTracedTx = getTracedTxFactory(lensClient);
   });
 
   test('tracer: send success with deployment', async () => {
@@ -68,7 +64,7 @@ describe('uniswap-v2', () => {
     const result = await lensClient.contract(factory, 'createPair', [token1.createdAddress!, token2.createdAddress!]);
 
     // assert
-    inspect(getTracedTx.success(result));
+    inspect(lensClient.getSucceeded(result));
   });
 
   test('tracer: call success', async () => {
@@ -115,7 +111,7 @@ describe('uniswap-v2', () => {
     const result = await lensClient.contract(pairContract, 'getReserves', []);
 
     // assert
-    inspect(getTracedTx.success(result));
+    inspect(lensClient.getSucceeded(result));
   });
 
   test('tracer: call error', async () => {
@@ -129,8 +125,8 @@ describe('uniswap-v2', () => {
     const result = await lensClient.contract(factory, 'createPair', [ZERO_ADDRESS, token2.createdAddress!]);
 
     // assert
-    inspect(getTracedTx.success(result));
-    inspect(getTracedTx.failed(0));
+    inspect(lensClient.getSucceeded(result));
+    inspect(lensClient.getFailed(0));
   });
 
   test.skip('debug_traceTransaction', async () => {

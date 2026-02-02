@@ -2,7 +2,6 @@ import { test, beforeEach, describe, expect } from 'vitest';
 import { LensClient } from '../src/lens/LensClient.ts';
 
 import { createLensTracerTestSetup, type LensArtifactsMapSlice } from './_setup/lensTracerTestSetup.ts';
-import { getTracedTxFactory } from './_setup/utils.ts';
 import type { ArtifactMap } from './_setup/artifacts';
 import type { GetContractReturnType } from 'viem';
 import type { LensArtifactsMap } from '../src/lens/types.ts';
@@ -12,7 +11,6 @@ describe('delegate-calls', () => {
   let callerContract: GetContractReturnType<
     ArtifactMap['test-contracts/delegate-calls/CallerContract.sol:CallerContract']['abi']
   >;
-  let getTracedTx: ReturnType<typeof getTracedTxFactory>;
 
   beforeEach(async () => {
     const { lensClient: _lensClient } = await createLensTracerTestSetup<LensArtifactsMap<ArtifactMap>>()(
@@ -35,14 +33,12 @@ describe('delegate-calls', () => {
       callerContractDeployment.createdAddress!,
       'test-contracts/delegate-calls/CallerContract.sol:CallerContract'
     );
-
-    getTracedTx = getTracedTxFactory(lensClient);
   });
 
   test('callDelegateCall', async () => {
     const calldata = '0x01'; // Example calldata, adjust as needed
     const result = await lensClient.contract(callerContract, 'callDelegateCall', [calldata]);
-    expect(getTracedTx.success(result)).toMatchSnapshot();
+    expect(lensClient.getSucceeded(result)).toMatchSnapshot();
   });
 
   test.skip('callWithDelegateCallAndCall', async () => {});

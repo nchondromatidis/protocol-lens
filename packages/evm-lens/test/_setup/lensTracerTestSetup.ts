@@ -1,5 +1,4 @@
 import { TEST_RESOURCES_PATH, HardhatEvmLensFileRL } from './HardhatEvmLensFileRL.ts';
-import { tevmSetAccount } from 'tevm';
 import { ETHER_1 } from './utils/constants.ts';
 import type { LensArtifact, LensArtifactsMap } from '../../src/lens/types.ts';
 import { buildCallTracer } from '../../src/lens';
@@ -41,10 +40,7 @@ export function createLensTracerTestSetup<MapT extends LensArtifactsMap<any>>(
 
     await lensClient.registerIndexes(resourceLoader, projectName);
 
-    await tevmSetAccount(lensClient.client, {
-      address: deployerAccount.address,
-      balance: ETHER_1,
-    });
+    await lensClient.fundAccount(deployerAccount.address, ETHER_1);
 
     return { lensClient, resourceLoader, client };
   };

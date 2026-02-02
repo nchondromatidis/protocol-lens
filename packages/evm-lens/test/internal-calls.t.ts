@@ -1,7 +1,6 @@
 import { test, beforeEach, describe, expect } from 'vitest';
 import type { LensClient } from '../src/lens/LensClient.ts';
 import type { ArtifactMap } from './_setup/artifacts';
-import { getTracedTxFactory } from './_setup/utils.ts';
 import { createLensTracerTestSetup, type LensArtifactsMapSlice } from './_setup/lensTracerTestSetup.ts';
 import type { GetContractReturnType } from 'viem';
 import type { LensArtifactsMap } from '../src/lens/types.ts';
@@ -11,8 +10,6 @@ describe('internal-calls', () => {
   let callerContract: GetContractReturnType<
     ArtifactMap['test-contracts/internal-calls/CallerContract.sol:CallerContract']['abi']
   >;
-
-  let getTracedTx: ReturnType<typeof getTracedTxFactory>;
 
   beforeEach(async () => {
     const { lensClient: _lensClient } = await createLensTracerTestSetup<LensArtifactsMap<ArtifactMap>>()(
@@ -35,8 +32,6 @@ describe('internal-calls', () => {
       callerContractDeployment.createdAddress!,
       'test-contracts/internal-calls/CallerContract.sol:CallerContract'
     );
-
-    getTracedTx = getTracedTxFactory(lensClient);
   });
 
   test.skip('debug_traceTransaction.structLogs', async () => {
@@ -78,21 +73,21 @@ describe('internal-calls', () => {
 
   test('publicFunction', async () => {
     const result = await lensClient.contract(callerContract, 'publicFunction', [2n]);
-    expect(getTracedTx.success(result)).toMatchSnapshot();
+    expect(lensClient.getSucceeded(result)).toMatchSnapshot();
   });
 
   test('mixedCall', async () => {
     const result = await lensClient.contract(callerContract, 'mixedCall', [2n]);
-    expect(getTracedTx.success(result, true)).toMatchSnapshot();
+    expect(lensClient.getSucceeded(result)).toMatchSnapshot();
   });
 
   test('callAnotherContract', async () => {
     const result = await lensClient.contract(callerContract, 'callAnotherContract', []);
-    expect(getTracedTx.success(result)).toMatchSnapshot();
+    expect(lensClient.getSucceeded(result)).toMatchSnapshot();
   });
 
   test('test function fallback', async () => {
     const result = await lensClient.contract(callerContract, 'callAnotherContractWithFallback', [1n]);
-    expect(getTracedTx.success(result)).toMatchSnapshot();
+    expect(lensClient.getSucceeded(result)).toMatchSnapshot();
   });
 });

@@ -1,5 +1,4 @@
-import { type ContractFunctionName, type TevmTransport } from 'tevm';
-import { tevmContract, tevmDeploy } from 'tevm';
+import { type ContractFunctionName, tevmContract, tevmDeploy, tevmSetAccount, type TevmTransport } from 'tevm';
 import {
   type Abi,
   type AbiStateMutability,
@@ -9,13 +8,12 @@ import {
   type PrivateKeyAccount,
 } from 'viem';
 import type { ContractResult, Message } from 'tevm/actions';
-import type { EvmResult } from 'tevm/evm';
+import type { EvmResult, InterpreterStep } from 'tevm/evm';
 import { DebugMetadata } from './indexes/DebugMetadata.ts';
 import { AddressLabeler } from './indexes/AddressLabeler.ts';
 import { CallTracer } from './call-tracer/CallTracer.ts';
 import { InvalidArgument, InvariantError } from '../_common/errors.ts';
 import type { Address, Hex, LensArtifactsMap } from './types.ts';
-import type { InterpreterStep } from 'tevm/evm';
 import { hardhatLinkExternalLibToBytecode } from './utils/hardhat-utils.ts';
 import { buildClient, type PublicTestClient } from '../adapters/client.ts';
 import type { IResourceLoader } from './_ports/IResourceLoader.ts';
@@ -102,6 +100,22 @@ export class LensClient<
     return contractTxResult;
   }
 
+  // view traced
+
+  getSucceeded(contractTxResult: ContractResult) {
+    if (!contractTxResult?.txHash) return undefined;
+
+    return this.callTracer.succeededTxs.get(contractTxResult.txHash)?.rootFunction;
+  }
+
+  getFailed(ordinalNumber: number = 0) {
+    const tempIds = [...this.callTracer.failedTxs.keys()];
+    const targetTempId = tempIds[ordinalNumber];
+    if (!targetTempId) return undefined;
+
+    return this.callTracer.failedTxs.get(targetTempId)?.rootFunction;
+  }
+
   // helper functions
 
   getContract<ContractFqnT extends keyof LensArtifactsMapT & string>(address: Hex, contractFQN: ContractFqnT) {
@@ -123,6 +137,13 @@ export class LensClient<
 
   getContractFqnForAddress(address: Address) {
     this.addressLabeler.getContractFqnForAddress(address);
+  }
+
+  async fundAccount(address: Address, amount: bigint) {
+    await tevmSetAccount(this.client, {
+      address: address,
+      balance: amount,
+    });
   }
 
   // manage state
