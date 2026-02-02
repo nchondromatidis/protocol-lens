@@ -7,11 +7,12 @@ import {
   searchFeature,
   selectionFeature,
   syncDataLoaderFeature,
+  type ItemInstance,
   type TreeState,
 } from '@headless-tree/core';
 import { useTree } from '@headless-tree/react';
 import { FileIcon, FolderIcon, FolderOpenIcon, SearchIcon } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { Input } from '@/components/ui/input.tsx';
 import { Tree, TreeItem, TreeItemLabel } from '@/components/ui/tree.tsx';
@@ -31,13 +32,19 @@ export interface ProjectFilesViewerProps {
   indent?: number;
 }
 
+const getItemIcon = (item: ItemInstance<Item>) => {
+  if (!item.isFolder()) return <FileIcon className="pointer-events-none size-4 text-muted-foreground" />;
+  const Icon = item.isExpanded() ? FolderOpenIcon : FolderIcon;
+  return <Icon className="pointer-events-none size-4 text-muted-foreground" />;
+};
+
 export const ProjectFilesViewer: React.FC<ProjectFilesViewerProps> = ({
   items,
   rootItemId,
   initialExpandedItems,
   indent = DEFAULT_INDENT,
   onSelectFileFromTree,
-}: ProjectFilesViewerProps) => {
+}) => {
   const [state, setState] = useState<Partial<TreeState<Item>>>({});
 
   const tree = useTree<Item>({
@@ -48,46 +55,37 @@ export const ProjectFilesViewer: React.FC<ProjectFilesViewerProps> = ({
     features: [syncDataLoaderFeature, hotkeysCoreFeature, selectionFeature, searchFeature, expandAllFeature],
     getItemName: (item) => item.getItemData().name,
     indent,
-    initialState: {
-      expandedItems: initialExpandedItems,
-    },
+    initialState: { expandedItems: initialExpandedItems },
     isItemFolder: (item) => (item.getItemData()?.children?.length ?? 0) > 0,
     rootItemId,
     setState,
     state,
   });
 
+  const searchInputProps = tree.getSearchInputElementProps();
+
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      searchInputProps.onChange?.(e);
+      const value = e.target.value;
+      if (value.length > 0) {
+        tree.expandAll();
+      } else {
+        setState((prev) => ({ ...prev, expandedItems: initialExpandedItems }));
+      }
+    },
+    [searchInputProps, tree, initialExpandedItems]
+  );
+
+  const treeItems = tree.getItems();
+
   return (
     <div className="flex h-full flex-col gap-2 *:nth-2:grow">
       <div className="relative">
         <Input
           className="peer ps-9"
-          {...{
-            ...tree.getSearchInputElementProps(),
-            onChange: (e) => {
-              // First call the original onChange handler from getSearchInputElementProps
-              const originalProps = tree.getSearchInputElementProps();
-              if (originalProps.onChange) {
-                originalProps.onChange(e);
-              }
-
-              // Then handle our custom logic
-              const value = e.target.value;
-
-              if (value.length > 0) {
-                // If input has at least one character, expand all items
-                tree.expandAll();
-              } else {
-                // If input is cleared, reset to initial expanded state
-                setState((prevState) => {
-                  return {
-                    ...prevState,
-                    expandedItems: initialExpandedItems,
-                  };
-                });
-              }
-            },
-          }}
+          {...searchInputProps}
+          onChange={handleSearchChange}
           placeholder="Quick search..."
           type="search"
         />
@@ -97,35 +95,19 @@ export const ProjectFilesViewer: React.FC<ProjectFilesViewerProps> = ({
       </div>
 
       <Tree indent={indent} tree={tree}>
-        {tree.getItems().map((item) => {
-          return (
-            <TreeItem item={item} key={item.getId()}>
-              <TreeItemLabel
-                className="py-1"
-                {...(!item.isFolder() && onSelectFileFromTree
-                  ? {
-                      onClick: () => {
-                        onSelectFileFromTree(item.getId());
-                      },
-                    }
-                  : {})}
-              >
-                <span className="flex items-center gap-2">
-                  {item.isFolder() ? (
-                    item.isExpanded() ? (
-                      <FolderOpenIcon className="pointer-events-none size-4 text-muted-foreground" />
-                    ) : (
-                      <FolderIcon className="pointer-events-none size-4 text-muted-foreground" />
-                    )
-                  ) : (
-                    <FileIcon className="pointer-events-none size-4 text-muted-foreground" />
-                  )}
-                  {item.getItemName()}
-                </span>
-              </TreeItemLabel>
-            </TreeItem>
-          );
-        })}
+        {treeItems.map((item) => (
+          <TreeItem item={item} key={item.getId()}>
+            <TreeItemLabel
+              className="py-1"
+              {...(!item.isFolder() ? { onClick: () => onSelectFileFromTree(item.getId()) } : {})}
+            >
+              <span className="flex items-center gap-2">
+                {getItemIcon(item)}
+                {item.getItemName()}
+              </span>
+            </TreeItemLabel>
+          </TreeItem>
+        ))}
       </Tree>
     </div>
   );
