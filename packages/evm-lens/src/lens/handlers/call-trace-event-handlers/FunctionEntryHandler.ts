@@ -1,4 +1,4 @@
-import { HandlerBase } from '../HandlerBase.ts';
+import { EventsHandlerBase } from '../EventsHandlerBase.ts';
 import type { FunctionCallEvent } from '../../call-tracer/CallTrace.ts';
 import { type RuntimeTraceMetadata } from '../trace-metadata.ts';
 import type { InternalFunctionCallEvent } from '../_events/call-trace-events.ts';
@@ -14,7 +14,7 @@ import type { InternalFunctionCallEvent } from '../_events/call-trace-events.ts'
  * context@depth.address --labeledContracts--> contractFQN --debugMetadata.functions--> functionData--> function call
  * </i>
  */
-export class FunctionEntryHandler extends HandlerBase {
+export class FunctionEntryHandler extends EventsHandlerBase {
   public async handle(
     internalCallEvent: InternalFunctionCallEvent,
     executionContext: RuntimeTraceMetadata['executionContext'],

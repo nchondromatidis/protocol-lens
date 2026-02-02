@@ -1,4 +1,4 @@
-import { HandlerBase } from '../HandlerBase.ts';
+import { EventsHandlerBase } from '../EventsHandlerBase.ts';
 import type { ExternalCallResultEvmEvent } from '../_events/lens-evm-events.ts';
 import { bytesToHex } from 'viem';
 import type { FunctionCallEvent, FunctionResultEvent, LensLog } from '../../call-tracer/CallTrace.ts';
@@ -27,7 +27,7 @@ import type { RawLog } from '../../types.ts';
  * functionCall.contractFQN --debugMetadata.artifacts--> ABIs  + returnValue + logValues --decoders--> function call result
  * </i>
  */
-export class ExternalCallResultHandler extends HandlerBase {
+export class ExternalCallResultHandler extends EventsHandlerBase {
   private decodedLogsTxCache: DecodedLogsCache = new DecodedLogsCache();
   private decodedErrorsTxCache: DecodedErrorsCache = new DecodedErrorsCache();
 

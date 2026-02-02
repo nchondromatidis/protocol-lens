@@ -2,11 +2,10 @@ import { ExternalCallHandler } from './call-trace-event-handlers/ExternalCallHan
 import { ExternalCallResultHandler } from './call-trace-event-handlers/ExternalCallResultHandler.ts';
 import { FunctionEntryHandler } from './call-trace-event-handlers/FunctionEntryHandler.ts';
 import { FunctionExitHandler } from './call-trace-event-handlers/FunctionExitHandler.ts';
-import { CallTrace } from '../call-tracer/CallTrace.ts';
+import { CallTrace, type ReadOnlyFunctionCallEvent } from '../call-tracer/CallTrace.ts';
 import { emptyRuntimeTraceMetadata, type RuntimeTraceMetadata } from './trace-metadata.ts';
 import { InvariantError } from '../../_common/errors.ts';
 
-import type { DeepReadonly } from '../../_common/type-utils.ts';
 import {
   type CallTraceEvents,
   type InternalFunctionCallEvent,
@@ -19,7 +18,7 @@ import {
   type ExternalCallResultEvmEvent,
 } from './_events/call-trace-events.ts';
 
-export class CallTraceEventHandler {
+export class CallTraceEventsHandler {
   private callTrace: CallTrace;
   private runtimeTraceMetadata: RuntimeTraceMetadata;
 
@@ -33,8 +32,8 @@ export class CallTraceEventHandler {
     this.runtimeTraceMetadata = emptyRuntimeTraceMetadata();
   }
 
-  public getCallTrace(): DeepReadonly<CallTrace> {
-    return this.callTrace;
+  public getCallTrace(): ReadOnlyFunctionCallEvent | undefined {
+    return this.callTrace.rootFunction;
   }
 
   public reset() {

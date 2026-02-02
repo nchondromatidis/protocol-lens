@@ -17,6 +17,7 @@ import type { Address, Hex, LensArtifactsMap } from './types.ts';
 import { hardhatLinkExternalLibToBytecode } from './utils/hardhat-utils.ts';
 import { buildClient, type PublicTestClient } from '../adapters/client.ts';
 import type { IResourceLoader } from './_ports/IResourceLoader.ts';
+import type { ReadOnlyFunctionCallEvent } from './call-tracer/CallTrace.ts';
 
 export type Next = () => void;
 
@@ -102,18 +103,18 @@ export class LensClient<
 
   // view traced
 
-  getSucceeded(contractTxResult: ContractResult) {
+  getSucceeded(contractTxResult: ContractResult): ReadOnlyFunctionCallEvent | undefined {
     if (!contractTxResult?.txHash) return undefined;
 
-    return this.callTracer.succeededTxs.get(contractTxResult.txHash)?.rootFunction;
+    return this.callTracer.succeededTxs.get(contractTxResult.txHash);
   }
 
-  getFailed(ordinalNumber: number = 0) {
+  getFailed(ordinalNumber: number = 0): ReadOnlyFunctionCallEvent | undefined {
     const tempIds = [...this.callTracer.failedTxs.keys()];
     const targetTempId = tempIds[ordinalNumber];
     if (!targetTempId) return undefined;
 
-    return this.callTracer.failedTxs.get(targetTempId)?.rootFunction;
+    return this.callTracer.failedTxs.get(targetTempId);
   }
 
   // helper functions

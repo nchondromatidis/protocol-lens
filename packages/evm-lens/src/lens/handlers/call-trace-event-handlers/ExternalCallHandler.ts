@@ -1,4 +1,4 @@
-import { HandlerBase } from '../HandlerBase.ts';
+import { EventsHandlerBase } from '../EventsHandlerBase.ts';
 import type { ExternalCallEvmEvent } from '../_events/lens-evm-events.ts';
 import { type Abi, bytesToHex } from 'viem';
 import type { FunctionCallEvent } from '../../call-tracer/CallTrace.ts';
@@ -21,7 +21,7 @@ import { QueryBy } from '../../indexes/FunctionIndexesRegistry.ts';
  * decoded function call --debugMetadata.functions--> function call
  * </>
  */
-export class ExternalCallHandler extends HandlerBase {
+export class ExternalCallHandler extends EventsHandlerBase {
   public async handle(callEvent: ExternalCallEvmEvent) {
     // base function call object
     const functionCallEvent: FunctionCallEvent = {

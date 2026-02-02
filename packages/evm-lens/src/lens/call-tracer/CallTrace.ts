@@ -1,5 +1,6 @@
 import { InvariantError } from '../../_common/errors.ts';
 import type { Address, Hex } from '../types.ts';
+import type { DeepReadonly } from '../../_common/type-utils.ts';
 
 type External = 'EXTERNAL';
 type InternalCallTypes = 'INTERNAL';
@@ -55,6 +56,8 @@ export type LensLog = {
   functionName?: string;
   functionType?: string;
 };
+
+export type ReadOnlyFunctionCallEvent = DeepReadonly<FunctionCallEvent>;
 
 export class CallTrace {
   public rootFunction?: FunctionCallEvent;

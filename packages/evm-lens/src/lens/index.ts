@@ -15,7 +15,7 @@ import { PcLocationIndexesRegistry } from './indexes/PcLocationIndexesRegistry.t
 import { OpcodeMatcher } from './handlers/evm-events-handlers/OpcodeMatcher.ts';
 import { EvmEventsHandler } from './handlers/EvmEventsHandler.ts';
 import { EventStore } from './handlers/evm-events-handlers/EventStore.ts';
-import { CallTraceEventHandler } from './handlers/CallTraceEventHandler.ts';
+import { CallTraceEventsHandler } from './handlers/CallTraceEventsHandler.ts';
 
 export async function buildCallTracer<LensArtifactsMapT extends LensArtifactsMap<any>>() {
   const deployerAccount = privateKeyToAccount(generatePrivateKey());
@@ -32,7 +32,7 @@ export async function buildCallTracer<LensArtifactsMapT extends LensArtifactsMap
   const externalCallResultHandler = new ExternalCallResultHandler(debugMetadata, addressLabeler);
   const functionEntryHandler = new FunctionEntryHandler(debugMetadata, addressLabeler);
   const functionExitHandler = new FunctionExitHandler(debugMetadata, addressLabeler);
-  const callTraceEventHandler = new CallTraceEventHandler(
+  const callTraceEventsHandler = new CallTraceEventsHandler(
     externalCallHandler,
     externalCallResultHandler,
     functionEntryHandler,
@@ -43,7 +43,7 @@ export async function buildCallTracer<LensArtifactsMapT extends LensArtifactsMap
   const opcodeMatcher = new OpcodeMatcher(debugMetadata, addressLabeler);
   const evmEventsHandler = new EvmEventsHandler(eventStore, opcodeMatcher);
 
-  const tracer = new CallTracer(evmEventsHandler, callTraceEventHandler);
+  const tracer = new CallTracer(evmEventsHandler, callTraceEventsHandler);
 
   const lensClient = new LensClient<LensArtifactsMapT>(deployerAccount, client, debugMetadata, addressLabeler, tracer);
 

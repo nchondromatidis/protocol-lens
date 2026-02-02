@@ -1,4 +1,4 @@
-import { HandlerBase } from '../HandlerBase.ts';
+import { EventsHandlerBase } from '../EventsHandlerBase.ts';
 
 import type { FunctionCallEvent, FunctionResultEvent } from '../../call-tracer/CallTrace.ts';
 import type { InternalFunctionCallResultEvent } from '../_events/call-trace-events.ts';
@@ -12,7 +12,7 @@ import type { InternalFunctionCallResultEvent } from '../_events/call-trace-even
  * event.pc + event.depth --depth=>fnExitPc--> function call exit
  * </i>
  */
-export class FunctionExitHandler extends HandlerBase {
+export class FunctionExitHandler extends EventsHandlerBase {
   public async handle(_event: InternalFunctionCallResultEvent, functionCallEvent: FunctionCallEvent) {
     if (functionCallEvent.callType !== 'INTERNAL') {
       // already decoded by ExternalCallResultHandler
