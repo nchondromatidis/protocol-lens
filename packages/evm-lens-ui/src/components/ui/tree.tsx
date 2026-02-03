@@ -28,30 +28,34 @@ interface TreeProps extends React.HTMLAttributes<HTMLDivElement> {
   tree?: any;
 }
 
-function Tree({ indent = 20, tree, className, ...props }: TreeProps) {
-  const containerProps = tree && typeof tree.getContainerProps === 'function' ? tree.getContainerProps() : {};
-  const mergedProps = { ...props, ...containerProps };
+const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
+  ({ indent = 20, tree, className, ...props }, ref) => {
+    const containerProps = tree && typeof tree.getContainerProps === 'function' ? tree.getContainerProps() : {};
+    const mergedProps = { ...props, ...containerProps };
 
-  // Extract style from mergedProps to merge with our custom styles
-  const { style: propStyle, ...otherProps } = mergedProps;
+    // Extract style from mergedProps to merge with our custom styles
+    const { style: propStyle, ...otherProps } = mergedProps;
 
-  // Merge styles
-  const mergedStyle = {
-    ...propStyle,
-    '--tree-indent': `${indent}px`,
-  } as React.CSSProperties;
+    // Merge styles
+    const mergedStyle = {
+      ...propStyle,
+      '--tree-indent': `${indent}px`,
+    } as React.CSSProperties;
 
-  return (
-    <TreeContext.Provider value={{ indent, tree }}>
-      <div
-        className={cn('flex flex-col overflow-y-auto min-h-0', scrollbarsDark, className)}
-        data-slot="tree"
-        style={mergedStyle}
-        {...otherProps}
-      />
-    </TreeContext.Provider>
-  );
-}
+    return (
+      <TreeContext.Provider value={{ indent, tree }}>
+        <div
+          ref={ref}
+          className={cn('flex flex-col overflow-y-auto min-h-0', scrollbarsDark, className)}
+          data-slot="tree"
+          style={mergedStyle}
+          {...otherProps}
+        />
+      </TreeContext.Provider>
+    );
+  }
+);
+Tree.displayName = 'Tree';
 
 interface TreeItemProps<T = any> extends React.HTMLAttributes<HTMLButtonElement> {
   item: ItemInstance<T>;
@@ -87,6 +91,7 @@ function TreeItem<T = any>({ item, className, asChild, children, ...props }: Omi
         data-drag-target={typeof item.isDragTarget === 'function' ? item.isDragTarget() || false : undefined}
         data-focus={typeof item.isFocused === 'function' ? item.isFocused() || false : undefined}
         data-folder={typeof item.isFolder === 'function' ? item.isFolder() || false : undefined}
+        data-item-id={item.getId()}
         data-search-match={typeof item.isMatchingSearch === 'function' ? item.isMatchingSearch() || false : undefined}
         data-selected={typeof item.isSelected === 'function' ? item.isSelected() || false : undefined}
         data-slot="tree-item"

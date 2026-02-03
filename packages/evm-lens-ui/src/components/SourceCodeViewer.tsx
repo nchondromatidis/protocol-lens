@@ -1,14 +1,37 @@
 import CodeMirror from '@uiw/react-codemirror';
 import { solidity } from '@replit/codemirror-lang-solidity';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { useEffect, useRef } from 'react';
+import { EditorView } from '@codemirror/view';
+import { EditorSelection } from '@codemirror/state';
 
 import React from 'react';
 
 interface SourceCodeViewerProps {
   sourceCode?: string;
+  highlightedLine?: number;
 }
 
-export const SourceCodeViewer: React.FC<SourceCodeViewerProps> = ({ sourceCode }: SourceCodeViewerProps) => {
+export const SourceCodeViewer: React.FC<SourceCodeViewerProps> = ({
+  sourceCode,
+  highlightedLine,
+}: SourceCodeViewerProps) => {
+  const editorRef = useRef<EditorView | null>(null);
+
+  useEffect(() => {
+    if (editorRef.current && highlightedLine && highlightedLine > 0) {
+      const line = highlightedLine - 1; // CodeMirror uses 0-based indexing
+      const editor = editorRef.current;
+
+      // Create a selection at the start of the target line
+      const lineStart = editor.state.doc.line(line + 1).from;
+      editor.dispatch({
+        selection: EditorSelection.cursor(lineStart),
+        effects: EditorView.scrollIntoView(lineStart, { y: 'center' }),
+      });
+    }
+  }, [highlightedLine]);
+
   if (!sourceCode) return null;
 
   const extensions = [solidity];
@@ -27,6 +50,9 @@ export const SourceCodeViewer: React.FC<SourceCodeViewerProps> = ({ sourceCode }
           foldGutter: true,
         }}
         className="h-full"
+        onCreateEditor={(view) => {
+          editorRef.current = view;
+        }}
       />
     </div>
   );

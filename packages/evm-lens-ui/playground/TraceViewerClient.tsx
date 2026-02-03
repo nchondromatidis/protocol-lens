@@ -10,6 +10,8 @@ export function TraceViewerClient() {
   const [projectFiles, setProjectFiles] = useState<ReturnType<typeof contractFQNListToProjectFiles> | null>(null);
   const [loading, setLoading] = useState(true);
   const [sourceCode, setSourceCode] = useState<string | undefined>(undefined);
+  const [highlightedLine, setHighlightedLine] = useState<number | undefined>(undefined);
+  const [scrollToFileId, setScrollToFileId] = useState<string | undefined>(undefined);
   const resourceLoaderRef = useRef<HardhatEvmLensHttpRL | null>(null);
 
   useEffect(() => {
@@ -45,7 +47,35 @@ export function TraceViewerClient() {
     if (resourceLoaderRef.current) {
       const source = await resourceLoaderRef.current.getSource(fileId);
       setSourceCode(source);
+      setHighlightedLine(undefined);
     }
+  }, []);
+
+  const handleSelectTraceNode = useCallback(async (event: ReadOnlyFunctionCallEvent) => {
+    // Extract file path from contract FQN
+    const contractFqn = event.implContractFQN || event.contractFQN;
+    if (!contractFqn) return;
+
+    const fileId = contractFqn.split(':')[0];
+    if (!fileId) return;
+
+    // Fetch source code if not already loaded
+    if (resourceLoaderRef.current) {
+      const source = await resourceLoaderRef.current.getSource(fileId);
+      setSourceCode(source);
+    }
+
+    // Scroll to file in tree
+    setScrollToFileId(fileId);
+
+    // Highlight the function start line
+    if (event.functionLineStart) {
+      setHighlightedLine(event.functionLineStart);
+    }
+  }, []);
+
+  const handleScrollToFile = useCallback((fileId: string) => {
+    setScrollToFileId(fileId);
   }, []);
 
   if (loading) return <div>Loading...</div>;
@@ -58,7 +88,11 @@ export function TraceViewerClient() {
       rootItemId={projectFiles.rootItemId}
       initialExpandedItems={projectFiles.firstLevelFolderNames}
       onSelectFileFromTree={handleSelectFileFromTree}
+      onSelectTraceNode={handleSelectTraceNode}
+      onScrollToFile={handleScrollToFile}
+      scrollToFileId={scrollToFileId}
       sourceCode={sourceCode}
+      highlightedLine={highlightedLine}
     />
   );
 }

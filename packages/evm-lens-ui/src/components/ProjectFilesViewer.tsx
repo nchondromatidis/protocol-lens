@@ -12,7 +12,7 @@ import {
 } from '@headless-tree/core';
 import { useTree } from '@headless-tree/react';
 import { FileIcon, FolderIcon, FolderOpenIcon, SearchIcon } from 'lucide-react';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Input } from '@/components/ui/input.tsx';
 import { Tree, TreeItem, TreeItemLabel } from '@/components/ui/tree.tsx';
@@ -29,6 +29,8 @@ export interface ProjectFilesViewerProps {
   rootItemId: string;
   initialExpandedItems: string[];
   onSelectFileFromTree: (fileId: string) => void;
+  onScrollToFile?: (fileId: string) => void;
+  scrollToFileId?: string;
   indent?: number;
 }
 
@@ -44,8 +46,12 @@ export const ProjectFilesViewer: React.FC<ProjectFilesViewerProps> = ({
   initialExpandedItems,
   indent = DEFAULT_INDENT,
   onSelectFileFromTree,
+  onScrollToFile,
+  scrollToFileId,
 }) => {
   const [state, setState] = useState<Partial<TreeState<Item>>>({});
+  const treeRef = useRef<HTMLDivElement>(null);
+  const processedScrollToFileId = useRef<string | null>(null);
 
   const tree = useTree<Item>({
     dataLoader: {
@@ -79,6 +85,49 @@ export const ProjectFilesViewer: React.FC<ProjectFilesViewerProps> = ({
 
   const treeItems = tree.getItems();
 
+  // Get all parent folder paths for a given file path
+  const getParentPaths = useCallback((filePath: string): string[] => {
+    const parts = filePath.split('/');
+    const parents: string[] = [];
+    let currentPath = '';
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
+      parents.push(currentPath);
+    }
+
+    return parents;
+  }, []);
+
+  // Handle expanding parent folders and scrolling
+  useEffect(() => {
+    if (!scrollToFileId || processedScrollToFileId.current === scrollToFileId) return;
+
+    const parentPaths = getParentPaths(scrollToFileId);
+    const allParentsExpanded = parentPaths.every((parent) => (state.expandedItems || []).includes(parent));
+
+    if (!allParentsExpanded) {
+      // Need to expand parent folders first
+      const currentExpanded = new Set(state.expandedItems || []);
+      parentPaths.forEach((parent) => currentExpanded.add(parent));
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setState((prev) => ({ ...prev, expandedItems: Array.from(currentExpanded) }));
+      return;
+    }
+
+    // All parents expanded, now scroll
+    if (treeRef.current) {
+      processedScrollToFileId.current = scrollToFileId;
+      requestAnimationFrame(() => {
+        const itemElement = treeRef.current?.querySelector(`[data-item-id="${scrollToFileId}"]`);
+        if (itemElement) {
+          itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        onScrollToFile?.(scrollToFileId);
+      });
+    }
+  }, [scrollToFileId, getParentPaths, state.expandedItems, onScrollToFile]);
+
   return (
     <div className="flex h-full flex-col gap-2 *:nth-2:grow">
       <div className="relative">
@@ -94,7 +143,7 @@ export const ProjectFilesViewer: React.FC<ProjectFilesViewerProps> = ({
         </div>
       </div>
 
-      <Tree indent={indent} tree={tree}>
+      <Tree indent={indent} tree={tree} ref={treeRef}>
         {treeItems.map((item) => (
           <TreeItem item={item} key={item.getId()}>
             <TreeItemLabel

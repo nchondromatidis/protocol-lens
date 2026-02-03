@@ -73,10 +73,11 @@ interface TraceNodeProps {
   depth: number;
   expandedPaths: Set<string>;
   onToggle: (path: string) => void;
+  onSelectTraceNode?: (event: ReadOnlyFunctionCallEvent) => void;
   isLastChild?: boolean;
 }
 
-const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths, onToggle }) => {
+const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths, onToggle, onSelectTraceNode }) => {
   const isExpanded = expandedPaths.has(path);
   const hasChildren = event.called && event.called.length > 0;
   const isError = event.result?.isError || false;
@@ -103,7 +104,7 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
 
   const handleRowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Row clicked:', event);
+    onSelectTraceNode?.(event);
   };
 
   return (
@@ -187,6 +188,7 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
               depth={depth + 1}
               expandedPaths={expandedPaths}
               onToggle={onToggle}
+              onSelectTraceNode={onSelectTraceNode}
               isLastChild={idx === event.called!.length - 1}
             />
           ))}
@@ -201,9 +203,14 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
 interface TransactionTraceViewerProps {
   functionTrace: ReadOnlyFunctionCallEvent;
   className?: string;
+  onSelectTraceNode?: (event: ReadOnlyFunctionCallEvent) => void;
 }
 
-export const FunctionTraceViewer: React.FC<TransactionTraceViewerProps> = ({ functionTrace, className }) => {
+export const FunctionTraceViewer: React.FC<TransactionTraceViewerProps> = ({
+  functionTrace,
+  className,
+  onSelectTraceNode,
+}) => {
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set(['root']));
 
   const handleExpandAll = useCallback(() => {
@@ -258,6 +265,7 @@ export const FunctionTraceViewer: React.FC<TransactionTraceViewerProps> = ({ fun
               depth={0}
               expandedPaths={expandedPaths}
               onToggle={handleToggle}
+              onSelectTraceNode={onSelectTraceNode}
             />
           </div>
           <ScrollBar orientation="vertical" />

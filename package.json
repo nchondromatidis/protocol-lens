@@ -4,6 +4,8 @@
   "main": "index.js",
   "scripts": {
     "check:types": "pnpm -r run check:types",
+    "lint": "pnpm -r run lint",
+    "lint:fix": "pnpm -r run lint:fix",
     "preinstall": "npx only-allow pnpm",
     "test": "echo \"Error: no test specified\" && exit 1",
     "deps:list:verbose": "pnpm dlx syncpack@alpha list --show instances",

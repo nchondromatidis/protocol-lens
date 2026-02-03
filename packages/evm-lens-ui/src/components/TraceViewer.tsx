@@ -31,7 +31,11 @@ interface TraceViewerLayoutProps {
   rootItemId: string;
   initialExpandedItems: string[];
   onSelectFileFromTree: (fileId: string) => void;
+  onSelectTraceNode: (event: ReadOnlyFunctionCallEvent) => void;
+  onScrollToFile: (fileId: string) => void;
+  scrollToFileId?: string;
   sourceCode?: string;
+  highlightedLine?: number;
 }
 
 export const TraceViewer: React.FC<TraceViewerLayoutProps> = ({
@@ -40,7 +44,11 @@ export const TraceViewer: React.FC<TraceViewerLayoutProps> = ({
   rootItemId,
   initialExpandedItems,
   onSelectFileFromTree,
+  onSelectTraceNode,
+  onScrollToFile,
+  scrollToFileId,
   sourceCode,
+  highlightedLine,
 }: TraceViewerLayoutProps) => {
   return (
     <Group
@@ -64,16 +72,18 @@ export const TraceViewer: React.FC<TraceViewerLayoutProps> = ({
               initialExpandedItems={initialExpandedItems}
               rootItemId={rootItemId}
               onSelectFileFromTree={onSelectFileFromTree}
+              onScrollToFile={onScrollToFile}
+              scrollToFileId={scrollToFileId}
             />
           </Panel>
           <Panel id="source" className="overflow-hidden ml-4 px-4 py-4 h-full">
-            <SourceCodeViewer sourceCode={sourceCode} />
+            <SourceCodeViewer sourceCode={sourceCode} highlightedLine={highlightedLine} />
           </Panel>
         </Group>
       </Panel>
       <Separator />
       <Panel id="bottom" className="overflow-auto p-4 border">
-        <FunctionTraceViewer functionTrace={functionTrace} />
+        <FunctionTraceViewer functionTrace={functionTrace} onSelectTraceNode={onSelectTraceNode} />
       </Panel>
     </Group>
   );
