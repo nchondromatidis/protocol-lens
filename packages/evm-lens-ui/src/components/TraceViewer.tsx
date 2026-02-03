@@ -76,7 +76,7 @@ export const TraceViewer: React.FC<TraceViewerLayoutProps> = ({
               scrollToFileId={scrollToFileId}
             />
           </Panel>
-          <Panel id="source" className="overflow-hidden ml-4 px-4 py-4 h-full">
+          <Panel id="source" className="overflow-hidden ml-4 pr-4 py-4 h-full">
             <SourceCodeViewer sourceCode={sourceCode} highlightedLine={highlightedLine} />
           </Panel>
         </Group>

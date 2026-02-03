@@ -61,7 +61,7 @@ export const ProjectFilesViewer: React.FC<ProjectFilesViewerProps> = ({
     features: [syncDataLoaderFeature, hotkeysCoreFeature, selectionFeature, searchFeature, expandAllFeature],
     getItemName: (item) => item.getItemData().name,
     indent,
-    initialState: { expandedItems: initialExpandedItems },
+    initialState: { expandedItems: initialExpandedItems, selectedItems: [] },
     isItemFolder: (item) => (item.getItemData()?.children?.length ?? 0) > 0,
     rootItemId,
     setState,
@@ -99,9 +99,16 @@ export const ProjectFilesViewer: React.FC<ProjectFilesViewerProps> = ({
     return parents;
   }, []);
 
-  // Handle expanding parent folders and scrolling
+  // Handle expanding parent folders, scrolling, and selecting
   useEffect(() => {
-    if (!scrollToFileId || processedScrollToFileId.current === scrollToFileId) return;
+    if (!scrollToFileId) return;
+
+    // Reset the processed flag when scrollToFileId changes to allow re-expansion
+    if (processedScrollToFileId.current !== scrollToFileId) {
+      processedScrollToFileId.current = null;
+    }
+
+    if (processedScrollToFileId.current === scrollToFileId) return;
 
     const parentPaths = getParentPaths(scrollToFileId);
     const allParentsExpanded = parentPaths.every((parent) => (state.expandedItems || []).includes(parent));
@@ -110,12 +117,11 @@ export const ProjectFilesViewer: React.FC<ProjectFilesViewerProps> = ({
       // Need to expand parent folders first
       const currentExpanded = new Set(state.expandedItems || []);
       parentPaths.forEach((parent) => currentExpanded.add(parent));
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setState((prev) => ({ ...prev, expandedItems: Array.from(currentExpanded) }));
       return;
     }
 
-    // All parents expanded, now scroll
+    // All parents expanded, now scroll and select
     if (treeRef.current) {
       processedScrollToFileId.current = scrollToFileId;
       requestAnimationFrame(() => {
@@ -126,7 +132,17 @@ export const ProjectFilesViewer: React.FC<ProjectFilesViewerProps> = ({
         onScrollToFile?.(scrollToFileId);
       });
     }
-  }, [scrollToFileId, getParentPaths, state.expandedItems, onScrollToFile]);
+    // Note: state.expandedItems is intentionally omitted from dependencies to prevent
+    // the effect from re-running when user manually expands/collapses folders
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scrollToFileId, getParentPaths, onScrollToFile]);
+
+  // Separate effect to handle selection when scrollToFileId changes
+  useEffect(() => {
+    if (scrollToFileId) {
+      setState((prev) => ({ ...prev, selectedItems: [scrollToFileId] }));
+    }
+  }, [scrollToFileId]);
 
   return (
     <div className="flex h-full flex-col gap-2 *:nth-2:grow">
@@ -148,7 +164,14 @@ export const ProjectFilesViewer: React.FC<ProjectFilesViewerProps> = ({
           <TreeItem item={item} key={item.getId()}>
             <TreeItemLabel
               className="py-1"
-              {...(!item.isFolder() ? { onClick: () => onSelectFileFromTree(item.getId()) } : {})}
+              {...(!item.isFolder()
+                ? {
+                    onClick: () => {
+                      onSelectFileFromTree(item.getId());
+                      setState((prev) => ({ ...prev, selectedItems: [item.getId()] }));
+                    },
+                  }
+                : {})}
             >
               <span className="flex items-center gap-2">
                 {getItemIcon(item)}
