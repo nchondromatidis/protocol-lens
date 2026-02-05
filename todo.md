@@ -12,6 +12,9 @@
       - Indexer: 
         - detect/decode public variables getters
         - use solc instead of hardhat to be able to be used directly in browser
+      - remove tevm dependency
+        - ethereumjs
+        - EIP-1193: window.ethereum.request()
       - add logger
       - Register call and result line numbers
       - Inline libs detection
@@ -28,7 +31,7 @@
     - compilation unit: use slang reference <-> definition
     - cross compilation unit: manual import
 - evm-lens-ui
-    - txTrace -> components
+    - responsive for mobile devices (accordion maybe)
 - analysis
     - Add dependency on protocols
     - while using analysis: fix evm-lens when needed
