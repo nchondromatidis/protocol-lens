@@ -14,6 +14,7 @@ export default defineConfig({
         { label: 'Uniswap v3', autogenerate: { directory: 'exchanges/uniswap-v3' } },
         { label: 'Cureve', autogenerate: { directory: 'exchanges/curve' } },
       ],
+      customCss: ['./src/styles/custom.css'],
     }),
   ],
 });
