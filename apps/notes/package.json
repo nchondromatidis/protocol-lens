@@ -8,16 +8,21 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "lint:fix": "eslint --fix"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.37.4",
     "astro": "^5.17.1",
+    "katex": "^0.16.28",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
     "sharp": "^0.34.5",
     "starlight-theme-next": "^0.3.3"
   },
   "devDependencies": {
     "@defi-notes/config": "workspace:*",
+    "@eslint/markdown": "^7.5.1",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
