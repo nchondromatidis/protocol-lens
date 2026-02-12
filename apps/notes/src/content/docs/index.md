@@ -13,4 +13,3 @@ Welcome to the DeFi Notes. Each protocol will be analyzed based on whitepaper an
 - [Curve](/exchanges/curve/) - Stablecoin exchange protocol
 
 ---
-
