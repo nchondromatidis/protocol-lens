@@ -87,12 +87,13 @@ export const DesmosChart: React.FC<DesmosChartProps> = ({
         // Create calculator
         // @ts-expect-error - Desmos is loaded globally
         const calculator = window.Desmos.GraphingCalculator(mainContainerRef.current, {
-          expressions: true,
+          expressions: false,
           expressionsCollapsed: true,
           invertedColors,
           keypad: false,
           settingsMenu: false,
-          zoomButtons: true,
+          zoomButtons: false,
+          lockViewport: true,
         });
 
         // Set the state
@@ -191,7 +192,7 @@ export const DesmosChart: React.FC<DesmosChartProps> = ({
           <Button
             variant="ghost"
             size="icon-sm"
-            className="absolute top-30 right-2 bg-background/80 backdrop-blur-sm opacity-70 hover:opacity-100 transition-opacity"
+            className="absolute top-0 right-4 bg-background/80 backdrop-blur-sm opacity-70 hover:opacity-100 transition-opacity"
             onClick={() => setIsOpen(true)}
             aria-label="Expand chart"
           >
