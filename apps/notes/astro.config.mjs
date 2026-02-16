@@ -1,9 +1,14 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import mdx from '@astrojs/mdx';
 import starlightThemeNext from 'starlight-theme-next';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+
+import react from '@astrojs/react';
+
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   integrations: [
@@ -16,11 +21,16 @@ export default defineConfig({
         { label: 'Uniswap v3', autogenerate: { directory: 'exchanges/uniswap-v3' } },
         { label: 'Cureve', autogenerate: { directory: 'exchanges/curve' } },
       ],
-      customCss: ['./src/styles/custom.css', './node_modules/katex/dist/katex.min.css'],
+      customCss: ['./src/styles/global.css', './src/styles/custom.css', './node_modules/katex/dist/katex.min.css'],
     }),
+    mdx(),
+    react(),
   ],
   markdown: {
     remarkPlugins: [remarkMath],
     rehypePlugins: [rehypeKatex],
+  },
+  vite: {
+    plugins: [tailwindcss()],
   },
 });

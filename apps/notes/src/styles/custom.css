@@ -1,4 +1,4 @@
-@layer starlight, nextjs, custom;
+@layer starlight, nextjs, custom, tailwind;
 
 @layer custom {
     :root {
