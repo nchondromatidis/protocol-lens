@@ -5,8 +5,7 @@ import type { ArtifactMap } from '@defi-notes/protocols/artifacts';
 import { buildCallTracer } from '@defi-notes/evm-lens/src/lens';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { HardhatEvmLensHttpRL } from '@defi-notes/evm-lens/src/adapters/resource-loader/HardhatEvmLensHttpRL.ts';
-import type { SetupResult } from '@/components/TraceViewerClient.tsx';
-import { contractFQNListToProjectFiles } from '@/adapters/project-files-mapper.ts';
+import type { TraceResult } from '../../src/components/TraceViewerClient.tsx';
 
 const ETHER_1 = 1n * 10n ** 18n;
 
@@ -25,7 +24,7 @@ export interface UniswapV2Setup {
 
 export async function setupUniswapV2(): Promise<UniswapV2Setup> {
   // http://localhost:5173/public, public folder is also served in root in vite
-  const resourceLoader = new HardhatEvmLensHttpRL('http://localhost:5173/', 'contracts');
+  const resourceLoader = new HardhatEvmLensHttpRL('http://localhost:5173', 'contracts');
 
   const { lensClient, deployerAccount, client } = await buildCallTracer<UniswapV2Artifacts>();
 
@@ -55,31 +54,34 @@ export async function setupUniswapV2(): Promise<UniswapV2Setup> {
   };
 }
 
-export async function createPair(): Promise<SetupResult> {
-  const { lensClient, factory, resourceLoader } = await setupUniswapV2();
+export async function createPair(): Promise<TraceResult> {
+  try {
+    const { lensClient, factory, resourceLoader } = await setupUniswapV2();
 
-  const contractFqns = await resourceLoader.getProtocolContractsFqn('uniswap-v2');
-  const projectFiles = contractFQNListToProjectFiles(contractFqns);
+    const contractFqnList = await resourceLoader.getProtocolContractsFqn('uniswap-v2');
 
-  const token1 = await lensClient.deploy(
-    'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
-    []
-  );
-  const token2 = await lensClient.deploy(
-    'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
-    []
-  );
+    const token1 = await lensClient.deploy(
+      'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
+      []
+    );
+    const token2 = await lensClient.deploy(
+      'contracts/uniswap-v2/v2-core/contracts/UniswapV2ERC20.sol:UniswapV2ERC20',
+      []
+    );
 
-  const result = await lensClient.contract(factory, 'createPair', [token1.createdAddress!, token2.createdAddress!]);
+    const result = await lensClient.contract(factory, 'createPair', [token1.createdAddress!, token2.createdAddress!]);
 
-  const trace = lensClient.getSucceeded(result);
-  if (!trace) {
-    throw new Error('Failed to get trace from transaction');
+    const trace = lensClient.getSucceeded(result);
+    if (!trace) {
+      return { error: 'Failed to get trace from transaction' };
+    }
+
+    return {
+      resourceLoader,
+      trace,
+      contractFqnList,
+    };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Unknown error' };
   }
-
-  return {
-    resourceLoader,
-    trace,
-    projectFiles,
-  };
 }

@@ -14,8 +14,8 @@ import { useTree } from '@headless-tree/react';
 import { FileIcon, FolderIcon, FolderOpenIcon, SearchIcon } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Input } from '@/components/ui/input.tsx';
-import { Tree, TreeItem, TreeItemLabel } from '@/components/ui/tree.tsx';
+import { Input } from './ui/input.tsx';
+import { Tree, TreeItem, TreeItemLabel } from './ui/tree.tsx';
 
 export const DEFAULT_INDENT = 20;
 

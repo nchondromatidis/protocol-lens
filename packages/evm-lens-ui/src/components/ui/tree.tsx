@@ -5,7 +5,7 @@ import { ChevronDownIcon } from 'lucide-react';
 import { Root } from '@radix-ui/react-slot';
 import * as React from 'react';
 
-import { cn, scrollbarsDark } from '@/lib/utils.ts';
+import { cn, scrollbarsDark } from '../lib/utils.ts';
 
 interface TreeContextValue<T = any> {
   indent: number;

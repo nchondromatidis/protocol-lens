@@ -1,32 +1,38 @@
 {
-  "name": "evm-lens-ui",
-  "private": true,
+  "name": "@defi-notes/evm-lens-ui",
+  "private": false,
   "version": "0.0.0",
   "type": "module",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./styles": "./dist/index.css"
+    "./styles/*.css": {
+      "types": "./dist/styles/*.css",
+      "import": "./dist/styles/*.css",
+      "style": "./dist/styles/*.css"
+    }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "check:types:web": "tsc -p tsconfig.web.json --noEmit",
     "check:types:node": "tsc -p tsconfig.node.json --noEmit",
     "check:types": "pnpm run check:types:web && pnpm run check:types:node",
     "test": "vitest run",
     "test:watch": "vitest",
-    "sync:protocols:copy": "rm -rf public && mkdir -p public/protocols && cp -r ../protocols/artifacts public/protocols/ && cp -r ../protocols/contracts public/protocols/",
-    "sync:protocols:symlink": "rm -rf public && mkdir -p public && ln -sfn ../../protocols/artifacts  public/artifacts && ln -sfn ../../protocols/contracts public/contracts",
-    "predev:playground": "pnpm run sync:protocols:symlink",
     "dev:playground": "vite --config vite.config.ts",
-    "prebuild": "pnpm run sync:protocols:copy",
-    "build": "tsc -b && vite build",
+    "build:lib": "vite build --mode lib",
+    "build:lib:watch": "vite build --watch --mode lib",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview"
+  },
+  "peerDependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   },
   "dependencies": {
     "@codemirror/state": "^6.5.4",
@@ -47,8 +53,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.563.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
     "react-resizable-panels": "^4",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18"
@@ -72,7 +76,9 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.54.0",
     "viem": "^2.45.1",
-    "vite": "^7.3.1",
+    "vite": "^6.4.0",
+    "vite-multiple-assets": "^2.2.6",
+    "vite-plugin-dts": "^4.5.4",
     "vitest": "^4.0.18",
     "zod-validation-error": "3.5.3"
   }

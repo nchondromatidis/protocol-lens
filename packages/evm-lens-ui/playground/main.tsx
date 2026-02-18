@@ -1,7 +1,7 @@
-import '@/index.css';
+import '../src/styles/index.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ThemeProvider } from '@/index';
+import { ThemeProvider } from '../src';
 import { UniswapV2TraceClient } from './UniswapV2TraceClient.tsx';
 
 createRoot(document.getElementById('root')!).render(

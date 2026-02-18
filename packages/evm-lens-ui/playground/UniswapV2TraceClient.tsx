@@ -1,6 +1,17 @@
-import { TraceViewerClient } from '@/components/TraceViewerClient.tsx';
+import { useState, useEffect } from 'react';
 import { createPair } from './uniswap-v2/setup';
+import { TraceViewerClient, type TraceResult } from '../src';
 
 export function UniswapV2TraceClient() {
-  return <TraceViewerClient setup={createPair} />;
+  const [trace, setTrace] = useState<TraceResult | null>(null);
+
+  useEffect(() => {
+    createPair().then(setTrace);
+  }, []);
+
+  if (!trace) {
+    return <div>Loading...</div>;
+  }
+
+  return <TraceViewerClient trace={trace} />;
 }

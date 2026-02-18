@@ -2,10 +2,6 @@
   "extends": "@defi-notes/config/tsconfig.web.json",
   "compilerOptions": {
     "types": ["vite/client"],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["src", "playground"]
+    "include": ["src/**/*", "playground/**/*"]
+  }
 }

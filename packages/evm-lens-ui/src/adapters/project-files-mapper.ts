@@ -1,4 +1,4 @@
-import type { Item } from '@/components/ProjectFilesViewer.tsx';
+import type { Item } from '../components/ProjectFilesViewer.tsx';
 
 export function contractFQNListToProjectFiles(contractFQNList: string[]): {
   items: Record<string, Item>;

@@ -1,4 +1,4 @@
-import type { Item } from '@/components/ProjectFilesViewer.tsx';
+import type { Item } from '../../src/components/ProjectFilesViewer.tsx';
 
 export const DEFAULT_ITEMS: Record<string, Item> = {
   apis: { name: 'APIs' },

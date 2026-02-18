@@ -1,90 +1,89 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { TraceViewer } from '@/index';
+import { useState, useCallback } from 'react';
+import { TraceViewer } from './TraceViewer.tsx';
 import type { ReadOnlyFunctionCallEvent } from '@defi-notes/evm-lens/src/lens/call-tracer/CallTrace.ts';
-import { contractFQNListToProjectFiles } from '@/adapters/project-files-mapper.ts';
-import type { HardhatEvmLensHttpRL } from '@defi-notes/evm-lens/src/adapters/resource-loader/HardhatEvmLensHttpRL.ts';
+import { contractFQNListToProjectFiles } from '../adapters/project-files-mapper.ts';
+import type { IResourceLoader } from '@defi-notes/evm-lens/src/lens/_ports/IResourceLoader.ts';
 
-export interface SetupResult {
-  resourceLoader: HardhatEvmLensHttpRL;
+export interface TraceResultSuccess {
+  resourceLoader: IResourceLoader;
   trace: ReadOnlyFunctionCallEvent;
-  projectFiles: ReturnType<typeof contractFQNListToProjectFiles>;
+  contractFqnList: string[];
 }
+
+export interface TraceResultError {
+  error: string;
+}
+
+export type TraceResult = TraceResultSuccess | TraceResultError;
 
 export interface TraceViewerClientProps {
-  setup: () => Promise<SetupResult>;
+  trace: TraceResult;
 }
 
-export function TraceViewerClient({ setup }: TraceViewerClientProps) {
-  const [functionTrace, setFunctionTrace] = useState<ReadOnlyFunctionCallEvent | null>(null);
-  const [projectFiles, setProjectFiles] = useState<ReturnType<typeof contractFQNListToProjectFiles> | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+function isTraceResultError(result: TraceResult): result is TraceResultError {
+  return 'error' in result;
+}
+
+export function TraceViewerClient({ trace }: TraceViewerClientProps) {
   const [sourceCode, setSourceCode] = useState<string | undefined>(undefined);
   const [highlightedLine, setHighlightedLine] = useState<number | undefined>(undefined);
   const [scrollToFileId, setScrollToFileId] = useState<string | undefined>(undefined);
-  const resourceLoaderRef = useRef<HardhatEvmLensHttpRL | null>(null);
 
-  useEffect(() => {
-    async function init() {
-      try {
-        setLoading(true);
-        setError(null);
+  const isError = isTraceResultError(trace);
 
-        const { resourceLoader, trace, projectFiles } = await setup();
-        resourceLoaderRef.current = resourceLoader;
-        setProjectFiles(projectFiles);
-        setFunctionTrace(trace);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to initialize'));
-      } finally {
-        setLoading(false);
-      }
-    }
-    init();
-  }, [setup]);
+  const {
+    resourceLoader,
+    trace: functionTrace,
+    contractFqnList,
+  } = isError ? { resourceLoader: null, trace: null, contractFqnList: [] } : trace;
 
-  const handleSelectFileFromTree = useCallback(async (fileId: string) => {
-    if (resourceLoaderRef.current) {
-      const source = await resourceLoaderRef.current.getSource(fileId);
+  const projectFiles = isError ? null : contractFQNListToProjectFiles(contractFqnList);
+
+  const handleSelectFileFromTree = useCallback(
+    async (fileId: string) => {
+      if (!resourceLoader) return;
+      const source = await resourceLoader.getSource(fileId);
       setSourceCode(source);
       setHighlightedLine(undefined);
       setScrollToFileId(undefined);
-    }
-  }, []);
+    },
+    [resourceLoader]
+  );
 
-  const handleSelectFileFromTraceNode = useCallback(async (event: ReadOnlyFunctionCallEvent) => {
-    const contractFqn = event.implContractFQN || event.contractFQN;
-    if (!contractFqn) return;
+  const handleSelectFileFromTraceNode = useCallback(
+    async (event: ReadOnlyFunctionCallEvent) => {
+      if (!resourceLoader) return;
+      const contractFqn = event.implContractFQN || event.contractFQN;
+      if (!contractFqn) return;
 
-    const fileId = contractFqn.split(':')[0];
-    if (!fileId) return;
+      const fileId = contractFqn.split(':')[0];
+      if (!fileId) return;
 
-    if (resourceLoaderRef.current) {
-      const source = await resourceLoaderRef.current.getSource(fileId);
+      const source = await resourceLoader.getSource(fileId);
       setSourceCode(source);
-    }
+      setScrollToFileId(fileId);
 
-    setScrollToFileId(fileId);
-
-    if (event.functionLineStart) {
-      setHighlightedLine(event.functionLineStart);
-    }
-  }, []);
+      if (event.functionLineStart) {
+        setHighlightedLine(event.functionLineStart);
+      }
+    },
+    [resourceLoader]
+  );
 
   const handleScrollToFile = useCallback((fileId: string) => {
     setScrollToFileId(fileId);
   }, []);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-  if (!functionTrace || !projectFiles) return <div>No trace</div>;
+  if (isError) {
+    return <div>Error: {trace.error}</div>;
+  }
 
   return (
     <TraceViewer
-      functionTrace={functionTrace}
-      projectFiles={projectFiles.items}
-      rootItemId={projectFiles.rootItemId}
-      initialExpandedItems={projectFiles.firstLevelFolderNames}
+      functionTrace={functionTrace!}
+      projectFiles={projectFiles!.items}
+      rootItemId={projectFiles!.rootItemId}
+      initialExpandedItems={projectFiles!.firstLevelFolderNames}
       onSelectFileFromTree={handleSelectFileFromTree}
       onSelectFileFromTraceNode={handleSelectFileFromTraceNode}
       onScrollToFile={handleScrollToFile}

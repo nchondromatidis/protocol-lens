@@ -1,12 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { ChevronRight, ChevronDown, AlertTriangle, Maximize2, Minimize2, ArrowRight, ListTree } from 'lucide-react';
-import { cn } from '@/lib/utils.ts';
+import { cn } from './lib/utils.ts';
 import type { ReadOnlyFunctionCallEvent } from '@defi-notes/evm-lens/src/lens/call-tracer/CallTrace.ts';
 import { getContractName } from '@defi-notes/evm-lens/src/client-utils';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Button } from './ui/button';
+import { Card, CardContent, CardHeader } from './ui/card';
+import { Badge } from './ui/badge';
+import { ScrollArea, ScrollBar } from './ui/scroll-area';
 
 // --- Helper Functions ---
 

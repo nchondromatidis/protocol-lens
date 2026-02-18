@@ -1,8 +1,8 @@
-import { ResizablePanelGroup, ResizablePanel, type Layout } from '@/components/ui/resizable.tsx';
+import { ResizablePanelGroup, ResizablePanel, type Layout } from './ui/resizable.tsx';
 import type { ReadOnlyFunctionCallEvent } from '@defi-notes/evm-lens/src/lens/call-tracer/CallTrace.ts';
-import { FunctionTraceViewer } from '@/components/FunctionTraceViewer.tsx';
-import { SourceCodeViewer } from '@/components/SourceCodeViewer.tsx';
-import { ProjectFilesViewer, type Item } from '@/components/ProjectFilesViewer.tsx';
+import { FunctionTraceViewer } from './FunctionTraceViewer.tsx';
+import { SourceCodeViewer } from './SourceCodeViewer.tsx';
+import { ProjectFilesViewer, type Item } from './ProjectFilesViewer.tsx';
 import React, { useMemo, useCallback } from 'react';
 
 const MAIN_LAYOUT_KEY = 'evm-lens-trace-viewer-main';
