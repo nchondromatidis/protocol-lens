@@ -5,6 +5,7 @@ import mdx from '@astrojs/mdx';
 import starlightThemeNext from 'starlight-theme-next';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import { astroMultipleAssets } from 'vite-multiple-assets';
 
 import react from '@astrojs/react';
 
@@ -19,12 +20,22 @@ export default defineConfig({
       sidebar: [
         { label: 'Uniswap v2', autogenerate: { directory: 'exchanges/uniswap-v2' } },
         { label: 'Uniswap v3', autogenerate: { directory: 'exchanges/uniswap-v3' } },
-        { label: 'Cureve', autogenerate: { directory: 'exchanges/curve' } },
+        { label: 'Curve', autogenerate: { directory: 'exchanges/curve' } },
       ],
-      customCss: ['./src/styles/global.css', './src/styles/custom.css', './node_modules/katex/dist/katex.min.css'],
+      customCss: [
+        './src/styles/global.css',
+        './src/styles/custom.css',
+        './node_modules/katex/dist/katex.min.css',
+        '@defi-notes/evm-lens-ui/index.css',
+        '@defi-notes/evm-lens-ui/styles/custom-styles.css',
+      ],
     }),
     mdx(),
     react(),
+    astroMultipleAssets([
+      '../../packages/protocols/{\x01,artifacts}/**',
+      '../../packages/protocols/{\x01,contracts}/**',
+    ]),
   ],
   markdown: {
     remarkPlugins: [remarkMath],

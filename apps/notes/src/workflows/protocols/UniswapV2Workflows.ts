@@ -1,25 +1,15 @@
-import type { ArtifactMap } from '@defi-notes/protocols/artifacts';
-import { buildLens } from '@/workflows/_common.ts';
+import type { ArtifactMap } from '@defi-notes/protocols/*';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import type { LensClient } from '@defi-notes/evm-lens/src/lens/LensClient.ts';
+import { ProtocolWorkflowBaseBase } from '@/workflows/protocols/ProtocolWorkflowBase.ts';
 import type { IResourceLoader } from '@defi-notes/evm-lens/src/lens/_ports/IResourceLoader.ts';
-import type { ReadOnlyFunctionCallEvent } from '@defi-notes/evm-lens/src/lens/call-tracer/CallTrace.ts';
-import type { TraceResult } from '@defi-notes/evm-lens-ui';
 
 export type UniswapV2Artifacts = {
   [K in keyof ArtifactMap as K extends `contracts/uniswap-v2/${string}` ? K : never]: ArtifactMap[K];
 };
 
-export class UniswapV2Workflows {
-  private protocolsFqnListCache: string[] | undefined;
-
-  constructor(
-    private readonly lensClient: LensClient<UniswapV2Artifacts>,
-    protected resourceLoader: IResourceLoader
-  ) {}
-
-  static async create(resourcesBaseUrl: string, contractsFolder: string) {
-    const { lensClient, resourceLoader } = await buildLens<UniswapV2Artifacts>(resourcesBaseUrl, contractsFolder);
+export class UniswapV2Workflows extends ProtocolWorkflowBaseBase<UniswapV2Artifacts> {
+  static async create(resourceLoader: IResourceLoader) {
+    const lensClient = await ProtocolWorkflowBaseBase.buildLens<UniswapV2Artifacts>(resourceLoader);
     return new UniswapV2Workflows(lensClient, resourceLoader);
   }
 
@@ -57,21 +47,12 @@ export class UniswapV2Workflows {
       ercToken2.createdAddress!,
     ]);
 
-    const trace = this.lensClient.getSucceeded(result)!;
-
-    return this.toTraceResult(trace);
+    // TODO: add this to lensClient, get the failed based on txHash since you always get one
+    let trace = this.lensClient.getSucceeded(result);
+    if (!trace) trace = this.lensClient.getFailed(0);
+    if (!trace) throw new Error('No trace found');
+    return trace;
   }
 
   // helpers
-
-  async getProjectFiles() {
-    if (!this.protocolsFqnListCache) {
-      this.protocolsFqnListCache = await this.resourceLoader.getProtocolContractsFqn('uniswap-v2');
-    }
-    return this.protocolsFqnListCache;
-  }
-
-  async toTraceResult(trace: ReadOnlyFunctionCallEvent): Promise<TraceResult> {
-    return { resourceLoader: this.resourceLoader, trace, contractFqnList: await this.getProjectFiles() };
-  }
 }
