@@ -1,18 +1,20 @@
+'use client';
+
 import { useState, useCallback } from 'react';
 import { TraceViewer } from './TraceViewer.tsx';
 import type { ReadOnlyFunctionCallEvent } from '@defi-notes/evm-lens/src/lens/call-tracer/CallTrace.ts';
 import { contractFQNListToProjectFiles } from '../adapters/project-files-mapper.ts';
 import type { IResourceLoader } from '@defi-notes/evm-lens/src/lens/_ports/IResourceLoader.ts';
 
-export interface TraceResultSuccess {
+export type TraceResultSuccess = {
   resourceLoader: IResourceLoader;
   trace: ReadOnlyFunctionCallEvent;
   contractFqnList: string[];
-}
+};
 
-export interface TraceResultError {
+export type TraceResultError = {
   error: string;
-}
+};
 
 export type TraceResult = TraceResultSuccess | TraceResultError;
 

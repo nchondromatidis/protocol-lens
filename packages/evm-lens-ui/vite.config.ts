@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react-swc';
 import { DynamicPublicDirectory } from 'vite-multiple-assets';
 import dts from 'vite-plugin-dts';
 import { resolve } from 'node:path';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 const dynamicPublicDir = (command: string) =>
   command !== 'build'
@@ -27,15 +28,16 @@ export default defineConfig(({ command }) => ({
         server.printUrls = () => {
           const host = server.resolvedUrls?.local[0] || 'http://localhost:5173';
           const openPath = server.config.server.open || '';
-          console.log(`\n ➜ Local: ${host}${openPath}`);
+          console.log(`\n ➜ Local: ${host}${openPath}playground/index.html`);
         };
       },
     },
     dynamicPublicDir(command),
+    viteStaticCopy({
+      targets: [{ src: 'src/styles/custom-styles.css', dest: 'styles' }],
+    }),
   ],
-  server: {
-    open: 'playground/index.html',
-  },
+
   publicDir: false,
   build: {
     outDir: 'dist',
@@ -53,12 +55,6 @@ export default defineConfig(({ command }) => ({
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',
-        },
-        assetFileNames: (assetInfo) => {
-          if (/\.css$/.test(assetInfo.name ?? '')) {
-            return 'styles/[name][extname]'; // → dist/styles/index.css
-          }
-          return '[name][extname]';
         },
       },
     },

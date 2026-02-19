@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useCallback } from 'react';
 import { ChevronRight, ChevronDown, AlertTriangle, Maximize2, Minimize2, ArrowRight, ListTree } from 'lucide-react';
 import { cn } from './lib/utils.ts';
@@ -186,7 +188,7 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
         <div className="relative">
           {/* Vertical Trace Line */}
           <div
-            className="absolute top-0 bottom-0 w-px bg-border"
+            className="absolute top-0 bottom-0 w-px"
             style={{ left: `calc(${BADGE_COL_WIDTH} + ${(depth + 1) * INDENT_PX}px + 0.625rem)` }}
           />
           {event.called?.map((childEvent, idx) => (

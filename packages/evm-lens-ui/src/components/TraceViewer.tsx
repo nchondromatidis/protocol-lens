@@ -1,3 +1,5 @@
+'use client';
+
 import { ResizablePanelGroup, ResizablePanel, type Layout } from './ui/resizable.tsx';
 import type { ReadOnlyFunctionCallEvent } from '@defi-notes/evm-lens/src/lens/call-tracer/CallTrace.ts';
 import { FunctionTraceViewer } from './FunctionTraceViewer.tsx';
@@ -74,7 +76,7 @@ export const TraceViewer: React.FC<TraceViewerLayoutProps> = ({
     <ResizablePanelGroup
       id="trace-viewer-main"
       orientation="vertical"
-      className="h-screen"
+      className="h-screen bg-background text-foreground"
       defaultLayout={mainLayout}
       onLayoutChanged={handleMainLayoutChange}
     >
