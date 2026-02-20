@@ -23,11 +23,10 @@ export default defineConfig({
         { label: 'Curve', autogenerate: { directory: 'exchanges/curve' } },
       ],
       customCss: [
+        '@defi-notes/evm-lens-ui/index.css',
         './src/styles/global.css',
         './src/styles/custom.css',
         './node_modules/katex/dist/katex.min.css',
-        '@defi-notes/evm-lens-ui/index.css',
-        '@defi-notes/evm-lens-ui/styles/custom-styles.css',
       ],
     }),
     mdx(),
