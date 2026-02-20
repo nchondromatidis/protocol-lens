@@ -31,7 +31,8 @@ export abstract class ProtocolWorkflowBaseBase<T extends object> {
     return this.protocolsFqnListCache;
   }
 
-  async toTraceResult(trace: ReadOnlyFunctionCallEvent): Promise<TraceResult> {
+  async toTraceResult(trace: ReadOnlyFunctionCallEvent | undefined): Promise<TraceResult | undefined> {
+    if (!trace) return undefined;
     return { resourceLoader: this.resourceLoader, trace, contractFqnList: await this.getProjectFiles() };
   }
 }

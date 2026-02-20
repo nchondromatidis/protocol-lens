@@ -126,7 +126,7 @@ describe('uniswap-v2', () => {
 
     // assert
     inspect(lensClient.getSucceeded(result));
-    inspect(lensClient.getFailed(0));
+    inspect(lensClient.getFailed(result));
   });
 
   test.skip('debug_traceTransaction', async () => {

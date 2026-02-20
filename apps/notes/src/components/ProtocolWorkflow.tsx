@@ -36,7 +36,7 @@ export const ProtocolWorkflow: React.FC<ProtocolWorkflowProps<ProtocolWorkflowRe
         setError(null);
         const trace = await runWorkflow(protocolWorkflowRegistry, protocol, workflow, args);
         const result = await protocolWorkflowRegistry[protocol].toTraceResult(trace);
-        setTraceResult(result);
+        setTraceResult(result ?? null);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to fetch trace'));
       } finally {

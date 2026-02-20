@@ -103,18 +103,25 @@ export class LensClient<
 
   // view traced
 
+  getTracedTx(contractTxResult: ContractResult): ReadOnlyFunctionCallEvent | undefined {
+    const succeeded = this.getSucceeded(contractTxResult);
+    const failed = this.getFailed(contractTxResult);
+
+    if (succeeded && failed) throw new InvariantError(`Both failed and succeed trace tx registered`, contractTxResult);
+
+    return succeeded ?? failed;
+  }
+
   getSucceeded(contractTxResult: ContractResult): ReadOnlyFunctionCallEvent | undefined {
     if (!contractTxResult?.txHash) return undefined;
 
     return this.callTracer.succeededTxs.get(contractTxResult.txHash);
   }
 
-  getFailed(ordinalNumber: number = 0): ReadOnlyFunctionCallEvent | undefined {
-    const tempIds = [...this.callTracer.failedTxs.keys()];
-    const targetTempId = tempIds[ordinalNumber];
-    if (!targetTempId) return undefined;
+  getFailed(contractTxResult: ContractResult): ReadOnlyFunctionCallEvent | undefined {
+    if (!contractTxResult?.txHash) return undefined;
 
-    return this.callTracer.failedTxs.get(targetTempId);
+    return this.callTracer.failedTxs.get(contractTxResult.txHash);
   }
 
   // helper functions

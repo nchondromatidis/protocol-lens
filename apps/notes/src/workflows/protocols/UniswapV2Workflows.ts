@@ -47,11 +47,7 @@ export class UniswapV2Workflows extends ProtocolWorkflowBaseBase<UniswapV2Artifa
       ercToken2.createdAddress!,
     ]);
 
-    // TODO: add this to lensClient, get the failed based on txHash since you always get one
-    let trace = this.lensClient.getSucceeded(result);
-    if (!trace) trace = this.lensClient.getFailed(0);
-    if (!trace) throw new Error('No trace found');
-    return trace;
+    return this.lensClient.getTracedTx(result);
   }
 
   // helpers
