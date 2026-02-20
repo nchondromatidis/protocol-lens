@@ -34,7 +34,7 @@ export default defineConfig(({ command }) => ({
     },
     dynamicPublicDir(command),
     viteStaticCopy({
-      targets: [{ src: 'src/styles/custom-styles.css', dest: 'styles' }],
+      targets: [{ src: 'src/styles/custom.css', dest: 'styles' }],
     }),
   ],
 
