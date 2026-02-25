@@ -102,6 +102,16 @@ export function decodeFunctionResultOneAbi(
 
   // error
   if (params.isError) {
+    // decodeErrorResultViem throws when data === '0x'
+    if (data === '0x') {
+      const unknownErrorRevert = {
+        abiItem: parseAbiItem('error Error()'),
+        args: undefined,
+        errorName: 'Unknown Error(0x)',
+      };
+      return { isSuccess: false, contractFQN, decodedError: unknownErrorRevert, rawData: data };
+    }
+
     const decodedError = trySync(() => decodeErrorResultViem({ abi, data }));
 
     if (decodedError.ok) {
