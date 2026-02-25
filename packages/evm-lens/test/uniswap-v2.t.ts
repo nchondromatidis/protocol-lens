@@ -82,6 +82,7 @@ describe('uniswap-v2', () => {
       'createPair',
       [token1.createdAddress!, token2.createdAddress!],
       undefined,
+      undefined,
       false
     );
 

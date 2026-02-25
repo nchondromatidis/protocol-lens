@@ -17,12 +17,12 @@ export type PublicTestClient<
   TAccount extends Account = Account,
 > = Client<TTransport, TChain, TAccount, undefined, PublicActions & TestActions>;
 
-export async function buildClient(nodeAccount: Account): Promise<PublicTestClient<TevmTransport>> {
+export async function buildClient(defaultAccount: Account): Promise<PublicTestClient<TevmTransport>> {
   const tevmTransport = createTevmTransport({
     miningConfig: { type: 'auto' },
   });
   const client = createClient({
-    account: nodeAccount,
+    account: defaultAccount,
     chain: localhost,
     transport: tevmTransport,
   })

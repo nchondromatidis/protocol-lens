@@ -1,7 +1,7 @@
 import { test, beforeEach, describe, expect } from 'vitest';
 import { LensClient } from '../src/lens/LensClient.ts';
 import { ETHER_1, ZERO_ADDRESS } from './_setup/utils/constants.ts';
-import { createLensTracerTestSetup, type LensArtifactsMapSlice } from './_setup/lensTracerTestSetup.ts';
+import { createLensTracerTestSetup, type LensArtifactsMapSlice, TEST_ACCOUNT } from './_setup/lensTracerTestSetup.ts';
 import type { ArtifactMap } from './_setup/artifacts';
 import type { GetContractReturnType } from 'viem';
 import type { LensArtifactsMap } from '../src/lens/types.ts';
@@ -54,12 +54,14 @@ describe('external-calls', () => {
   });
 
   test('external call with unmatched selector, args, value', async () => {
-    const result = await lensClient.contract(callerContract, 'callWithFallback', ['0x20'], ETHER_1);
+    await lensClient.fundAccount(TEST_ACCOUNT.address, ETHER_1 * 2n);
+    const result = await lensClient.contract(callerContract, 'callWithFallback', ['0x20'], undefined, ETHER_1);
     expect(lensClient.getSucceeded(result)).toMatchSnapshot();
   });
 
   test('external call with unmatched selector, no args, value', async () => {
-    const result = await lensClient.contract(callerContract, 'callReceiveFunction', [], ETHER_1);
+    await lensClient.fundAccount(TEST_ACCOUNT.address, ETHER_1 * 2n);
+    const result = await lensClient.contract(callerContract, 'callReceiveFunction', [], undefined, ETHER_1);
     expect(lensClient.getSucceeded(result)).toMatchSnapshot();
   });
 
@@ -73,7 +75,8 @@ describe('external-calls', () => {
     const initialBalance = await lensClient.client.getBalance({ address: calleeContractAddress });
 
     // Send ETH to callee contract via caller (modifies state)
-    await lensClient.contract(callerContract, 'callReceiveFunction', [], ETHER_1);
+    await lensClient.fundAccount(TEST_ACCOUNT.address, ETHER_1 * 2n);
+    await lensClient.contract(callerContract, 'callReceiveFunction', [], undefined, ETHER_1);
 
     // Verify callee balance increased
     const balanceAfterCall = await lensClient.client.getBalance({ address: calleeContractAddress });

@@ -1,4 +1,3 @@
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { buildClient } from '../adapters/client.ts';
 import { ArtifactsProvider } from './indexes/ArtifactsProvider.ts';
 import { FunctionIndexesRegistry } from './indexes/FunctionIndexesRegistry.ts';
@@ -16,10 +15,10 @@ import { OpcodeMatcher } from './handlers/evm-events-handlers/OpcodeMatcher.ts';
 import { EvmEventsHandler } from './handlers/EvmEventsHandler.ts';
 import { EventStore } from './handlers/evm-events-handlers/EventStore.ts';
 import { CallTraceEventsHandler } from './handlers/CallTraceEventsHandler.ts';
+import type { Account } from 'viem';
 
-export async function buildCallTracer<LensArtifactsMapT extends LensArtifactsMap<any>>() {
-  const deployerAccount = privateKeyToAccount(generatePrivateKey());
-  const client = await buildClient(deployerAccount);
+export async function buildCallTracer<LensArtifactsMapT extends LensArtifactsMap<any>>(defaultAccount: Account) {
+  const client = await buildClient(defaultAccount);
 
   const artifactsProvider = new ArtifactsProvider();
   const functionIndexesRegistry = new FunctionIndexesRegistry();
@@ -45,10 +44,10 @@ export async function buildCallTracer<LensArtifactsMapT extends LensArtifactsMap
 
   const tracer = new CallTracer(evmEventsHandler, callTraceEventsHandler);
 
-  const lensClient = new LensClient<LensArtifactsMapT>(deployerAccount, client, debugMetadata, addressLabeler, tracer);
+  const lensClient = new LensClient<LensArtifactsMapT>(defaultAccount, client, debugMetadata, addressLabeler, tracer);
 
   return {
-    deployerAccount,
+    defaultAccount,
     client,
     artifactsProvider,
     functionIndexesRegistry,

@@ -2,10 +2,10 @@ import { type ContractFunctionName, tevmContract, tevmDeploy, tevmSetAccount, ty
 import {
   type Abi,
   type AbiStateMutability,
+  type Account,
   type ContractConstructorArgs,
   type ContractFunctionArgs,
   getContract,
-  type PrivateKeyAccount,
 } from 'viem';
 import type { ContractResult, Message } from 'tevm/actions';
 import type { EvmResult, InterpreterStep } from 'tevm/evm';
@@ -26,7 +26,7 @@ export class LensClient<
   in out LensArtifactsMapT extends LensArtifactsMap<ArtifactMapT> = LensArtifactsMap<ArtifactMapT>,
 > {
   constructor(
-    public deployerAccount: PrivateKeyAccount,
+    public defaultAccount: Account,
     public client: PublicTestClient<TevmTransport>,
     public readonly debugMetadata: DebugMetadata,
     public readonly addressLabeler: AddressLabeler,
@@ -38,7 +38,8 @@ export class LensClient<
   async deploy<ContractFQNT extends keyof LensArtifactsMapT & string>(
     contractFQN: ContractFQNT,
     args: ContractConstructorArgs<LensArtifactsMapT[ContractFQNT]['abi']>,
-    librariesToLink: Array<{ libFQN: ContractFQNT; address: Address }> = []
+    librariesToLink: Array<{ libFQN: ContractFQNT; address: Address }> = [],
+    from?: Address
   ) {
     const artifact = this.debugMetadata.artifacts.getArtifactFrom(contractFQN);
     if (!artifact) throw new InvalidArgument(`Artifact for ${contractFQN} not found.`);
@@ -47,10 +48,12 @@ export class LensClient<
     for (const lib of librariesToLink) {
       bytecode = hardhatLinkExternalLibToBytecode(bytecode, lib.libFQN, lib.address);
     }
+
     const deployResult = await tevmDeploy(this.client, {
       abi: artifact.abi,
       bytecode: bytecode,
       args: args as unknown[],
+      from,
     });
     if (!deployResult.createdAddress) throw new InvariantError('createdAddress missing after deploy');
     this.addressLabeler.markContractAddress(deployResult.createdAddress, contractFQN);
@@ -65,6 +68,7 @@ export class LensClient<
     contract: { abi: TAbi; address: Address },
     functionName: TFunctionName,
     args: TArgs,
+    from?: Address,
     value?: bigint,
     traceTx = true
   ): Promise<ContractResult<TAbi, TFunctionName>> {
@@ -78,6 +82,7 @@ export class LensClient<
       functionName: functionName,
       args: args,
       throwOnFail: false,
+      from,
       onStep: async (event: InterpreterStep, next?: Next) => {
         if (traceTx) await this.callTracer.register(event);
         next?.();
@@ -93,6 +98,7 @@ export class LensClient<
     });
     await this.callTracer.process();
     if (contractTxResult.errors) {
+      console.error(contractTxResult.errors);
       if (traceTx) this.callTracer.save(contractTxResult.txHash!, 'failed');
     } else {
       if (traceTx) this.callTracer.save(contractTxResult.txHash!, 'success');
@@ -158,7 +164,7 @@ export class LensClient<
 
   async reset() {
     // TODO: snapshots are not supported by tevm yet, so there is complete reset
-    this.client = await buildClient(this.deployerAccount);
+    this.client = await buildClient(this.defaultAccount);
     this.addressLabeler.reset();
     this.debugMetadata.reset();
   }

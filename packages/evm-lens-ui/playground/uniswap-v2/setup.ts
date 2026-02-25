@@ -22,15 +22,19 @@ export interface UniswapV2Setup {
   resourceLoader: HardhatEvmLensHttpRL;
 }
 
+export const DEFAULT_ACCOUNT = privateKeyToAccount(
+  '0x8d680c1b31f5c96dd9e3a661c281230a1efb012bcc9f835087f79ded73c3070a'
+);
+
 export async function setupUniswapV2(): Promise<UniswapV2Setup> {
   // http://localhost:5173/public, public folder is also served in root in vite
   const resourceLoader = new HardhatEvmLensHttpRL('http://localhost:5173', 'contracts');
 
-  const { lensClient, deployerAccount, client } = await buildCallTracer<UniswapV2Artifacts>();
+  const { lensClient, defaultAccount, client } = await buildCallTracer<UniswapV2Artifacts>(DEFAULT_ACCOUNT);
 
   await lensClient.registerIndexes(resourceLoader, 'uniswap-v2');
 
-  await lensClient.fundAccount(deployerAccount.address, ETHER_1);
+  await lensClient.fundAccount(defaultAccount.address, ETHER_1);
 
   const feeToSetAccount = privateKeyToAccount(generatePrivateKey());
 
