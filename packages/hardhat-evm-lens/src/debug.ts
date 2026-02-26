@@ -1,1 +1,1 @@
-export const DEBUG_PREFIX = 'hardhat:plugin:hardhat-tevm-lens';
+export const DEBUG_PREFIX = 'hardhat:plugin:hardhat-evm-lens';
