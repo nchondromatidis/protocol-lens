@@ -1,51 +1,43 @@
 # TODO
 
 - emv-lens
-  - Features
-    - Next milestones:
-      - FunctionEntryHandler
-        - Decode arguments
-      - FunctionExitHandler
-        - Decode result
-        - Decode Events
-        - Decode Errors
-      - Indexer: 
-        - detect/decode public variables getters
-        - use solc instead of hardhat to be able to be used directly in browser
-      - remove tevm dependency
-        - ethereumjs
-        - EIP-1193: window.ethereum.request()
-      - add logger
-      - Register call and result line numbers
-      - Inline libs detection
-      - Precompile detection
-      - Minify json indexes for prod vs dev
-    - Refactor
-      - break decoding function call: function call, fallback handlers
-      - break decoding result: error, result
-      - convert anemic to a rich domain model
-      - Replace evm objects for external calls and results with raw data (opcodes, stack, memory)
-      - Rethink ArtifactMap generics
+    - FEAT: FunctionEntryHandler: decode arguments
+    - FEAT: FunctionExitHandler: decode result, events, errors
+    - ARCH: add logger
+    - FEAT: Precompile detection
+    - REF: add index.ts
+    - REF: break decoding function call: function call, fallback handlers
+    - REF: break decoding result: error, result
+    - REF: convert anemic to a rich domain model
+    - REF: Replace evm objects for external calls and results with raw data (opcodes, stack, memory)
+    - ARCH: add new evm handler strategy to detect function calls based on ast + sourcemap
+    - BUG: On revert the function not closed (j:out) not showing - ok for now, tracer not designed for reverts
+    - FEAT: Register call and result line numbers
+    - FEAT: Minify json indexes for prod vs dev
+    - ARCH: remove tevm dependency
+      - ethereumjs
+      - EIP-1193: window.ethereum.request()
+- indexer
+   - FEAT: Inline lib source lines detection
+   - FEAT: detect/decode public variables getters
+   - ARCH: use solc instead of hardhat to be able to be used directly in browser
 - hardhat-temv-lens
-  - add support for find reference and go to definition
+  - FEAT: add support for find reference and go to definition
     - compilation unit: use slang reference <-> definition
     - cross compilation unit: manual import
 - evm-lens-ui
-    - responsive for mobile devices (accordion maybe)
-- analysis
-    - Add dependency on protocols
-    - while using analysis: fix evm-lens when needed
-
-
-# Thoughts
-- Runtime trace metadata class
-- Trace result class
-- Make the system more error-resilient
-  - currently it expects function entries and returns to be detected and in a specific order
-  - Detect and take action (eg skip current execution context), empty vs wrong:
-    - what if you expect a function1 call, but you get a function2 call?
-    - what if you expect a function1 result, but you get a function2 result?
-
+    - BUG: clicking traces does not always land to the correct source function
+    - FEAT: show events emitted
+    - FEAT: show from
+    - FEAT: open in new tab
+      - escape should not close the editor
+      - back-forward should get to previous source file, not previous page
+    - FEAT: responsive for mobile devices
+    - FEAT: show revert reason
+- notes
+  - FEAT: Add notes/comments for each doc section for people to share knowledge
+  - BUG: desmos dark link mode sync with starlight
+  - FEAT: code is too long even on full screen (horizontal scrolling)
 
 // trying to tone down optimizer
 {

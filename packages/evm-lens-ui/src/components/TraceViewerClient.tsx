@@ -5,7 +5,7 @@ import { TraceViewerLayout } from './TraceViewerLayout.tsx';
 import type { ReadOnlyFunctionCallEvent } from '@defi-notes/evm-lens/src/lens/call-tracer/CallTrace.ts';
 import { contractFQNListToProjectFiles } from '../adapters/project-files-mapper.ts';
 import type { IResourceLoader } from '@defi-notes/evm-lens/src/lens/_ports/IResourceLoader.ts';
-import { getSourceContractFqQN } from '@defi-notes/evm-lens/src/client-utils';
+import { getSourceContractFqQN } from '@defi-notes/evm-lens/src/client-utils/names.ts';
 
 export type TraceResultSuccess = {
   resourceLoader: IResourceLoader;
