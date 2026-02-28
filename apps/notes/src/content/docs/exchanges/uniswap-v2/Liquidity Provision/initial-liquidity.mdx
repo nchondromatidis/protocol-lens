@@ -1,0 +1,143 @@
+---
+title: Initial Liquidity
+description: Uniswap V2 workflows
+sidebar:
+  order: 3000
+---
+import { DesmosChart } from '@/components/DesmosChart.tsx';
+import { ProtocolActionTrace } from '@/components/ProtocolActionTrace.tsx';
+import { extractProtocolActionCode } from "@/protocols/extract-code/protocol-actions.ts";
+import { extractProtocolCodeSlice } from "@/protocols/extract-code/protocol-sources.ts";
+import { Code } from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
+
+This page covers the necessary concepts for the reader to understand the **initial liquidity flow in Uniswap V2**.
+
+<Aside title="Visualize the Math">
+  Keep the interactive [chart](#chart) open in a side window to see these formulas in action as we go
+</Aside>
+
+## Concepts
+
+The theory behind a Uniswap pool, also known as a pair, is rooted in the concept of an **Automated Market Maker (AMM)**.
+
+### Automated Market Makers
+
+Automated Market Maker (AMM) is the underlying architecture behind Uniswap V2
+- Alternative to ordering books, economically inefficient on-chain due to the **high gas costs**
+- Prices are determined by a **mathematical formulae** written into protocol code
+- Enable **permissionless**, **middleman-free** trading
+- Provide **instant** execution on rates and slippage
+
+### Constant Product Market Maker
+
+The specific type of AMM used by Uniswap v2 is the **Constant Product Market Maker** (CPMM), which is governed by the formula
+
+<div className="text-center">$x \cdot y = k$ </div>
+
+- $x$ and $y$ represent the reserve balances of the two tokens in the pool
+- $k$ is the **invariant**. The protocol requires that $k$ remains **constant during a trade** (ignoring fees)
+
+### Price Mechanism
+
+- The **spot price** is determined by the ratio of the tokens in the pool
+
+<div className="text-center"> $p = y/x$ </div>
+
+- When a trader buys/withdraws token $x$, they must deposit a proportional amount of token $y$ to **ensure the product $x \cdot y$ remains equal to $k$**.
+
+## Liquidity Providers (LPs)
+
+Liquidity Providers are users or smart contracts that deposit an **equivalent value** of **two ERC-20 tokens** into a **specific pair contract**.
+In exchange, they get **LP tokens** that represent their **deposit share in the pool**.
+
+- First Liquidity Provider: The individual who performs the initial deposit into a new pool. They are responsible for seeding the reserves and setting the initial exchange rate (price) of the pair.
+- Subsequent Providers: LPs who add to an existing pool are incentivized to deposit tokens proportional to the current reserve ratio.
+
+Depositing at an incorrect ratio creates an immediate arbitrage opportunity, which external parties will likely exploit.
+
+### First Liquidity Provider Analysis
+
+The most interesting part in the **initial liquidity flow** is the mint function.
+This function calculates and transfers LP tokens to LPs depending on their deposit.
+
+This is part that mints LP tokens to the first LP.
+
+<Code
+  code={extractProtocolCodeSlice('contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 119, 122)}
+  lang="solidity"
+/>
+
+The initial liquidity calculation contains two important elements
+- `Math.sqrt(amount0.mul(amount1))` $\Rightarrow$ $\sqrt{x \cdot y}$
+- `.sub(MINIMUM_LIQUIDITY);` $\Rightarrow$ $- 1000$
+
+Let's try to understand each part
+
+##### Why square root of the token amount product
+
+1 . Logic steps:
+- Principle 1: The LP token supply must represent the value of the pool
+- Definition: The value of the pool is the same (constant $k$) along the curve ($x \cdot y = k$)
+- Therefore, LP token calculation must provide the same number for every point ($x$, $y$ ratio) on the curve.
+  - $x \cdot y$ : stays constant by definition
+  - $\sqrt{x \cdot y}$ : stays constant (property of the parabola $x \cdot y = k$)
+  - $\frac{x + y}{2}$ : does NOT stay constant (arithmetic mean)
+  - $x + y$ : does NOT stay constant
+
+| Function | **Ratio 1**<br/>(10 ETH, 10 USDC)<br/>k=100 | **Ratio 2**<br/>(100 ETH, 1 USDC)<br/>k=100 | **P1 Constant?** |
+| :-- | :-- | :-- | :-- |
+| **x·y** | 100 | 100 | ✅ |
+| **√(x·y)** | 10 | 10 | ✅ |
+| **x+y** | 20 | 101 | ❌ |
+| **(x+y)/2** | 10 | 50.5 | ❌ |
+
+---
+
+2 . Logic steps:
+- Principle 2: The LP token supply should be able to scale proportional to the value of the pool value
+- Therefore, LP token calculation must double/half when the value of the curve doubles/halves
+  - So the function L that calculates the LP tokens should respect both
+    - $L(nx,ny) = n*L(x,y)$
+    - $L(\frac{x}{n},\frac{y}{n}) = \frac{L(x,y)}{n}$
+
+---
+
+3 . Solution (1,2):
+- We could try to solve 2 using math, but we are already limited by 1
+  - We try both functions from 1
+    - Only $\sqrt{x \cdot y}$ scales linearly with the value of the pool
+
+
+| Function | **k=100**<br/>(10 ETH,10 USDC) | **k=100**<br/>(100 ETH,1 USDC) | **k=400**<br/>(20 ETH,20 USDC) | **k=400**<br/>(200 ETH,2 USDC) | **P1 Constant?** | **P2 2x Scale?** |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| **x·y** | 100 | 100 | 400 | 400 | ✅ | ❌ (4x) |
+| **√(x·y)** | 10 | 10 | 20 | 20 | ✅ | ✅ (2x) |
+
+
+##### Why burn one thousand LP tokens
+
+## Chart
+
+With the interactive chart below you can experiment with all the concepts above to deepen your understanding.
+
+Each folder in the chart represents a concept that you can show or hide.
+
+<DesmosChart graphId="iyevv8l7wf" height="500px" client:load />
+
+## Ecosystem
+
+|pair@26/02/2026|x|y|k|uniswap|etherscan|
+|---|---|---|---|---|---|
+|USDC/WETH | 9.2M * $10^6$ | 4.4K * $10^{18}$ | 4.076 $10^{34}$ | [link](https://app.uniswap.org/explore/pools/ethereum/0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc) | [link](https://etherscan.io/address/0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc#asset-multichain)
+
+## Function Trace
+
+This is the code that runs to produce the function trace
+
+<Code
+  code={extractProtocolActionCode('UniswapV2Actions', 'initialLiquidity')}
+  lang="ts"
+/>
+
+<ProtocolActionTrace protocol="uniswapV2" workflow="initialLiquidity" args="{[]}" header='Initial Liquidity' client:load />

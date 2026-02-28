@@ -1,0 +1,42 @@
+---
+title: Deployment
+sidebar:
+  order: 2100
+---
+import { Code } from '@astrojs/starlight/components';
+import {extractProtocolActionCode} from "@/protocols/extract-code/protocol-actions.ts";
+
+## Architecture
+
+Uniswap V2 is composed of Core and Periphery layers.
+
+The Core consists of a singleton Factory and multiple Pair contracts, designed with a "brutalist" minimalism to ensure functional elegance and minimize the attack surface.
+
+This architectural separation means the Core handles safety and the preservation of invariants, while the Periphery handles domain-specific logic like routing and WETH wrapping.
+
+
+## Contracts
+
+- Liquidity Pool (Pair)
+  - holds balances of two unique ERC-20 tokens
+  - and enforces rules for swapping, depositing, and withdrawing them.
+  - native ETH is not supported; it must be wrapped into WETH to interact with the protocol
+- Factory
+  - instantiates pairs
+  - uses the Ethereum `CREATE2` opcode to generate a deterministic address for the pair contract
+  - f(addresses of the two tokens)
+  - calculated off-chain without querying the blockchain state
+
+
+## Deployment
+
+- `WETH9`: is the an ETH ERC20 wrapper where you can exchange ETH to/from WETH (1:1)
+- `UniswapV2Factory`: creates `UniswapV2Pair` pool pairs
+- `UniswapV2Router02`
+  - stateless, therefore easily replaceable
+  - main user-facing contract
+  - extra helper functions
+- `UniswapV2Router01`: replaced by `UniswapV2Router02` because of a low severity bug
+
+
+<Code code={extractProtocolActionCode( 'UniswapV2Actions', 'deploy')} lang="ts" />

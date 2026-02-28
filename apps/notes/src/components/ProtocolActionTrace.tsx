@@ -79,7 +79,7 @@ export const ProtocolActionTrace: React.FC<ProtocolActionProps<ProtocolActionsRe
           <CardTitle className="text-base font-semibold">{header}</CardTitle>
         </CardHeader>
         <CardContent className="pt-0 pb-1 text-sm text-muted-foreground">
-          See the call workflow call trace and source code
+          See the function trace and protocol source code
         </CardContent>
         <CardFooter className="pt-2">
           <Button

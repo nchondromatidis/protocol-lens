@@ -130,3 +130,13 @@
 .sl-markdown-content p {
     text-align: justify;
 }
+
+@layer tailwind {
+    /* Restore nested list indentation */
+    .content-panel ul li {
+        list-style-type: circle;
+        margin-left: 1.5em;
+        padding-left: 0;
+    }
+
+}

@@ -38,6 +38,8 @@
   - FEAT: Add notes/comments for each doc section for people to share knowledge
   - BUG: desmos dark link mode sync with starlight
   - FEAT: code is too long even on full screen (horizontal scrolling)
+  - FEAT: tooltip to explain how the trace is generated
+  - FEAT: a green circle that should enforce the intuition that this thing is live
 
 // trying to tone down optimizer
 {

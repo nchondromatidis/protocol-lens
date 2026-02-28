@@ -9,7 +9,6 @@ Welcome to the DeFi Notes. Each protocol will be analyzed based on whitepaper an
 ## Exchanges
 
 - [Uniswap V2](/exchanges/uniswap-v2/) - Automated market maker protocol
-- [Uniswap V3](/exchanges/uniswap-v3/) - Concentrated liquidity protocol
-- [Curve](/exchanges/curve/) - Stablecoin exchange protocol
 
----
+## Terminology
+- [Index](/exchanges/terminology/) - Automated market maker protocol
