@@ -2,7 +2,6 @@
 
 import CodeMirror from '@uiw/react-codemirror';
 import { solidity } from '@replit/codemirror-lang-solidity';
-import { oneDark } from '@codemirror/theme-one-dark';
 import { useEffect, useRef, useMemo, useCallback } from 'react';
 import { EditorView } from '@codemirror/view';
 import { EditorSelection } from '@codemirror/state';
@@ -60,7 +59,6 @@ export const SourceCodeViewer: React.FC<SourceCodeViewerProps> = ({ sourceCode, 
       <CodeMirror
         value={sourceCode}
         extensions={extensions}
-        theme={oneDark}
         readOnly={true}
         basicSetup={{
           lineNumbers: true,
