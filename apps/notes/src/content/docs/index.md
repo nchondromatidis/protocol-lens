@@ -6,9 +6,9 @@ template: splash
 
 Welcome to the DeFi Notes. Each protocol will be analyzed based on whitepaper and workflows.
 
-## Exchanges
+## Fundamentals
+- [Fundamentals](/fundamentals/defi/) - Fundamental DeFi Concepts
 
+## Exchanges
 - [Uniswap V2](/exchanges/uniswap-v2/) - Automated market maker protocol
 
-## Terminology
-- [Index](/exchanges/terminology/) - Automated market maker protocol

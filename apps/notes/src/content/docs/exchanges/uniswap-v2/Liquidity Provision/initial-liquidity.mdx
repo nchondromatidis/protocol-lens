@@ -85,12 +85,12 @@ Let's try to understand each part
   - $\frac{x + y}{2}$ : does NOT stay constant (arithmetic mean)
   - $x + y$ : does NOT stay constant
 
-| Function | **Ratio 1**<br/>(10 ETH, 10 USDC)<br/>k=100 | **Ratio 2**<br/>(100 ETH, 1 USDC)<br/>k=100 | **P1 Constant?** |
-| :-- | :-- | :-- | :-- |
-| **x·y** | 100 | 100 | ✅ |
-| **√(x·y)** | 10 | 10 | ✅ |
-| **x+y** | 20 | 101 | ❌ |
-| **(x+y)/2** | 10 | 50.5 | ❌ |
+| Function    | **Ratio 1**<br/>(10 ETH, 10 USDC)<br/>k=100 | **Ratio 2**<br/>(100 ETH, 1 USDC)<br/>k=100 | **P1 Constant?** |
+|:------------|:--------------------------------------------|:--------------------------------------------|:-----------------|
+| **x·y**     | 100                                         | 100                                         | ✅                |
+| **√(x·y)**  | 10                                          | 10                                          | ✅                |
+| **x+y**     | 20                                          | 101                                         | ❌                |
+| **(x+y)/2** | 10                                          | 50.5                                        | ❌                |
 
 ---
 
@@ -109,13 +109,17 @@ Let's try to understand each part
     - Only $\sqrt{x \cdot y}$ scales linearly with the value of the pool
 
 
-| Function | **k=100**<br/>(10 ETH,10 USDC) | **k=100**<br/>(100 ETH,1 USDC) | **k=400**<br/>(20 ETH,20 USDC) | **k=400**<br/>(200 ETH,2 USDC) | **P1 Constant?** | **P2 2x Scale?** |
-| :-- | :-- | :-- | :-- | :-- | :-- | :-- |
-| **x·y** | 100 | 100 | 400 | 400 | ✅ | ❌ (4x) |
-| **√(x·y)** | 10 | 10 | 20 | 20 | ✅ | ✅ (2x) |
+| Function   | **k=100**<br/>(10 ETH,10 USDC) | **k=100**<br/>(100 ETH,1 USDC) | **k=400**<br/>(20 ETH,20 USDC) | **k=400**<br/>(200 ETH,2 USDC) | **P1 Constant?** | **P2 2x Scale?** |
+|:-----------|:-------------------------------|:-------------------------------|:-------------------------------|:-------------------------------|:-----------------|:-----------------|
+| **x·y**    | 100                            | 100                            | 400                            | 400                            | ✅                | ❌ (4x)           |
+| **√(x·y)** | 10                             | 10                             | 20                             | 20                             | ✅                | ✅ (2x)           |
 
 
 ##### Why burn one thousand LP tokens
+
+In summary, to prevent initial depositors from inflating the share price.
+
+You can read about the information attack and this specific defense here: <a href="/fundamentals/defi/vaults#defence-3-extemelly-lossy-attack">Burn Initial Shares</a>
 
 ## Chart
 
@@ -127,9 +131,9 @@ Each folder in the chart represents a concept that you can show or hide.
 
 ## Ecosystem
 
-|pair@26/02/2026|x|y|k|uniswap|etherscan|
-|---|---|---|---|---|---|
-|USDC/WETH | 9.2M * $10^6$ | 4.4K * $10^{18}$ | 4.076 $10^{34}$ | [link](https://app.uniswap.org/explore/pools/ethereum/0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc) | [link](https://etherscan.io/address/0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc#asset-multichain)
+| pair@26/02/2026 | x             | y                | k               | uniswap                                                                                           | etherscan                                                                                        |
+|-----------------|---------------|------------------|-----------------|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| USDC/WETH       | 9.2M * $10^6$ | 4.4K * $10^{18}$ | 4.076 $10^{34}$ | [link](https://app.uniswap.org/explore/pools/ethereum/0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc) | [link](https://etherscan.io/address/0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc#asset-multichain) |
 
 ## Function Trace
 

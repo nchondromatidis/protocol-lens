@@ -19,7 +19,7 @@ export default defineConfig({
       routeMiddleware: './src/routeData.ts',
       sidebar: [
         { label: 'Uniswap v2', autogenerate: { directory: 'exchanges/uniswap-v2' } },
-        { label: 'Terminology', autogenerate: { directory: 'exchanges/terminology' } },
+        { label: 'Fundamentals', autogenerate: { directory: 'fundamentals/defi' } },
       ],
       customCss: ['./src/styles/global.css', './src/styles/custom.css'],
     }),
