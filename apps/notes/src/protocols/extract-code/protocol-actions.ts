@@ -10,12 +10,16 @@ export const ACTIONS_DIR = path.join(__dirname, '..', 'actions');
 
 export function extractProtocolActionCode(protocolClass: string, actionName: string) {
   const filePath = path.join(ACTIONS_DIR, `${protocolClass}.ts`);
-  const methodText = extractMethod(filePath, protocolClass, actionName, true, 2);
+  const result = extractMethod(filePath, protocolClass, actionName, true, 2);
 
-  const augmentedMethodText = (methodText ?? '').split('\n').filter(Boolean);
-  augmentedMethodText.unshift(`// ${protocolClass}:${actionName}`);
+  if (!result) return undefined;
 
-  return augmentedMethodText.join('\n');
+  const { methodText, startLine, endLine } = result;
+  const methodTextArray = methodText.split('\n');
+  const trimmedMethodTextArray = trimEmptyArrayElements(methodTextArray);
+  trimmedMethodTextArray.unshift(`// ${protocolClass}:${actionName}:${startLine}:${endLine}`);
+
+  return trimmedMethodTextArray.join('\n');
 }
 
 function extractMethod(
@@ -24,7 +28,7 @@ function extractMethod(
   methodName: string,
   shouldTrimFirstSpaces: boolean,
   trimCount: number
-): string | undefined {
+): { methodText: string; startLine: number; endLine: number } | undefined {
   const project = new Project({
     skipFileDependencyResolution: true,
   });
@@ -46,5 +50,23 @@ function extractMethod(
     methodText = trimFirstSpaces(methodText, trimCount);
   }
 
-  return methodText;
+  return {
+    methodText,
+    startLine: method.getStartLineNumber(),
+    endLine: method.getEndLineNumber(),
+  };
+}
+
+function trimEmptyArrayElements(arr: string[]): string[] {
+  let start = 0;
+  while (start < arr.length && arr[start] === '') {
+    start++;
+  }
+
+  let end = arr.length - 1;
+  while (end >= start && arr[end] === '') {
+    end--;
+  }
+
+  return arr.slice(start, end + 1);
 }

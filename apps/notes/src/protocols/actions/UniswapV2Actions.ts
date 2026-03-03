@@ -51,16 +51,28 @@ export class UniswapV2Actions extends ProtocolActionsBase<UniswapV2Artifacts> {
 
     await this.lensClient.fundAccount(USER_1.address, _1e18);
     const userAmounts = [{ account: USER_1, amount: 1000n * _1e18 }];
-    const ercToken1 = await this.deployErc20WithInitAmounts(userAmounts);
-    const ercToken2 = await this.deployErc20WithInitAmounts(userAmounts);
+    const ercTokenA = await this.deployErc20WithInitAmounts(userAmounts);
+    const ercTokenB = await this.deployErc20WithInitAmounts(userAmounts);
 
-    await this.lensClient.contract(ercToken1, 'approve', [router2.address, this.maxUint256()], USER_1.address);
-    await this.lensClient.contract(ercToken2, 'approve', [router2.address, this.maxUint256()], USER_1.address);
+    await this.lensClient.contract(ercTokenA, 'approve', [router2.address, this.maxUint256()], USER_1.address);
+    await this.lensClient.contract(ercTokenB, 'approve', [router2.address, this.maxUint256()], USER_1.address);
+
+    const tokenA_initialDeposit = 200n * _1e18;
+    const tokenB_initialDeposit = 400n * _1e18;
 
     const result = await this.lensClient.contract(
       router2,
       'addLiquidity',
-      [ercToken1.address, ercToken2.address, 200n * _1e18, 400n * _1e18, 0n, 0n, USER_1.address, this.maxUint256()],
+      [
+        ercTokenA.address,
+        ercTokenB.address,
+        tokenA_initialDeposit,
+        tokenB_initialDeposit,
+        0n,
+        0n,
+        USER_1.address,
+        this.maxUint256(),
+      ],
       USER_1.address
     );
 
