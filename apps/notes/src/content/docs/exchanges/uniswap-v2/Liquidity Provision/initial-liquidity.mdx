@@ -9,13 +9,8 @@ import { ProtocolWorkflowTrace } from '@/components/ProtocolWorkflowTrace.tsx';
 import { extractProtocolWorkflowCode } from "@/protocols/extract-code/protocol-workflow.ts";
 import { extractProtocolCodeSlice } from "@/protocols/extract-code/protocol-sources.ts";
 import { Code } from '@astrojs/starlight/components';
-import { Aside } from '@astrojs/starlight/components';
 
 This page covers the necessary concepts for the reader to understand the **initial liquidity flow in Uniswap V2**.
-
-<Aside title="Visualize the Math">
-  Keep the interactive [chart](#chart) open in a side window to see these formulas in action as we go
-</Aside>
 
 ## Concepts
 
@@ -44,7 +39,7 @@ The specific type of AMM used by Uniswap v2 is the **Constant Product Market Mak
 - You cannot deplete the reserve of any asset (asymptotic to zero).
 
 
-## Liquidity Providers (LPs)
+### Liquidity Providers (LPs)
 
 Liquidity Providers are users or smart contracts that deposit an **equivalent value** of **two ERC-20 tokens** into a **specific pair contract**.
 In exchange, they get **LP tokens** that represent their **deposit share in the pool**.
@@ -140,13 +135,13 @@ Summary: it makes an initial inflation attack for initial liquidity very costly
 
 You can read more about it: <a href="/fundamentals/defi/vaults#defence-3-extemelly-lossy-attack">Burn Initial Shares</a>
 
-## Price Oracle
+### Price Oracle
 
 Summary: it makes oracle price resistant to manipulation
 
 You can read about it: <a href="/exchanges/uniswap-v2/price-oracle/">Price Oracle</a>
 
-## Chart
+### Chart
 
 With the interactive chart below you can experiment with all the concepts above to deepen your understanding.
 

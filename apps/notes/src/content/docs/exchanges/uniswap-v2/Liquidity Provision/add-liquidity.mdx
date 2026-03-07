@@ -11,10 +11,16 @@ import { extractProtocolWorkflowCode } from "@/protocols/extract-code/protocol-w
 import { extractProtocolCodeSlice } from "@/protocols/extract-code/protocol-sources.ts";
 import { Code } from '@astrojs/starlight/components';
 
-This page covers the necessary concepts for the reader to understand the **add liquidity flow in Uniswap V2**,
-after initial liquidity is set.
+---
 
+Prereq: [initial liquidity](/exchanges/uniswap-v2/liquidity-provision/initial-liquidity/)
 
+---
+
+This page covers the necessary concepts to understand the **add liquidity flow in Uniswap V2**,
+after initial liquidity is added.
+
+## Concepts
 
 ### Mint
 
@@ -27,7 +33,7 @@ Let's analyze the formula that calculates LP tokens to the LP.
   lang="solidity"
 />
 
-It calculates the pro-rata shares and sends them to the LP using the formula:
+It calculates the pro-rata shares (no dilution) and sends them to the LP using the formula:
 
 <div className='flex justify-center'>
   $s_{minted} = \min \left( \frac{x_{in}}{x_{reserve}} \cdot s_{total}, \frac{y_{in}}{y_{reserve}} \cdot s_{total} \right)$
@@ -37,7 +43,7 @@ It calculates the pro-rata shares and sends them to the LP using the formula:
   - which means both token changes will be the same proportion
 - **The formula enforces the above by accepting the minimum % change for both tokens.**
 
-Look at an next example to better understand.
+Let's look at an example:
 
 | Item                         |         Balanced deposit |      Unbalanced deposit |
 |:-----------------------------|-------------------------:|------------------------:|
