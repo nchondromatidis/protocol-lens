@@ -8,19 +8,21 @@ const __dirname = path.dirname(__filename);
 
 export const ACTIONS_DIR = path.join(__dirname, '..', 'workflows');
 
-export function extractProtocolWorkflowCode(protocolWorkflowClassName: string, methodNames: string[]) {
+export function extractProtocolWorkflowCode(
+  workflows: Array<[protocolWorkflowClassName: string, methodNames: string]>
+) {
   const result = [];
-  for (const methodName of methodNames) {
+  for (const [protocolWorkflowClassName, methodName] of workflows) {
     const filePath = path.join(ACTIONS_DIR, `${protocolWorkflowClassName}.ts`);
-    let extractedMethod = extractMethod(filePath, protocolWorkflowClassName, methodName, false, true, 2);
+    let extractedMethod = extractMethod(filePath, protocolWorkflowClassName, methodName, false);
     if (!extractedMethod) {
-      extractedMethod = extractMethod(filePath, protocolWorkflowClassName, methodName, true, true, 2);
+      extractedMethod = extractMethod(filePath, protocolWorkflowClassName, methodName, true);
     }
     if (!extractedMethod) return undefined;
 
     const { methodText, startLine, endLine } = extractedMethod;
     const methodTextArray = methodText.split('\n');
-    const trimmedMethodTextArray = trimEmptyArrayElements(methodTextArray);
+    const trimmedMethodTextArray = trimEmptyLines(methodTextArray);
     trimmedMethodTextArray.unshift(`// ${protocolWorkflowClassName}:${methodName}:${startLine}:${endLine}`);
 
     result.push(...trimmedMethodTextArray);
@@ -34,9 +36,7 @@ function extractMethod(
   filePath: string,
   className: string,
   methodName: string,
-  isStatic: boolean,
-  shouldTrimFirstSpaces: boolean,
-  trimCount: number
+  isStatic: boolean
 ): { methodText: string; startLine: number; endLine: number } | undefined {
   const project = new Project({
     skipFileDependencyResolution: true,
@@ -52,9 +52,7 @@ function extractMethod(
   if (!method) return undefined;
 
   let methodText = method.getFullText();
-  if (shouldTrimFirstSpaces) {
-    methodText = trimFirstSpaces(methodText, trimCount);
-  }
+  methodText = trimFirstSpaces(methodText);
 
   return {
     methodText,
@@ -63,7 +61,7 @@ function extractMethod(
   };
 }
 
-function trimEmptyArrayElements(arr: string[]): string[] {
+function trimEmptyLines(arr: string[]): string[] {
   let start = 0;
   while (start < arr.length && arr[start] === '') {
     start++;

@@ -21,14 +21,14 @@ type ProtocolActionProps<
 > = {
   protocol: P;
   workflow: M;
-  args: A;
+  args?: A;
   header: string;
 };
 
 export const ProtocolWorkflowTrace: React.FC<ProtocolActionProps<ProtocolWorkflowsRegistry>> = ({
   protocol,
   workflow,
-  args,
+  args = undefined,
   header,
 }) => {
   const [traceResult, setTraceResult] = useState<TraceResult | null>(null);
@@ -43,7 +43,7 @@ export const ProtocolWorkflowTrace: React.FC<ProtocolActionProps<ProtocolWorkflo
       try {
         setLoading(true);
         setError(null);
-        const trace = await runWorkflow(protocolWorkflowsRegistry, protocol, workflow, args);
+        const { trace } = await runWorkflow(protocolWorkflowsRegistry, protocol, workflow, args);
         const result = await protocolWorkflowsRegistry[protocol].toTraceResult(trace);
         setTraceResult(result ?? null);
       } catch (err) {

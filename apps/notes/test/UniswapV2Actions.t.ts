@@ -15,12 +15,12 @@ describe('uniswap-v2', () => {
   });
 
   test('initialLiquidity', async () => {
-    const a = await uniswapV2Actions.initialLiquidity();
+    const a = await uniswapV2Actions.initialLiquidity({});
     inspect(a);
   });
 
   test('addLiquidity', async () => {
-    const a = await uniswapV2Actions.initialLiquidity();
+    const a = await uniswapV2Actions.addLiquidity();
     inspect(a);
   });
 });

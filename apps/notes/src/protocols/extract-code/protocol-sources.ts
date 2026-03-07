@@ -12,19 +12,22 @@ export const PROTOCOLS_RESOURCES_PATH = path.join(__dirname, '..', '..', '..', '
 export type UniswapV2Artifacts = LensArtifactsMapSlice<LensArtifactsMap<ArtifactMap>, 'contracts', 'uniswap-v2'>;
 
 export function extractProtocolCodeSlice<ContractFqtT extends LensArtifactsMap<any>>(
-  contractFqnOrUserSource: keyof ContractFqtT & string,
-  fromLine: number,
-  toLine: number
+  slices: Array<[contractFqn: keyof ContractFqtT & string, fromLine: number, toLine: number]>
 ) {
-  const userSourceFileName = contractFqnOrUserSource.split(':')[0];
-  const userSourcePath = path.join(PROTOCOLS_RESOURCES_PATH, userSourceFileName);
-  const codeSlice = extractFileSlice(userSourcePath, fromLine, toLine);
-  const trimmedCodeSlice = trimFirstSpaces(codeSlice, 8);
+  const result = [];
+  for (const [contractFqn, fromLine, toLine] of slices) {
+    const userSourceFileName = contractFqn.split(':')[0];
+    const userSourcePath = path.join(PROTOCOLS_RESOURCES_PATH, userSourceFileName);
+    const codeSlice = extractFileSlice(userSourcePath, fromLine, toLine);
+    const trimmedCodeSlice = trimFirstSpaces(codeSlice);
 
-  const augmentedCodeSlice = trimmedCodeSlice.split('\n');
-  augmentedCodeSlice.unshift(`// ${userSourceFileName}:${fromLine}:${toLine}`);
+    const augmentedCodeSlice = trimmedCodeSlice.split('\n');
+    augmentedCodeSlice.unshift(`// ${userSourceFileName}:${fromLine}:${toLine}`);
 
-  return augmentedCodeSlice.join('\n');
+    result.push(...augmentedCodeSlice);
+    result.push('');
+  }
+  return result.join('\n');
 }
 
 export function extractFileSlice(filePath: string, fromLine: number, toLine: number) {
@@ -33,9 +36,3 @@ export function extractFileSlice(filePath: string, fromLine: number, toLine: num
   const lines = content.split('\n');
   return lines.slice(fromLine - 1, toLine).join('\n');
 }
-
-// const a = extractProtocolCodeSlice<UniswapV2Artifacts>(
-//   'contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair',
-//   119,
-//   122
-// );

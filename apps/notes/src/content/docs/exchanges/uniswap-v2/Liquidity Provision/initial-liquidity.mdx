@@ -36,35 +36,45 @@ The specific type of AMM used by Uniswap v2 is the **Constant Product Market Mak
 <div className="text-center">$x \cdot y = k$ </div>
 
 - $x$ and $y$ represent the reserve balances of the two tokens in the pool
-- $k$ is the **invariant**. The protocol requires that $k$ remains **constant during a trade** (ignoring fees)
+- $k$ is the **invariant**, stays constant
+- Trading curve: The protocol requires that $k$ remains **constant during a trade** (ignoring fees)
+  - The **spot price** is determined by the ratio of the tokens in the pool $p = y/x$
+  - When a trader buys/withdraws token $x$, they must deposit a proportional amount of token $y$ to **ensure the product $x \cdot y$ remains equal to $k$**.
+- Enforces a natural inverse relationship between the two assets, ensuring that as one gets scarcer, its price rises.
+- You cannot deplete the reserve of any asset (asymptotic to zero).
 
-### Price Mechanism
-
-- The **spot price** is determined by the ratio of the tokens in the pool
-
-<div className="text-center"> $p = y/x$ </div>
-
-- When a trader buys/withdraws token $x$, they must deposit a proportional amount of token $y$ to **ensure the product $x \cdot y$ remains equal to $k$**.
 
 ## Liquidity Providers (LPs)
 
 Liquidity Providers are users or smart contracts that deposit an **equivalent value** of **two ERC-20 tokens** into a **specific pair contract**.
 In exchange, they get **LP tokens** that represent their **deposit share in the pool**.
 
-- First Liquidity Provider: The individual who performs the initial deposit into a new pool. They are responsible for seeding the reserves and setting the initial exchange rate (price) of the pair.
-- Subsequent Providers: LPs who add to an existing pool are incentivized to deposit tokens proportional to the current reserve ratio.
+- First Liquidity Provider:
+The individual who performs the initial deposit into a new pool. They are responsible for seeding the reserves and setting the initial exchange rate (price) of the pair.
+- Subsequent Providers:
+LPs who add to an existing pool are incentivized to deposit tokens proportional to the current reserve ratio.
 
 Depositing at an incorrect ratio creates an immediate arbitrage opportunity, which external parties will likely exploit.
 
-### First Liquidity Provider Analysis
+### Initial Reserves
 
-The most interesting part in the **initial liquidity flow** is the mint function.
-This function calculates and transfers LP tokens to LPs depending on their deposit.
-
-This is the part that mints LP tokens to the first LP.
+When setting up the pool, the initial amounts of tokenA and tokenN can be in any proportion, since no prior balances exist for reference.
 
 <Code
-  code={extractProtocolCodeSlice('contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 119, 122)}
+  code={extractProtocolCodeSlice([
+    ['contracts/uniswap-v2/v2-periphery/contracts/UniswapV2Router02.sol:UniswapV2Router02.sol', 46, 48]
+  ])}
+  lang="solidity"
+/>
+
+### Mint
+
+Let's analyze the formula that calculates LP tokens to the first LP.
+
+<Code
+  code={extractProtocolCodeSlice([
+    ['contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 119, 122]
+  ])}
   lang="solidity"
 />
 
@@ -76,10 +86,18 @@ Let's try to understand each part
 
 ##### Why square root of the token amount product
 
-1 . Logic steps:
-- Principle 1: The LP token supply must represent the value of the pool
-- Definition: The value of the pool is the same (constant $k$) along the curve ($x \cdot y = k$)
-- Therefore, LP token calculation must provide the same number for every point ($x$, $y$ ratio) on the curve.
+Let's **try** to go into the mind of the creator and reach to the same formula.
+
+Our goal is to find a number that correctly measures the LP's token pair ownership in the pool.
+
+---
+
+1 . Logic steps
+- Principle: The LP token number must represent the ownership the LP has on the pool assets.
+  - LP tokens should not change in quantity simply because prices (aka ratio $\frac{x}{y}$) change due to trades.
+  - Ownership should not change unless new liquidity is added or removed.
+- Definition: $k$ is constant along the curve ($x \cdot y = k$)
+- Let’s find some functions that respect the above:
   - $x \cdot y$ : stays constant by definition
   - $\sqrt{x \cdot y}$ : stays constant (property of the parabola $x \cdot y = k$)
   - $\frac{x + y}{2}$ : does NOT stay constant (arithmetic mean)
@@ -95,8 +113,8 @@ Let's try to understand each part
 ---
 
 2 . Logic steps:
-- Principle 2: The LP token supply should be able to scale proportional to the value of the pool value
-- Therefore, LP token calculation must double/half when the value of the curve doubles/halves
+- Principle: The LP token number should be able to scale proportional to the reserves of the pool.
+  - eg, LP token calculation must double/half when the reserves of the pool double/halve.
   - So the function L that calculates the LP tokens should respect both
     - $L(nx,ny) = n*L(x,y)$
     - $L(\frac{x}{n},\frac{y}{n}) = \frac{L(x,y)}{n}$
@@ -106,7 +124,8 @@ Let's try to understand each part
 3 . Solution (1,2):
 - We could try to solve 2 using math, but we are already limited by 1
   - We try both functions from 1
-    - Only $\sqrt{x \cdot y}$ scales linearly with the value of the pool
+    - $\sqrt{x \cdot y}$ : scales quadratically with the value of the pool
+    - $x \cdot y$ : scales linearly with the value of the pool
 
 
 | Function   | **k=100**<br/>(10 ETH,10 USDC) | **k=100**<br/>(100 ETH,1 USDC) | **k=400**<br/>(20 ETH,20 USDC) | **k=400**<br/>(200 ETH,2 USDC) | **P1 Constant?** | **P2 2x Scale?** |
@@ -117,9 +136,15 @@ Let's try to understand each part
 
 ##### Why burn one thousand LP tokens
 
-In summary, to prevent initial depositors from inflating the share price.
+Summary: it makes an initial inflation attack for initial liquidity very costly
 
-You can read about the information attack and this specific defense here: <a href="/fundamentals/defi/vaults#defence-3-extemelly-lossy-attack">Burn Initial Shares</a>
+You can read more about it: <a href="/fundamentals/defi/vaults#defence-3-extemelly-lossy-attack">Burn Initial Shares</a>
+
+## Price Oracle
+
+Summary: it makes oracle price resistant to manipulation
+
+You can read about it: <a href="/exchanges/uniswap-v2/price-oracle/">Price Oracle</a>
 
 ## Chart
 
@@ -137,11 +162,19 @@ Each folder in the chart represents a concept that you can show or hide.
 
 ## Function Trace
 
+In this example we will set the initial erc20 token deposits, and therefore the price to
+
+- $B=400$, $A=200$
+- $p=\frac{B}{A}=\frac{400}{200}=2$
+
 This is the code that runs to produce the function trace
 
 <Code
-  code={extractProtocolWorkflowCode('UniswapV2Workflows', ['initialLiquidity'])}
+  code={extractProtocolWorkflowCode([
+    ['UniswapV2Workflows', 'initialLiquidity'],
+    ['UniswapV2Workflows', '_addLiquidity']
+  ])}
   lang="ts"
 />
 
-<ProtocolWorkflowTrace protocol="uniswapV2" workflow="initialLiquidity" args="{[]}" header='Initial Liquidity' client:load />
+<ProtocolWorkflowTrace protocol="uniswapV2" workflow="initialLiquidity" header='Initial Liquidity' client:load />

@@ -23,8 +23,6 @@ export abstract class ProtocolWorkflowsBase<T extends object> {
     return lensClient;
   }
 
-  abstract deploy(): unknown;
-
   async getProjectFiles() {
     if (!this.protocolsFqnListCache) {
       this.protocolsFqnListCache = await this.resourceLoader.getProtocolContractsFqn('uniswap-v2');
