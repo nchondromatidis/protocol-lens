@@ -29,6 +29,7 @@
     - BUG: clicking traces does not always land to the correct source function
     - FEAT: show events emitted
     - FEAT: show from
+    - FEAT: show gas usage
     - FEAT: open in new tab
       - escape should not close the editor
       - back-forward should get to previous source file, not previous page

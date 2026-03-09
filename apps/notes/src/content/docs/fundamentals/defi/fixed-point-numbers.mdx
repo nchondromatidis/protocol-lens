@@ -1,0 +1,220 @@
+---
+title: Fixed Point Numbers
+sidebar:
+  order: 2001
+---
+
+Solidity has no floating-point type, so fractional values are stored as integers plus an agreed scale.
+
+This document summarizes common fixed-point implementation styles.
+
+## Manual helpers
+
+#### Overview
+You write the fixed-point formula directly in Solidity.
+
+#### What it does
+It uses raw expressions such as `(x * y) / 1e18` or `(x * 1e18) / y`.
+
+#### Example libraries
+None; this is plain Solidity.
+
+#### Example
+
+```solidity
+// SCALE = 1e18
+uint256 priceWad = 2e18;   // 2.0
+uint256 amountWad = 3e18;  // 3.0
+
+uint256 valueWad = amountWad * priceWad / 1e18; // 6e18 = 6.0
+```
+
+#### Risks
+- Intermediate overflow: `uint256 z = x * y / 1e18;` can fail if `x * y` overflows before division.
+- Scale mismatch: `usdcAmount * priceWad / 1e18` is wrong if `usdcAmount` is still in token-native `1e6` scale.
+- Unit confusion: `assets + priceWad` compiles even though the quantities are incompatible.
+
+
+## Wad-style utility libraries
+
+#### Overview
+Instead of repeating the scaling formula, you call helpers that assume a fixed decimal scale.
+
+**Example libraries:** Solady `FixedPointMathLib`, Solmate `FixedPointMathLib`, and Aave `WadRayMath`.
+
+#### What it does
+These libraries wrap common operations such as wad multiplication, wad division, and sometimes ray multiplication and division, with scale restoration built in.
+
+#### Example
+
+```solidity
+// SCALE = 1e18
+uint256 amountWad = 3e18;  // 3.0
+uint256 priceWad = 2e18;   // 2.0
+
+uint256 valueWad = FixedPointMathLib.mulWad(amountWad, priceWad); // 6e18 = 6.0
+```
+
+#### Risks
+- Unit correctness is still manual: `mulWad(assetsWad, feeWad)` only makes sense if both operands belong in that formula.
+- Helper names can create false confidence: `divWad(usdcAmount, totalShares)` is still wrong if `usdcAmount` was never normalized.
+- Scale lock-in: using one decimal helper everywhere can hide places where a different precision policy is better.
+
+
+## Full-precision math primitives
+
+#### Overview
+Instead of relying on the EVM's native 256-bit multiply, you use primitives that compute `floor(a * b / denominator)` with 512-bit intermediate arithmetic.
+
+**Example libraries:** Uniswap `FullMath`, OpenZeppelin `Math.mulDiv`.
+
+#### What it does
+These libraries provide `mulDiv(a, b, denominator)`, which stays safe even when `a * b` would overflow `uint256`. They are not fixed-point libraries because they assume no scale, but they are a key building block for dangerous ratio paths.
+
+#### Example
+
+```solidity
+// shares = assets * totalShares / totalAssets
+uint256 assets = 50;
+uint256 totalShares = 1000;
+uint256 totalAssets = 200;
+
+uint256 sharesOut = FullMath.mulDiv(assets, totalShares, totalAssets); // 250
+```
+
+#### Risks
+- Denominator zero: `denominator = 0` reverts, so callers must guard against zero `totalAssets` or `totalShares`.
+- Result overflow: if the true result exceeds `uint256`, the call still reverts.
+- False sense of safety: overflow protection only covers the intermediate multiply, not scale correctness or unit mismatches.
+
+
+## Fixed-point libraries
+
+#### Overview
+These libraries define a fixed `SCALE`, store values as integers, and provide helpers that preserve that scale across operations.
+
+#### What it does
+They represent Solidity integers as scaled real numbers by agreeing on a denominator and restoring it after multiplication or division.
+
+
+### General
+If the real value is $x$, the stored value usually is:
+
+<div className="text-center">$X = x \cdot SCALE$</div>
+
+Common rules:
+
+- Add/subtract: both values must use the same `SCALE`
+- Multiply: `result = (a * b) / SCALE`
+- Divide: `result = (a * SCALE) / b`
+
+This pattern is the same whether the scale is decimal like `1e18` or binary like `2^64`.
+
+Fixed-point libraries mainly differ in the choice of `SCALE` and how they help manage it.
+
+Some expose plain helpers, while others add stronger typed wrappers; PRBMath, for example, exposes typed decimal formats such as `UD60x18`.
+
+### Decimal fixed-point libraries
+
+#### Overview
+These libraries use a decimal scale of the form `10^n`, such as `1e18` or `1e27`, so the representation matches how humans think about decimals.
+
+**Example libraries:** PRBMath decimal formats such as `UD60x18` and `SD59x18`
+
+#### What it does
+They implement fixed-point arithmetic in a decimal system that fits token decimals, percentages, rates, and other human-readable values. Unlike wad-style utility libraries, they define a formal `SCALE` abstraction and often expose typed wrappers that bind values to that scale.
+
+Typical scales:
+
+- Wad: `10^18`
+- Ray: `10^27`
+- Typed decimal formats such as `UD60x18`, which use 18 decimal places
+
+**Example: Encode 6.5 in Decimal Fixed-Point (4.4):**
+
+6.5 × 10⁴ = 6.5 × 10000 = **65000** → stored as binary `1111 1101 0110 1000`
+
+**Decode (binary → integer):** = **65000**
+
+**Descale:** 65000 ÷ 10⁴ = **6.5**
+
+> **Rule:** multiply by 10ⁿ to store · convert to/from binary · divide by 10ⁿ to read back
+
+#### Example usage
+
+```solidity
+// UD60x18 uses 18 decimal places
+UD60x18 amount = ud(3e18); // 3.0
+UD60x18 price = ud(2e18);  // 2.0
+
+UD60x18 value = amount.mul(price); // 6e18 = 6.0
+```
+
+#### TradeOffs
+Pros:
+- It matches the human decimal system, so values like `1.5`, `2.75%`, and token decimals are easier to reason about.
+- It is easier to debug because logs, tests, and documentation usually already use base-10 numbers.
+- It fits naturally with ERC-20 decimals, oracle decimals, and common DeFi conventions such as wad and ray.
+
+Cons:
+- Decimal scaling does not align naturally with binary integer hardware, so scale restoration uses constants like `1e18` instead of power-of-two shifts.
+- Operations are more expensive than binary fixed-point arithmetic.
+
+#### Risks
+- Scale lock-in: forcing all protocol math into one decimal scale can hide cases where a different precision level is needed.
+- False confidence from readable helpers: `divWad(usdcAmount, totalShares)` is still wrong if `usdcAmount` was not normalized first.
+- Unit correctness is still manual unless stronger typing is added on top.
+
+
+### Binary fixed-point libraries
+
+#### Overview
+These libraries use a binary scale of the form `2^n`, so values live in a system aligned with binary integers rather than decimal notation.
+
+**Example libraries:** `ABDKMath64x64`
+
+#### What it does
+They implement fixed-point arithmetic in a power-of-two-scaled format, often for advanced math or cases where binary precision is a better fit.
+
+**Example: Encode 6.5 in Q4.4:**
+
+6.5 × 2⁴ = 6.5 × 16 = **104** → stored as binary `0110 1000`
+
+| ◄──────── Integer ────────►| ◄─────── Fractional ──────► |
+| Bit    | b7 | b6 | b5 | b4 | b3  | b2   | b1    | b0     |
+|--------|----|----|----|----|-----|------|-------|--------|
+| Weight | 8  | 4  | 2  | 1  | 0.5 | 0.25 | 0.125 | 0.0625 |
+| Stored | 0  | 1  | 1  | 0  | 1   | 0    | 0     | 0      |
+
+
+**Decode:** 4 + 2 + 0.5 = **6.5**
+
+> **Rule:** multiply by 2ⁿ to store · divide by 2ⁿ to read back
+
+
+#### Typical formats
+`Qm.n` and `UQm.n`, where `m` is the number of integer bits, `n` is the number of fractional bits, and `UQ` means unsigned while `Q` usually means signed.
+
+#### Example usage
+```solidity
+// ABDKMath64x64 uses signed 64.64 binary fixed-point
+int128 four = ABDKMath64x64.fromUInt(4);        // 4.0
+int128 twoPointFive = ABDKMath64x64.divu(5, 2); // 2.5
+
+int128 result = ABDKMath64x64.mul(four, twoPointFive); // 10.0
+```
+
+#### TradeOffs
+Pros:
+- The scale is a power of two, so some scale-handling steps map naturally to bit shifts instead of decimal constants.
+- It matches power-of-two scaling and standard binary fixed-point formats such as `Qm.n`
+- Libraries in this family often provide richer math functionality, including exponential and other advanced functions.
+
+Cons:
+- Binary formats are less intuitive for humans working with token decimals, fee percentages, and decimal-oriented protocol specs.
+- They usually require extra conversion at decimal-binary boundaries.
+
+#### Risks
+- Decimal-binary conversion errors: a token amount can be converted into binary fixed-point and later treated as if it were still decimal-scaled.
+- Lower economic readability: binary values are harder to inspect mentally than decimal ones.
+- Mixed-domain scale crossings: token decimals, oracle decimals, binary internals, and decimal outputs can drift badly after one bad conversion.
