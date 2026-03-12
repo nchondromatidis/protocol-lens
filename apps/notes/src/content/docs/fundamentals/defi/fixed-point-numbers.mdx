@@ -121,7 +121,7 @@ These libraries use a decimal scale of the form `10^n`, such as `1e18` or `1e27`
 
 **Example libraries:** PRBMath decimal formats such as `UD60x18` and `SD59x18`
 
-#### What it does
+#### Formats
 They implement fixed-point arithmetic in a decimal system that fits token decimals, percentages, rates, and other human-readable values. Unlike wad-style utility libraries, they define a formal `SCALE` abstraction and often expose typed wrappers that bind values to that scale.
 
 Typical scales:
@@ -130,6 +130,7 @@ Typical scales:
 - Ray: `10^27`
 - Typed decimal formats such as `UD60x18`, which use 18 decimal places
 
+### Binary representation
 **Example: Encode 6.5 in Decimal Fixed-Point (4.4):**
 
 6.5 × 10⁴ = 6.5 × 10000 = **65000** → stored as binary `1111 1101 0110 1000`
@@ -138,16 +139,42 @@ Typical scales:
 
 **Descale:** 65000 ÷ 10⁴ = **6.5**
 
-> **Rule:** multiply by 10ⁿ to store · convert to/from binary · divide by 10ⁿ to read back
+#### Rule
+> multiply by 10ⁿ to store · convert to/from binary · divide by 10ⁿ to read back
 
 #### Example usage
 
 ```solidity
-// UD60x18 uses 18 decimal places
-UD60x18 amount = ud(3e18); // 3.0
-UD60x18 price = ud(2e18);  // 2.0
+// UD60x18 uses 18 decimal places (60 integer bits, 18 fractional bits, scale = 10^18)
 
-UD60x18 value = amount.mul(price); // 6e18 = 6.0
+// ud() expects pre-scaled values, since we use UD60x18 we scale by e18
+
+// Encoded:
+// 3.0 stored as 3 * 10^18
+// Full value: 3e18 (uint256 decimal) = 3000000000000000000 decimal
+// Integer part: 3 (scaled by 10^18)
+// Fractional part: 0
+// Decoded:
+// 3000000000000000000 / 10^18 = 3.0
+UD60x18 amount = ud(3e18);
+
+// Encoded:
+// 2.0 stored as 2 * 10^18
+// Full value: 2e18 (uint256 decimal) = 2000000000000000000 decimal
+// Integer part: 2 (scaled by 10^18)
+// Fractional part: 0
+// Decoded:
+// 2000000000000000000 / 10^18 = 2.0
+UD60x18 price = ud(2e18);
+
+// Encoded:
+// 6.0 stored as 6 * 10^18 (result of 3.0 * 2.0 = 6.0)
+// Full value: 6e18 (uint256 decimal) = 6000000000000000000 decimal
+// Integer part: 6 (scaled by 10^18)
+// Fractional part: 0
+// Decoded:
+// 6000000000000000000 / 10^18 = 6.0
+UD60x18 value = amount.mul(price);
 ```
 
 #### TradeOffs
@@ -173,10 +200,32 @@ These libraries use a binary scale of the form `2^n`, so values live in a system
 
 **Example libraries:** `ABDKMath64x64`
 
-#### What it does
-They implement fixed-point arithmetic in a power-of-two-scaled format, often for advanced math or cases where binary precision is a better fit.
+#### Formats and
+Typical format is `Qm.n` and `UQm.n`, where `m` is the number of integer **bits**, `n` is the number of fractional **bits**, and `UQ` means unsigned while `Q` usually means signed.
 
-**Example: Encode 6.5 in Q4.4:**
+When you are selecting which Q format to use you exchange range for precision
+
+**Bits are not decimal places**
+- Min value: $-2^{m-1}$
+- Max value: $2^{m-1} - 2^{-n}$
+- Resolution (precision): $2^{-n}$
+
+Below you can example **range** and **precision** from some Q formats
+
+| Format | Total Bits | Min Value | Max Value | Resolution (decimal) |
+|--------|------------|-----------|-----------|----------------------|
+| Q16.0  | 16         | −32768    | 32767     | 1                    |
+| Q12.4  | 16         | −2048     | 2047.9375 | 0.0625               |
+| Q8.8   | 16         | −128      | ≈ 127.996 | ≈ 0.003906           |
+| Q4.12  | 16         | −8        | ≈ 7.9998  | ≈ 0.000244           |
+| Q1.15  | 16         | −1        | ≈ 0.99997 | ≈ 0.0000305          |
+
+#### Binary representation
+**Example 6.5 in Q4.4:**
+
+Q4.4
+- Range: −8 to 7.9375
+- Precision: 0.0625
 
 6.5 × 2⁴ = 6.5 × 16 = **104** → stored as binary `0110 1000`
 
@@ -189,20 +238,54 @@ They implement fixed-point arithmetic in a power-of-two-scaled format, often for
 
 **Decode:** 4 + 2 + 0.5 = **6.5**
 
-> **Rule:** multiply by 2ⁿ to store · divide by 2ⁿ to read back
+#### Encoding
 
+Encoding Steps (Decimal → int128)
+- Multiply decimal by $2^{64}$ (or left-shift integer part `<<` 64, add fractional scaled).
+- Round to the nearest int128 (depends on library).
+- Store as a signed 128-bit value.
 
-#### Typical formats
-`Qm.n` and `UQm.n`, where `m` is the number of integer bits, `n` is the number of fractional bits, and `UQ` means unsigned while `Q` usually means signed.
+#### Decoding
+
+Decoding Steps (int128 → Decimal)
+- Divide stored int128 by $2^{64}$
+- The result is the exact decimal (or approximation if non-exact).
+
+#### Rule
+> multiply by 2ⁿ, or shift `<< n` to store · divide by 2ⁿ or `>> n` to read back
 
 #### Example usage
 ```solidity
 // ABDKMath64x64 uses signed 64.64 binary fixed-point
-int128 four = ABDKMath64x64.fromUInt(4);        // 4.0
+// Encoded:
+// 4.0 stored as 4 << 64 or 4*2^64
+// Full Hex: 0x00000000000000040000000000000000 (int128 hex) = 73786976294838206464 decimal
+// High 64 bits: 0x0000000000000004 (integer part)
+// Low 64 bits: 0x0000000000000000 (zero fraction)
+// Decoded:
+// 73786976294838206464 / 2^64 = 4
+int128 four = ABDKMath64x64.fromUInt(4);
+
+// Encoded:
+// 2.5 stored as 2.5 << 64 or 2.5*2^64
+// Full Hex: 0x00000000000000028000000000000000 (int128 hex) = 46116860184273879040 decimal
+// High 64 bits: 0x0000000000000002 (integer part = 2)
+// Low 64 bits: 0x8000000000000000 (fraction = 0.5 = 2^{-1})
+// Decoded:
+// 46116860184273879040 / 2^64 = 2.5
 int128 twoPointFive = ABDKMath64x64.divu(5, 2); // 2.5
 
+// Encoded:
+// 10.0 stored as 10 << 64 or 10*2^64 (result of 4.0 * 2.5 = 10.0)
+// Full Hex: 0x000000000000000A0000000000000000 (int128 hex) = 184467440737095516160 decimal
+// High 64 bits: 0x000000000000000A (integer part = 10)
+// Low 64 bits: 0x0000000000000000 (zero fraction)
+// Decoded:
+// 184467440737095516160 / 2^64 = 10
 int128 result = ABDKMath64x64.mul(four, twoPointFive); // 10.0
 ```
+
+
 
 #### TradeOffs
 Pros:
