@@ -3,9 +3,8 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { ProtocolWorkflowsBase } from './ProtocolWorkflowsBase.ts';
 import type { IResourceLoader } from '@defi-notes/evm-lens/src/lens/_ports/IResourceLoader.ts';
 import { _1e18, USER_0, USER_1 } from './_constants.ts';
-import { type Address, encodePacked, getContractAddress, type GetContractReturnType, keccak256 } from 'viem';
+import { type Address, type GetContractReturnType } from 'viem';
 import type { LensClient } from '@defi-notes/evm-lens/src/lens/LensClient.ts';
-import { safeCastToHex } from '@defi-notes/evm-lens/src/_common/type-utils.ts';
 
 export type UniswapV2Artifacts = {
   [K in keyof ArtifactMap as K extends `contracts/uniswap-v2/${string}` ? K : never]: ArtifactMap[K];
@@ -206,20 +205,5 @@ export class UniswapV2Workflows extends ProtocolWorkflowsBase<UniswapV2Artifacts
 
   private async approve(erc20: UniswapV2ERC20, spender: `0x${string}`, amount: bigint, caller: Address) {
     await this.lensClient.contract(erc20, 'approve', [spender, amount], caller);
-  }
-
-  private async calculatePairAddress(tokenA: UniswapV2ERC20, tokenB: UniswapV2ERC20) {
-    const { factory } = this.deployment;
-    const pairArtifact = await this.resourceLoader.getArtifact(
-      'contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair'
-    );
-
-    const salt = keccak256(encodePacked(['address', 'address'], [tokenA.address, tokenB.address]));
-    return getContractAddress({
-      bytecode: safeCastToHex(pairArtifact.bytecode),
-      from: factory.address,
-      opcode: 'CREATE2',
-      salt: salt,
-    });
   }
 }
