@@ -1,6 +1,7 @@
 # TODO
 
 - emv-lens
+    - FEAT: Inline lib source lines detection (indexer)
     - FEAT: FunctionEntryHandler: decode arguments
     - FEAT: FunctionExitHandler: decode result, events, errors
     - ARCH: add logger
@@ -30,6 +31,7 @@
     - FEAT: show events emitted
     - FEAT: show from
     - FEAT: show gas usage
+    - FEAT: hide trivial functions (eg OZ)
     - FEAT: open in new tab
       - escape should not close the editor
       - back-forward should get to previous source file, not previous page
@@ -42,6 +44,10 @@
   - FEAT: tooltip to explain how the trace is generated
   - FEAT: a green circle that should enforce the intuition that this thing is live
   - FEAT: code slices, add github repo link and function name
+- protocol-workflows ??
+  - New package
+  - evm-lens can depend on that to test
+  - notes can depend on that
 
 // trying to tone down optimizer
 {

@@ -202,9 +202,9 @@ importers:
       '@defi-notes/config':
         specifier: workspace:*
         version: link:../config
-      '@defi-notes/hardhat-evm-lens':
+      '@defi-notes/evm-lens-indexer':
         specifier: workspace:*
-        version: link:../hardhat-evm-lens
+        version: link:../evm-lens-indexer
       '@defi-notes/protocols':
         specifier: workspace:*
         version: link:../protocols
@@ -238,6 +238,61 @@ importers:
       vitest:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.30.2)(msw@2.12.10(@types/node@25.2.3)(typescript@5.9.3))(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/evm-lens-indexer:
+    dependencies:
+      '@noble/hashes':
+        specifier: ^2.0.1
+        version: 2.0.1
+      debug:
+        specifier: ^4.4.3
+        version: 4.4.3
+      glob:
+        specifier: ^13.0.0
+        version: 13.0.5
+      solidity-ast:
+        specifier: ^0.4.61
+        version: 0.4.61
+      ts-morph:
+        specifier: ^27.0.2
+        version: 27.0.2
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      '@defi-notes/config':
+        specifier: workspace:*
+        version: link:../config
+      '@eslint/js':
+        specifier: ^9.39.2
+        version: 9.39.2
+      '@types/debug':
+        specifier: ^4.1.12
+        version: 4.1.12
+      '@types/node':
+        specifier: ^25.1.0
+        version: 25.2.3
+      eslint:
+        specifier: ^9.39.2
+        version: 9.39.2(jiti@2.6.1)
+      eslint-config-prettier:
+        specifier: ^10.1.8
+        version: 10.1.8(eslint@9.39.2(jiti@2.6.1))
+      eslint-plugin-prettier:
+        specifier: ^5.5.5
+        version: 5.5.5(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)
+      hardhat:
+        specifier: ^3.1.5
+        version: 3.1.8
+      prettier:
+        specifier: 3.8.1
+        version: 3.8.1
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
 
   packages/evm-lens-ui:
     dependencies:
@@ -387,69 +442,14 @@ importers:
         specifier: 3.5.3
         version: 3.5.3(zod@4.3.6)
 
-  packages/hardhat-evm-lens:
-    dependencies:
-      '@noble/hashes':
-        specifier: ^2.0.1
-        version: 2.0.1
-      debug:
-        specifier: ^4.4.3
-        version: 4.4.3
-      glob:
-        specifier: ^13.0.0
-        version: 13.0.5
-      solidity-ast:
-        specifier: ^0.4.61
-        version: 0.4.61
-      ts-morph:
-        specifier: ^27.0.2
-        version: 27.0.2
-      zod:
-        specifier: ^4.3.6
-        version: 4.3.6
-    devDependencies:
-      '@defi-notes/config':
-        specifier: workspace:*
-        version: link:../config
-      '@eslint/js':
-        specifier: ^9.39.2
-        version: 9.39.2
-      '@types/debug':
-        specifier: ^4.1.12
-        version: 4.1.12
-      '@types/node':
-        specifier: ^25.1.0
-        version: 25.2.3
-      eslint:
-        specifier: ^9.39.2
-        version: 9.39.2(jiti@2.6.1)
-      eslint-config-prettier:
-        specifier: ^10.1.8
-        version: 10.1.8(eslint@9.39.2(jiti@2.6.1))
-      eslint-plugin-prettier:
-        specifier: ^5.5.5
-        version: 5.5.5(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)
-      hardhat:
-        specifier: ^3.1.5
-        version: 3.1.8
-      prettier:
-        specifier: 3.8.1
-        version: 3.8.1
-      tsx:
-        specifier: ^4.21.0
-        version: 4.21.0
-      typescript:
-        specifier: ~5.9.3
-        version: 5.9.3
-
   packages/protocols:
     devDependencies:
       '@defi-notes/config':
         specifier: workspace:*
         version: link:../config
-      '@defi-notes/hardhat-evm-lens':
+      '@defi-notes/evm-lens-indexer':
         specifier: workspace:*
-        version: link:../hardhat-evm-lens
+        version: link:../evm-lens-indexer
       '@eslint/js':
         specifier: ^9.39.2
         version: 9.39.2

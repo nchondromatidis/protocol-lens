@@ -38,13 +38,13 @@
 - **Tech Stack**:
   - TypeScript, Vite, Vitest, Solidity for tests
 - **Important Dependencies**:
-  - `tevm`, `viem`, indexes built from `packages/harhdat-evm-lens`
+  - `tevm`, `viem`, indexes built from `packages/evm-lens-indexer`
 - **Constraints**:
   - Browser-compatible
 - **Testing Strategy**:
   - Automated tests: `pnpm run test`
 
-## `packages/harhdat-evm-lens`
+## `packages/evm-lens-indexer`
 
 - **Purpose**:
   - A Hardhat plugin that creates indexes for `packages/evm-lens`
@@ -63,7 +63,7 @@
 - **Important Commands**:
   - `pnpm run build` builds DeFi protocol indexes.
 - **Important Dependencies**:
-  - `packages/harhdat-evm-lens` 
+  - `packages/evm-lens-indexer` 
   - DeFi protocols as git submodules in `packages/protocols/lib`.
 
 ## `packages/evm-lens-ui`

@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@defi-notes/config": "workspace:*",
-    "@defi-notes/hardhat-evm-lens": "workspace:*",
+    "@defi-notes/evm-lens-indexer": "workspace:*",
     "@eslint/js": "^9.39.2",
     "@types/node": "^25.1.0",
     "eslint": "^9.39.2",
