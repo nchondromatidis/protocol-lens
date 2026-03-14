@@ -10,6 +10,7 @@ import React from 'react';
 interface SourceCodeViewerProps {
   sourceCode?: string;
   highlightedLine?: number;
+  theme?: 'dark' | 'light';
 }
 
 const SOLIDITY_EXTENSIONS = [solidity];
@@ -22,7 +23,7 @@ const scrollToLine = (editor: EditorView, line: number) => {
   });
 };
 
-export const SourceCodeViewer: React.FC<SourceCodeViewerProps> = ({ sourceCode, highlightedLine }) => {
+export const SourceCodeViewer: React.FC<SourceCodeViewerProps> = ({ sourceCode, highlightedLine, theme = 'dark' }) => {
   const editorRef = useRef<EditorView | null>(null);
   const pendingLineRef = useRef<number | null>(null);
 
@@ -59,6 +60,7 @@ export const SourceCodeViewer: React.FC<SourceCodeViewerProps> = ({ sourceCode, 
       <CodeMirror
         value={sourceCode}
         extensions={extensions}
+        theme={theme}
         readOnly={true}
         basicSetup={{
           lineNumbers: true,
