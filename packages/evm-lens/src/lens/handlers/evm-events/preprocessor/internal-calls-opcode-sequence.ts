@@ -13,7 +13,7 @@ export function detectInternalCallsFromOpcodeSequence(
   entries: OpcodeStepEventEntry[]
 ): InternalFunctionCallTraceEvent[] {
   const validJumpIns = new Set<number>();
-  const jumpInTempStack: { index: number; returnPc: number; matched: boolean }[] = [];
+  const jumpInTempStack: { index: number; returnPc: number }[] = [];
 
   // Pass 1: Find valid JUMP i/o pairs
   for (let i = 0; i < entries.length; i++) {
@@ -26,16 +26,17 @@ export function detectInternalCallsFromOpcodeSequence(
       entries[i + 1].evmEvent.name === 'JUMPDEST' &&
       jumpEntry.evmEvent.opcodeSequenceNum + 1 == entries[i + 1].evmEvent.opcodeSequenceNum
     ) {
-      const jumpEntryInStack = jumpEntry.evmEvent.stack;
-      const returnPc = parseInt(jumpEntryInStack[0]);
-      jumpInTempStack.push({ index: i, returnPc, matched: false });
+      const jumpDestEntry = entries[i + 1];
+      const jumpDestStack = jumpDestEntry.evmEvent.stack;
+      const returnPc = parseInt(jumpDestStack[jumpDestStack.length - 1 - jumpDestEntry.functionIndex.parameterSlots]);
+      jumpInTempStack.push({ index: i, returnPc });
     } else if (jumpEntry.pcLocationIndex.jumpType === 'o') {
       const jumpOutStack = jumpEntry.evmEvent.stack;
-      const jumpOutRet = parseInt(jumpOutStack[0]);
+      const jumpOutRet = parseInt(jumpOutStack[jumpOutStack.length - 1]);
       for (let j = jumpInTempStack.length - 1; j >= 0; j--) {
-        if (jumpInTempStack[j].returnPc === jumpOutRet && !jumpInTempStack[j].matched) {
+        if (jumpInTempStack[j].returnPc === jumpOutRet) {
           validJumpIns.add(jumpInTempStack[j].index);
-          jumpInTempStack[j].matched = true;
+          jumpInTempStack.splice(j, 1);
           break;
         }
       }
