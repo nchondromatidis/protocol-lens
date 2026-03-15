@@ -9,16 +9,26 @@ export type OpcodeStepEventEntry = Extract<EvmStoreEntry, { evmEvent: OpcodeStep
 
 export type InternalFunctionCallTraceEvent = InternalFunctionCallEvent | InternalFunctionCallResultEvent;
 
-export function detectInternalCallsFromOpcodeSequence(
-  entries: OpcodeStepEventEntry[]
-): InternalFunctionCallTraceEvent[] {
-  const validJumpIns = new Set<number>();
-  const jumpInTempStack: { index: number; returnPc: number; matched: boolean }[] = [];
+type Depth = number;
+type PC = number;
 
-  // Pass 1: Find valid JUMP i/o pairs
+export function matchJumpOpcodes(entries: OpcodeStepEventEntry[]) {
+  const matchedJumpsPerDepth: Map<Depth, Set<PC>> = new Map();
+  const jumpInsPerDepth: Map<Depth, { index: number; returnPc: number; matched: boolean }[]> = new Map();
+
+  // Pass 1: Find valid JUMP i/o pairs per depth
   for (let i = 0; i < entries.length; i++) {
     const jumpEntry = entries[i];
     if (jumpEntry.evmEvent.name !== 'JUMP') continue;
+
+    const depth = jumpEntry.evmEvent.depth;
+
+    // init
+    if (!matchedJumpsPerDepth.get(depth)) matchedJumpsPerDepth.set(depth, new Set());
+    if (!jumpInsPerDepth.get(depth)) jumpInsPerDepth.set(depth, []);
+
+    const matchingJumpIns = matchedJumpsPerDepth.get(depth)!;
+    const jumpIns = jumpInsPerDepth.get(depth)!;
 
     if (
       jumpEntry.pcLocationIndex.jumpType === 'i' &&
@@ -28,20 +38,30 @@ export function detectInternalCallsFromOpcodeSequence(
     ) {
       const jumpEntryInStack = jumpEntry.evmEvent.stack;
       const returnPc = parseInt(jumpEntryInStack[0]);
-      jumpInTempStack.push({ index: i, returnPc, matched: false });
-    } else if (jumpEntry.pcLocationIndex.jumpType === 'o') {
+      jumpIns.push({ index: i, returnPc, matched: false });
+    }
+
+    if (jumpEntry.pcLocationIndex.jumpType === 'o') {
       const jumpOutStack = jumpEntry.evmEvent.stack;
       const jumpOutRet = parseInt(jumpOutStack[0]);
-      for (let j = jumpInTempStack.length - 1; j >= 0; j--) {
-        if (jumpInTempStack[j].returnPc === jumpOutRet && !jumpInTempStack[j].matched) {
-          validJumpIns.add(jumpInTempStack[j].index);
-          jumpInTempStack[j].matched = true;
+      for (let j = jumpIns.length - 1; j >= 0; j--) {
+        if (jumpIns[j].returnPc === jumpOutRet && !jumpIns[j].matched) {
+          matchingJumpIns.add(jumpIns[j].index);
+          jumpIns[j].matched = true;
           break;
         }
       }
     }
   }
 
+  return matchedJumpsPerDepth;
+}
+
+// TODO: fix, emit ExternalFunctionCallEvents, ExternalFunctionCallResultEvents when depth changes
+export function generateFunctionCallEventsFromMatchedJumpOpcodes(
+  entries: OpcodeStepEventEntry[],
+  matchedJumpsPerDepth: Map<Depth, Set<PC>>
+): InternalFunctionCallTraceEvent[] {
   // Pass 2: Emit enter + result events into one list
   const events: InternalFunctionCallTraceEvent[] = [];
   let nextFunctionCallId = 1;
@@ -52,6 +72,9 @@ export function detectInternalCallsFromOpcodeSequence(
   for (let i = 0; i < entries.length; i++) {
     const e = entries[i];
     if (e.evmEvent.name !== 'JUMP') continue;
+
+    const depth = e.evmEvent.depth;
+    const validJumpIns = matchedJumpsPerDepth.get(depth)!;
 
     // Enter (JUMP i)
     if (e.pcLocationIndex.jumpType === 'i' && validJumpIns.has(i)) {

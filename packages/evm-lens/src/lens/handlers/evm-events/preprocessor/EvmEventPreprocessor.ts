@@ -2,7 +2,7 @@ import { EventsHandlerBase } from '../../EventsHandlerBase.ts';
 import { isExternalCallEvmEvent, isExternalCallResultEvmEvent } from '../events/evm-events.ts';
 import type { EvmStoreEntry } from '../EvmEventStore.ts';
 import type { FunctionCallEvent } from '../../function-call-events/events/function-call-events.ts';
-import { detectInternalCallsFromOpcodeSequence } from './internal-calls-opcode-sequence.ts';
+import { generateFunctionCallEventsFromMatchedJumpOpcodes, matchJumpOpcodes } from './match-jump-opcodes.ts';
 
 export class EvmEventPreprocessor extends EventsHandlerBase {
   public async matchFunctionCallOpcodeSequence(
@@ -14,9 +14,10 @@ export class EvmEventPreprocessor extends EventsHandlerBase {
       if (isExternalCallResultEvmEvent(evmStoreEntry.evmEvent)) callTraceEvents.push(evmStoreEntry.evmEvent);
     }
     const opcodeStepEvents = evmStoreEntries.filter((it) => it._type == 'Opcode');
-    const internalFunctionCallEvents = detectInternalCallsFromOpcodeSequence(opcodeStepEvents);
+    const matchedJumpsPerDepth = matchJumpOpcodes(opcodeStepEvents);
+    const functionCallEvents = generateFunctionCallEventsFromMatchedJumpOpcodes(opcodeStepEvents, matchedJumpsPerDepth);
 
-    callTraceEvents.push(...internalFunctionCallEvents);
+    callTraceEvents.push(...functionCallEvents);
     callTraceEvents.sort((a, b) => a.opcodeSequenceNum - b.opcodeSequenceNum);
 
     return callTraceEvents;
