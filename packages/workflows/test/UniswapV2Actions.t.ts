@@ -1,5 +1,5 @@
 import { test, beforeEach, describe } from 'vitest';
-import { UniswapV2Workflows } from '@/protocols/workflows/UniswapV2Workflows.ts';
+import { UniswapV2Workflows } from '../src/protocols/workflows/UniswapV2Workflows.ts';
 import { HardhatEvmLensFileRL } from '@defi-notes/evm-lens/test/_setup/HardhatEvmLensFileRL.ts';
 import path from 'node:path';
 import { functionOrder, inspect } from './utils/inspect.ts';

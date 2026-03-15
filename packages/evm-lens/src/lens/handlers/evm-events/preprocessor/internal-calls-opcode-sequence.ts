@@ -26,12 +26,12 @@ export function detectInternalCallsFromOpcodeSequence(
       entries[i + 1].evmEvent.name === 'JUMPDEST' &&
       jumpEntry.evmEvent.opcodeSequenceNum + 1 == entries[i + 1].evmEvent.opcodeSequenceNum
     ) {
-      const jumpEntryInStack = jumpEntry.evmEvent.stack.reverse();
-      const returnPc = parseInt(jumpEntryInStack[jumpEntryInStack.length - 1]);
+      const jumpEntryInStack = jumpEntry.evmEvent.stack;
+      const returnPc = parseInt(jumpEntryInStack[0]);
       jumpInTempStack.push({ index: i, returnPc, matched: false });
     } else if (jumpEntry.pcLocationIndex.jumpType === 'o') {
-      const jumpOutStack = jumpEntry.evmEvent.stack.reverse();
-      const jumpOutRet = parseInt(jumpOutStack[jumpOutStack.length - 1]);
+      const jumpOutStack = jumpEntry.evmEvent.stack;
+      const jumpOutRet = parseInt(jumpOutStack[0]);
       for (let j = jumpInTempStack.length - 1; j >= 0; j--) {
         if (jumpInTempStack[j].returnPc === jumpOutRet && !jumpInTempStack[j].matched) {
           validJumpIns.add(jumpInTempStack[j].index);
