@@ -1,6 +1,5 @@
 import { TraceViewerClient } from '@defi-notes/evm-lens-ui/components/TraceViewerClient';
 import React, { useEffect, useRef, useState } from 'react';
-import type { TraceResult } from '@defi-notes/evm-lens-ui/components/TraceViewerClient';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Dialog, DialogClose, DialogContent, DialogTitle } from './ui/dialog';
@@ -12,6 +11,7 @@ import {
   type MethodArgs,
   type WorkflowNames,
 } from '../protocols/run-workflow.ts';
+import type { TraceResult } from '@defi-notes/evm-lens-ui/types/TraceResult';
 
 type ProtocolActionProps<
   R extends Record<string, object> = ProtocolWorkflowsRegistry,
