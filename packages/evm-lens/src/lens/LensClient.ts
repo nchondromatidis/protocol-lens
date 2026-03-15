@@ -18,6 +18,7 @@ import { hardhatLinkExternalLibToBytecode } from './utils/hardhat-utils.ts';
 import { buildClient, type PublicTestClient } from '../adapters/client.ts';
 import type { IResourceLoader } from './_ports/IResourceLoader.ts';
 import type { ReadOnlyFunctionCallEvent } from './handlers/FunctionTrace.ts';
+import { logger } from '../_common/logger.ts';
 
 export type Next = () => void;
 
@@ -73,6 +74,7 @@ export class LensClient<
     traceTx = true
   ): Promise<ContractResult<TAbi, TFunctionName>> {
     if (traceTx) this.functionTracer.reset();
+    logger.debug('Contract TX Received', { functionName });
     const contractTxResult = await tevmContract(this.client, {
       to: contract.address,
       code: undefined,
@@ -98,7 +100,7 @@ export class LensClient<
     });
     await this.functionTracer.process();
     if (contractTxResult.errors) {
-      console.error(contractTxResult.errors);
+      logger.error('TX Reverted', { errors: contractTxResult.errors });
       if (traceTx) this.functionTracer.save(contractTxResult.txHash!, 'failed');
     } else {
       if (traceTx) this.functionTracer.save(contractTxResult.txHash!, 'success');
