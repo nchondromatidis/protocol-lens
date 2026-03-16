@@ -1,15 +1,13 @@
 import fs from 'fs';
 import path from 'node:path';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types/hre';
-import createDebug from 'debug';
-import { DEBUG_PREFIX } from '../../debug';
 import { getBuildInfoPair, getBuildInfoPairsPath } from '../../_utils/build-info';
 import type { PcLocationIndex } from './types';
 import { fileURLToPath } from 'node:url';
 import { groupByPathSegment } from '../../_utils/paths';
 import { createIndex } from './processors/sourcemap-processor';
-
-const debug = createDebug(`${DEBUG_PREFIX}:add-source`);
+import createDebug from 'debug';
+import { DEBUG_PREFIX } from '../../debug';
 
 //************************************** COPY TYPES ***************************************//
 
@@ -27,6 +25,8 @@ function copyFunctionIndexesTypes(indexFilePath: string) {
 }
 
 //*************************************** MAIN ***************************************//
+
+export const debug = createDebug(`${DEBUG_PREFIX}:index-pc-locations`);
 
 export default async function (_taskArgs: Record<string, any>, hre: HardhatRuntimeEnvironment) {
   debug('Add source task started');

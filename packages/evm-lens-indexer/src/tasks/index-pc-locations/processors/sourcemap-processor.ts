@@ -9,7 +9,7 @@ import { isExternalCallOpcode, isJumpDestOpcode, isJumpOpcode } from '../../../_
 import { getSrcLocation } from '../../../_utils/source-location';
 import type { Debugger } from 'debug';
 
-export function createIndex(buildInfoPair: BuildInfoPair, debug: Debugger) {
+export function createIndex(buildInfoPair: BuildInfoPair, debug: Debugger): PcLocationIndex[] {
   const { buildInfoInput, buildInfoOutput } = buildInfoPair;
 
   const decodeSrc = srcDecoder(buildInfoInput.input, buildInfoOutput.output);

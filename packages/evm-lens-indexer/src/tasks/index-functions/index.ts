@@ -4,10 +4,11 @@ import type { HardhatRuntimeEnvironment } from 'hardhat/types/hre';
 import { fileURLToPath } from 'node:url';
 import type { FunctionIndexes } from './types';
 import { getBuildInfoPair, getBuildInfoPairsPath } from '../../_utils/build-info';
-import { debug } from './_debug';
 import { groupByPathSegment } from '../../_utils/paths';
 import { getSharedState, setSharedState } from '../tasks-shared-state';
 import { createFunctionDataIndexes } from './processors/ast-processor';
+import createDebug from 'debug';
+import { DEBUG_PREFIX } from '../../debug';
 
 //************************************** COPY TYPES ***************************************//
 
@@ -25,6 +26,8 @@ function copyFunctionIndexesTypes(indexFilePath: string) {
 }
 
 //*************************************** MAIN ***************************************//
+
+export const debug = createDebug(`${DEBUG_PREFIX}:index-functions`);
 
 export default async function (_taskArgs: Record<string, any>, hre: HardhatRuntimeEnvironment) {
   debug('Index functions task started');
