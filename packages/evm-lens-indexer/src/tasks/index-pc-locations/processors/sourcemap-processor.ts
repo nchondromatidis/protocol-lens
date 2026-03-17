@@ -56,23 +56,27 @@ export function createIndex(buildInfoPair: BuildInfoPair, debug: Debugger): PcLo
         )
         // ignore opcodes after the sourcemap (eg create contract opcodes)
         .filter((opcodeEntry) => opcodeEntry.index <= sourceMapD.length)
-        // get location of opcodes in a "compressed" form
-        .forEach((it) => {
-          const src = sourceMapD[it.index];
-          const pcLocation = getSrcLocation(src.src, decodeSrc, debug);
-          if (!pcLocation) return;
+        // get opcode's location in "compressed" form
+        .forEach((opcodeEntry) => {
+          const opcodeEntrySrc = sourceMapD[opcodeEntry.index];
+          const pcLocation = getSrcLocation(opcodeEntrySrc.src, decodeSrc, debug);
+          if (!pcLocation) return; // pc does not map to source, probably generated code
+          // create user source index
           if (!pcLocationIndex.locationSources.includes(pcLocation.userSource)) {
             pcLocationIndex.locationSources.push(pcLocation.userSource);
           }
 
+          if (isJumpOpcode(opcodeEntry.name) && opcodeEntrySrc.jump === '-') return;
+
           pcLocationIndex.pcLocations.push([
-            it.pc,
-            src.jump,
+            opcodeEntry.pc,
+            opcodeEntrySrc.jump,
             [
               pcLocation.lineStart,
               pcLocation.lineEnd,
               pcLocationIndex.locationSources.indexOf(pcLocation.userSource),
             ] as const,
+            opcodeEntry.name,
           ]);
         });
 

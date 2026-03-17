@@ -1,4 +1,4 @@
-import { getPushSizeOrZero } from './opcodes';
+import { getPushSize } from './opcodes';
 
 type OpcodeEntry = { name: string; stack: string[]; pc: number; index: number };
 type ByteCodeIndex = {
@@ -18,10 +18,10 @@ export function createByteCodeIndex(opcodesMnemonicsString: string, pushValuesTo
   for (const opcodeNameOrStackValue of opcodesMnemonicsArray) {
     if (!opcodeNameOrStackValue.startsWith('0x')) {
       const opcodeName = opcodeNameOrStackValue;
-      const opcodeEntry = { name: opcodeName, stack: [], pc: pc, index: evmInstructionsCount };
+      const opcodeEntry = { name: opcodeName, stack: [], pc, index: evmInstructionsCount };
       bytecodeIndex.opcodeEntries.push(opcodeEntry);
       evmInstructionsCount++;
-      const pushSize = getPushSizeOrZero(opcodeName);
+      const pushSize = getPushSize(opcodeName);
       pc += pushSize + 1;
     } else {
       // push opcode

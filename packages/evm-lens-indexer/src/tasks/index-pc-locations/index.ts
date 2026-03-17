@@ -8,6 +8,8 @@ import { groupByPathSegment } from '../../_utils/paths';
 import { createIndex } from './processors/sourcemap-processor';
 import createDebug from 'debug';
 import { DEBUG_PREFIX } from '../../debug';
+import { getSharedState } from '../tasks-shared-state';
+import { debugLog } from './_debugLog';
 
 //************************************** COPY TYPES ***************************************//
 
@@ -39,6 +41,10 @@ export default async function (_taskArgs: Record<string, any>, hre: HardhatRunti
     const newPcLocationIndexes = createIndex(buildInfoPair, debug);
     pcLocationsIndexes.push(...newPcLocationIndexes);
   }
+
+  // Debug log PC locations against function indexes
+  const { functionIndexes } = getSharedState();
+  debugLog(pcLocationsIndexes, functionIndexes, debug);
 
   const artifactsContractPath = hre.config.artifactsAugment.artifactContractsPath;
 

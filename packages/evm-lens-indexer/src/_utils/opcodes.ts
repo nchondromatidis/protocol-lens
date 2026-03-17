@@ -39,7 +39,7 @@ export function isPushOpcode(opcodeName: string): boolean {
   return pushOpcodes.includes(opcodeName);
 }
 
-export function getPushSizeOrZero(opcodeName: string): number {
+export function getPushSize(opcodeName: string): number {
   if (isPushOpcode(opcodeName)) {
     const sizeStr = opcodeName.substring(4); // Skip "PUSH"
     return parseInt(sizeStr, 10);

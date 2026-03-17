@@ -1,1 +1,1 @@
-export const DEBUG_PREFIX = 'hardhat:plugin:evm-lens-indexer';
+export const DEBUG_PREFIX = 'evm-lens-indexer';
