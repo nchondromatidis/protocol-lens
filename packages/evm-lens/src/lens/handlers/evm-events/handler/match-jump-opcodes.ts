@@ -51,11 +51,11 @@ export function matchJumpOpcodes(entries: OpcodeStoreEntry[]): FunctionEntry[] {
     const ctxId = callContextIds[i];
 
     if (isJumpOpcode(entry.evmEvent.name) && entry.pcLocationIndex.jumpType === 'i') {
-      const jumpInJumpDestCandidatePc = parseInt(entry.evmEvent.stack[entry.evmEvent.stack.length - 1]);
+      const jumpInJumpDestCandidatePc = parseInt(entry.evmEvent.stack.at(-1)!);
       jumpInJumpDestCandidates.push(depth, ctxId, jumpInJumpDestCandidatePc, { entry, matched: false });
     }
     if (isJumpOpcode(entry.evmEvent.name) && entry.pcLocationIndex.jumpType === 'o') {
-      const jumpOutJumpDestCandidatePc = parseInt(entry.evmEvent.stack[entry.evmEvent.stack.length - 1]);
+      const jumpOutJumpDestCandidatePc = parseInt(entry.evmEvent.stack.at(-1)!);
       jumpOutJumpDestCandidates.push(depth, ctxId, jumpOutJumpDestCandidatePc, { entry, matched: false });
     }
   }
@@ -75,7 +75,7 @@ export function matchJumpOpcodes(entries: OpcodeStoreEntry[]): FunctionEntry[] {
     const candidateJumpOutEntries = jumpOutJumpDestCandidates.get(
       jumpDest.evmEvent.depth,
       jumpDestCtxId,
-      parseInt(jumpDest.evmEvent.stack[jumpDest.evmEvent.stack.length - 1 - jumpDest.functionIndex.parameterSlots])
+      parseInt(jumpDest.evmEvent.stack.at(-jumpDest.functionIndex.parameterSlots - 1)!)
     );
 
     if (!candidateJumpInEntries || !candidateJumpOutEntries) continue;
