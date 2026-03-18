@@ -57,7 +57,7 @@ export function isExternalCallOpcode(opcodeName: string): boolean {
 
 //*************************************** JUMP ***************************************//
 
-const jumpOpcodes = ['JUMP', 'JUMPI'];
+const jumpOpcodes = ['JUMP'];
 
 export function isJumpOpcode(opcodeName: string): boolean {
   return jumpOpcodes.includes(opcodeName);

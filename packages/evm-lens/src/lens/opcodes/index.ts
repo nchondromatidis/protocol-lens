@@ -63,7 +63,7 @@ export function isExternalCalReturnOpcode(opcodeName: string): boolean {
 
 //*************************************** JUMP ***************************************//
 
-const jumpOpcodes = ['JUMP'];
+const jumpOpcodes = ['JUMP', 'JUMPI'];
 
 export function isJumpOpcode(opcodeName: string): boolean {
   return jumpOpcodes.includes(opcodeName);
