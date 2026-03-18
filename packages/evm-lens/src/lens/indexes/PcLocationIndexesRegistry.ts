@@ -74,7 +74,7 @@ export class PcLocationIndexesRegistry {
 
     return {
       pc: pcLocation[0],
-      OpcodeName: pcLocation[3],
+      opcodeName: pcLocation[3],
       jumpType: pcLocation[1],
       startLine: pcLocation[2][0],
       endLine: pcLocation[2][1],

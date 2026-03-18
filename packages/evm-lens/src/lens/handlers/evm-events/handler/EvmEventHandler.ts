@@ -1,4 +1,3 @@
-import { EventsHandlerBase } from '../../EventsHandlerBase.ts';
 import { isExternalCallEvmEvent, isExternalCallResultEvmEvent } from '../events/evm-events.ts';
 import type {
   FunctionCallEvent,
@@ -17,7 +16,9 @@ export type InternalFunctionCallTraceEvent = InternalFunctionCallEvent | Interna
 
 const debug = createDebug(`${DEBUG_PREFIX}:EvmEventHandler`);
 
-export class EvmEventHandler extends EventsHandlerBase {
+export class EvmEventHandler {
+  constructor() {}
+
   public async detectFunctionCalls(
     evmStoreEntries: ReadonlyArray<EvmStoreEntry>
   ): Promise<ReadonlyArray<FunctionCallEvent>> {

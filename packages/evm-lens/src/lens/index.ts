@@ -1,7 +1,6 @@
 import { buildClient } from '../adapters/client.ts';
 import { ArtifactsProvider } from './indexes/ArtifactsProvider.ts';
 import { FunctionIndexesRegistry } from './indexes/FunctionIndexesRegistry.ts';
-import { DebugMetadata } from './indexes/DebugMetadata.ts';
 import { AddressLabeler } from './indexes/AddressLabeler.ts';
 import { ExternalCallHandler } from './handlers/function-call-events/handlers/ExternalCallHandler.ts';
 import { ExternalCallResultHandler } from './handlers/function-call-events/handlers/ExternalCallResultHandler.ts';
@@ -16,6 +15,7 @@ import { EvmEventStore } from './handlers/evm-events/store/EvmEventStore.ts';
 import { FunctionCallEventHandler } from './handlers/function-call-events/FunctionCallEventHandler.ts';
 import type { Account } from 'viem';
 import { TevmEventsAdapter } from './handlers/tevm-events/TevmEventAdapter.ts';
+import { SourceMapper } from './source-map/SourceMapper.ts';
 
 export async function buildCallTracer<LensArtifactsMapT extends LensArtifactsMap<any>>(defaultAccount: Account) {
   const client = await buildClient(defaultAccount);
@@ -23,24 +23,29 @@ export async function buildCallTracer<LensArtifactsMapT extends LensArtifactsMap
   const artifactsProvider = new ArtifactsProvider();
   const functionIndexesRegistry = new FunctionIndexesRegistry();
   const pcLocationIndexesRegistry = new PcLocationIndexesRegistry();
-  const debugMetadata = new DebugMetadata(artifactsProvider, functionIndexesRegistry, pcLocationIndexesRegistry);
-
   const addressLabeler = new AddressLabeler();
+  const sourceMapper = new SourceMapper();
+
   // call trace event handlers
-  const externalCallHandler = new ExternalCallHandler(debugMetadata, addressLabeler);
-  const externalCallResultHandler = new ExternalCallResultHandler(debugMetadata, addressLabeler);
-  const functionEntryHandler = new FunctionEntryHandler(debugMetadata, addressLabeler);
-  const functionExitHandler = new FunctionExitHandler(debugMetadata, addressLabeler);
+  const externalCallHandler = new ExternalCallHandler(artifactsProvider, functionIndexesRegistry, addressLabeler);
+  const externalCallResultHandler = new ExternalCallResultHandler(
+    artifactsProvider,
+    functionIndexesRegistry,
+    addressLabeler
+  );
+  const functionEntryHandler = new FunctionEntryHandler(pcLocationIndexesRegistry, addressLabeler);
+  const functionExitHandler = new FunctionExitHandler();
   const functionCallEventHandler = new FunctionCallEventHandler(
     externalCallHandler,
     externalCallResultHandler,
     functionEntryHandler,
     functionExitHandler
   );
+
   // evm events handlers
   const tevmEventsAdapter = new TevmEventsAdapter();
-  const evmEventStore = new EvmEventStore(debugMetadata, addressLabeler);
-  const evmEventHandler = new EvmEventHandler(debugMetadata, addressLabeler);
+  const evmEventStore = new EvmEventStore(pcLocationIndexesRegistry, addressLabeler);
+  const evmEventHandler = new EvmEventHandler();
 
   const functionTracer = new FunctionTracer(
     tevmEventsAdapter,
@@ -52,8 +57,11 @@ export async function buildCallTracer<LensArtifactsMapT extends LensArtifactsMap
   const lensClient = new LensClient<LensArtifactsMapT>(
     defaultAccount,
     client,
-    debugMetadata,
+    artifactsProvider,
+    functionIndexesRegistry,
+    pcLocationIndexesRegistry,
     addressLabeler,
+    sourceMapper,
     functionTracer
   );
 
@@ -62,7 +70,7 @@ export async function buildCallTracer<LensArtifactsMapT extends LensArtifactsMap
     client,
     artifactsProvider,
     functionIndexesRegistry,
-    debugMetadata,
+    pcLocationIndexesRegistry,
     addressLabeler,
     externalCallHandler,
     externalCallResultHandler,

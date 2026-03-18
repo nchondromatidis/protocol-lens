@@ -9,7 +9,6 @@ import {
 } from 'viem';
 import type { ContractResult, Message } from 'tevm/actions';
 import type { EvmResult, InterpreterStep } from 'tevm/evm';
-import { DebugMetadata } from './indexes/DebugMetadata.ts';
 import { AddressLabeler } from './indexes/AddressLabeler.ts';
 import { FunctionTracer } from './handlers/FunctionTracer.ts';
 import { InvalidArgument, InvariantError } from '../_common/errors.ts';
@@ -21,6 +20,10 @@ import type { ReadOnlyFunctionCallEvent } from './handlers/FunctionTrace.ts';
 import { logger } from '../_common/logger.ts';
 import createDebug from 'debug';
 import { DEBUG_PREFIX } from '../_common/debug.ts';
+import { ArtifactsProvider } from './indexes/ArtifactsProvider.ts';
+import { FunctionIndexesRegistry } from './indexes/FunctionIndexesRegistry.ts';
+import { PcLocationIndexesRegistry } from './indexes/PcLocationIndexesRegistry.ts';
+import type { SourceMapper } from './source-map/SourceMapper.ts';
 
 export type Next = () => void;
 
@@ -33,8 +36,11 @@ export class LensClient<
   constructor(
     public defaultAccount: Account,
     public client: PublicTestClient<TevmTransport>,
-    public readonly debugMetadata: DebugMetadata,
+    public readonly artifacts: ArtifactsProvider,
+    public readonly functions: FunctionIndexesRegistry,
+    public readonly pcLocations: PcLocationIndexesRegistry,
     public readonly addressLabeler: AddressLabeler,
+    public readonly sourceMapper: SourceMapper,
     public readonly functionTracer: FunctionTracer
   ) {}
 
@@ -46,7 +52,7 @@ export class LensClient<
     librariesToLink: Array<{ libFQN: ContractFQNT; address: Address }> = [],
     from?: Address
   ) {
-    const artifact = this.debugMetadata.artifacts.getArtifactFrom(contractFQN);
+    const artifact = this.artifacts.getArtifactFrom(contractFQN);
     if (!artifact) throw new InvalidArgument(`Artifact for ${contractFQN} not found.`);
 
     let bytecode = artifact.bytecode;
@@ -139,9 +145,7 @@ export class LensClient<
   // helper functions
 
   getContract<ContractFqnT extends keyof LensArtifactsMapT & string>(address: Hex, contractFQN: ContractFqnT) {
-    const contractAbi = this.debugMetadata.artifacts.getArtifactAbi(
-      contractFQN
-    ) as LensArtifactsMapT[ContractFqnT]['abi'];
+    const contractAbi = this.artifacts.getArtifactAbi(contractFQN) as LensArtifactsMapT[ContractFqnT]['abi'];
     if (!contractAbi) throw new InvalidArgument(`Artifact for ${contractFQN} not found.`);
 
     return getContract({
@@ -152,7 +156,15 @@ export class LensClient<
   }
 
   async registerIndexes(resourceLoader: IResourceLoader, protocolName: string) {
-    await this.debugMetadata.register(resourceLoader, protocolName);
+    const artifacts = await resourceLoader.getProtocolArtifacts(protocolName);
+    await this.artifacts.register(artifacts);
+
+    const functionIndexes = await resourceLoader.getFunctionIndexes(protocolName);
+    await this.functions.register(functionIndexes);
+    await this.sourceMapper.register(functionIndexes);
+
+    const pcLocationIndexes = await resourceLoader.getPcLocationIndexes(protocolName);
+    await this.pcLocations.register(functionIndexes, pcLocationIndexes);
   }
 
   getContractFqnForAddress(address: Address) {
@@ -171,7 +183,11 @@ export class LensClient<
   async reset() {
     // TODO: snapshots are not supported by tevm yet, so there is complete reset
     this.client = await buildClient(this.defaultAccount);
+
     this.addressLabeler.reset();
-    this.debugMetadata.reset();
+    this.artifacts.reset();
+    this.functions.reset();
+    this.pcLocations.reset();
+    this.sourceMapper.reset();
   }
 }

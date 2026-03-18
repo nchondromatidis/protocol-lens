@@ -67,7 +67,7 @@ export type LensPcLocationIndex = {
 
 export type PcLocationReadable = {
   pc: number;
-  OpcodeName: string;
+  opcodeName: string;
   jumpType: JumpType;
   startLine: number;
   endLine: number;

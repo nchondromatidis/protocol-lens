@@ -1,9 +1,10 @@
-import { EventsHandlerBase } from '../../EventsHandlerBase.ts';
 import type { FunctionCallEvent } from '../../FunctionTrace.ts';
 import { type RuntimeTraceMetadata } from '../trace-metadata.ts';
 import type { InternalFunctionCallEvent } from '../events/function-call-events.ts';
 import createDebug from 'debug';
 import { DEBUG_PREFIX } from '../../../../_common/debug.ts';
+import { AddressLabeler } from '../../../indexes/AddressLabeler.ts';
+import { PcLocationIndexesRegistry } from '../../../indexes/PcLocationIndexesRegistry.ts';
 
 const debug = createDebug(`${DEBUG_PREFIX}:FunctionEntryHandler`);
 
@@ -18,7 +19,12 @@ const debug = createDebug(`${DEBUG_PREFIX}:FunctionEntryHandler`);
  * context@depth.address --labeledContracts--> contractFQN --debugMetadata.functions--> functionData--> function call
  * </i>
  */
-export class FunctionEntryHandler extends EventsHandlerBase {
+export class FunctionEntryHandler {
+  constructor(
+    private readonly pcLocations: PcLocationIndexesRegistry,
+    private readonly addressLabeler: AddressLabeler
+  ) {}
+
   public async handle(
     internalCallEvent: InternalFunctionCallEvent,
     executionContext: RuntimeTraceMetadata['executionContext'],
@@ -47,10 +53,7 @@ export class FunctionEntryHandler extends EventsHandlerBase {
     const contractFQN = this.addressLabeler.getContractFqnForAddress(contractAddress);
     if (!contractFQN || !parentFunctionContractFQN) return undefined;
 
-    const functionIndex = this.debugMetadata.pcLocations.getFunctionIndex(
-      contractFQN,
-      internalCallEvent.opcodeStepEvent.pc
-    );
+    const functionIndex = this.pcLocations.getFunctionIndex(contractFQN, internalCallEvent.opcodeStepEvent.pc);
     if (!functionIndex) return undefined;
 
     const functionData = functionIndex;

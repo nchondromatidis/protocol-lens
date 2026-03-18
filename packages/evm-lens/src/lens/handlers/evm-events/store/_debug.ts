@@ -23,7 +23,7 @@ export function debugLogEvmEvents(debug: Debugger, event: EvmStoreEntry) {
       evmEvent.opcodeSequenceNum,
       evmEvent.depth,
       pcLocationIndex.pc,
-      pcLocationIndex.OpcodeName,
+      pcLocationIndex.opcodeName,
       pcLocationIndex.jumpType,
       `${pcLocationIndex.sourceName}:${pcLocationIndex.startLine}:${pcLocationIndex.endLine}`,
       functionIndex.name,

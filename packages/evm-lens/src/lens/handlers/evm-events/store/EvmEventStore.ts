@@ -5,15 +5,21 @@ import {
   isExternalCallResultEvmEvent,
   isOpcodeStepEvent,
 } from '../events/evm-events.ts';
-import { EventsHandlerBase } from '../../EventsHandlerBase.ts';
 import createDebug from 'debug';
 import { DEBUG_PREFIX, jsonStr } from '../../../../_common/debug.ts';
 import { InvariantError } from '../../../../_common/errors.ts';
 import type { EvmStoreEntry, ExternalCallStoreEntry, OpcodeStoreEntry } from './evm-store-entry.ts';
+import { AddressLabeler } from '../../../indexes/AddressLabeler.ts';
+import { PcLocationIndexesRegistry } from '../../../indexes/PcLocationIndexesRegistry.ts';
 
 const debug = createDebug(`${DEBUG_PREFIX}:EvmEventStore`);
 
-export class EvmEventStore extends EventsHandlerBase {
+export class EvmEventStore {
+  constructor(
+    private readonly pcLocations: PcLocationIndexesRegistry,
+    private readonly addressLabeler: AddressLabeler
+  ) {}
+
   private evmEvents: Array<EvmStoreEntry> = [];
   private delegateCallContractAddress?: Address = undefined;
 
@@ -45,8 +51,8 @@ export class EvmEventStore extends EventsHandlerBase {
           break;
         }
 
-        const functionIndex = this.debugMetadata.pcLocations.getFunctionIndex(contractFQN, evmEvent.pc);
-        const pcLocationIndex = this.debugMetadata.pcLocations.getPcLocationIndex(contractFQN, evmEvent.pc);
+        const functionIndex = this.pcLocations.getFunctionIndex(contractFQN, evmEvent.pc);
+        const pcLocationIndex = this.pcLocations.getPcLocationIndex(contractFQN, evmEvent.pc);
 
         if (functionIndex && pcLocationIndex) {
           const event: OpcodeStoreEntry = { _type: 'Opcode', evmEvent, functionIndex, pcLocationIndex };

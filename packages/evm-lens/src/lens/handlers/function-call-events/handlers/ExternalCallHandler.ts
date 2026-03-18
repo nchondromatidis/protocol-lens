@@ -1,4 +1,3 @@
-import { EventsHandlerBase } from '../../EventsHandlerBase.ts';
 import type { ExternalCallEvmEvent } from '../../evm-events/events/evm-events.ts';
 import { type Abi, bytesToHex } from 'viem';
 import type { FunctionCallEvent } from '../../FunctionTrace.ts';
@@ -8,7 +7,9 @@ import {
   decodeFunctionCallMultipleAbis,
   decodeFunctionCallWithFunctionIndexes,
 } from '../../../abi-decoders/functionCallDecoder.ts';
-import { QueryBy } from '../../../indexes/FunctionIndexesRegistry.ts';
+import { FunctionIndexesRegistry, QueryBy } from '../../../indexes/FunctionIndexesRegistry.ts';
+import { AddressLabeler } from '../../../indexes/AddressLabeler.ts';
+import { ArtifactsProvider } from '../../../indexes/ArtifactsProvider.ts';
 
 /*
  * Detects and decodes external function calls. <br>
@@ -21,7 +22,13 @@ import { QueryBy } from '../../../indexes/FunctionIndexesRegistry.ts';
  * decoded function call --debugMetadata.functions--> function call
  * </>
  */
-export class ExternalCallHandler extends EventsHandlerBase {
+export class ExternalCallHandler {
+  constructor(
+    private readonly artifacts: ArtifactsProvider,
+    private readonly functions: FunctionIndexesRegistry,
+    private readonly addressLabeler: AddressLabeler
+  ) {}
+
   public async handle(callEvent: ExternalCallEvmEvent) {
     // base function call object
     const functionCallEvent: FunctionCallEvent = {
@@ -44,11 +51,11 @@ export class ExternalCallHandler extends EventsHandlerBase {
       functionCallEvent.callType = 'CREATE';
       if (callEvent.salt) functionCallEvent.callType = 'CREATE2';
       functionCallEvent.create2Salt = callEvent.salt ? bytesToHex(callEvent.salt) : undefined;
-      const result = this.debugMetadata.artifacts.getContractFqnFromCallData(callEvent.data);
+      const result = this.artifacts.getContractFqnFromCallData(callEvent.data);
       bytecode = result.bytecode;
       const newContractFQN = result.newContractFQN;
       functionCallEvent.createdContractFQN = newContractFQN;
-      const createdContractAbi = this.debugMetadata.artifacts.getArtifactAbi(newContractFQN);
+      const createdContractAbi = this.artifacts.getArtifactAbi(newContractFQN);
 
       decodingData.push({ contractFQN: result.newContractFQN, abi: createdContractAbi });
     }
@@ -59,7 +66,7 @@ export class ExternalCallHandler extends EventsHandlerBase {
       if (callEvent.isStatic) functionCallEvent.callType = 'STATICCALL';
       const contractFQN = this.addressLabeler.getContractFqnForAddress(callEvent.to);
       functionCallEvent.contractFQN = contractFQN;
-      const { contractAbi, linkLibraries } = this.debugMetadata.artifacts.getAllAbisRelatedTo(contractFQN);
+      const { contractAbi, linkLibraries } = this.artifacts.getAllAbisRelatedTo(contractFQN);
       // called contract
       decodingData.push({ contractFQN, abi: contractAbi });
       // called contract external libraries
@@ -84,7 +91,7 @@ export class ExternalCallHandler extends EventsHandlerBase {
       functionCallEvent.implContractFQN = implContractFQN;
       functionCallEvent.implAddress = codeAddress;
 
-      const implAbi = this.debugMetadata.artifacts.getArtifactAbi(implContractFQN);
+      const implAbi = this.artifacts.getArtifactAbi(implContractFQN);
       decodingData.push({ contractFQN: implContractFQN, abi: implAbi });
     }
 
@@ -102,7 +109,7 @@ export class ExternalCallHandler extends EventsHandlerBase {
       functionCallEvent.functionType = decodedFunctionCall.type;
       functionCallEvent.args = decodedFunctionCall.decodedArgs;
 
-      const functionIndex = this.debugMetadata.functions.getBy(
+      const functionIndex = this.functions.getBy(
         QueryBy.contractAndNameOrKind(
           decodedFunctionCall.contractFQN,
           decodedFunctionCall.decodedFunctionName,
@@ -119,9 +126,7 @@ export class ExternalCallHandler extends EventsHandlerBase {
       const functionSelector = callEvent.data.slice(2, 10);
       const contractFQN = functionCallEvent.implContractFQN ?? functionCallEvent.contractFQN;
       if (contractFQN) {
-        const functionIndex = this.debugMetadata.functions.getBy(
-          QueryBy.contractAndSelector(contractFQN, functionSelector)
-        );
+        const functionIndex = this.functions.getBy(QueryBy.contractAndSelector(contractFQN, functionSelector));
 
         functionCallEvent.functionName = functionIndex?.name;
         functionCallEvent.functionType = functionIndex?.kind;
