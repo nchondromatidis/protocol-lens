@@ -7,10 +7,9 @@ import {
 } from '../events/evm-events.ts';
 import { EventsHandlerBase } from '../../EventsHandlerBase.ts';
 import createDebug from 'debug';
-import { DEBUG_PREFIX } from '../../../../_common/debug.ts';
+import { DEBUG_PREFIX, jsonStr } from '../../../../_common/debug.ts';
 import { InvariantError } from '../../../../_common/errors.ts';
 import type { EvmStoreEntry, ExternalCallStoreEntry, OpcodeStoreEntry } from './evm-store-entry.ts';
-import { debugLogEvmEvents } from './_debug.ts';
 
 const debug = createDebug(`${DEBUG_PREFIX}:EvmEventStore`);
 
@@ -25,7 +24,7 @@ export class EvmEventStore extends EventsHandlerBase {
         const event: ExternalCallStoreEntry = { _type: 'ExternalCall', evmEvent };
 
         this.evmEvents.push(event);
-        debugLogEvmEvents(debug, event);
+        // debugLogEvmEvents(debug, event);
 
         break;
       }
@@ -34,7 +33,7 @@ export class EvmEventStore extends EventsHandlerBase {
         const event: ExternalCallStoreEntry = { _type: 'ExternalCall', evmEvent };
 
         this.evmEvents.push(event);
-        debugLogEvmEvents(debug, event);
+        // debugLogEvmEvents(debug, event);
 
         break;
       }
@@ -52,10 +51,10 @@ export class EvmEventStore extends EventsHandlerBase {
         if (functionIndex && pcLocationIndex) {
           const event: OpcodeStoreEntry = { _type: 'Opcode', evmEvent, functionIndex, pcLocationIndex };
           this.evmEvents.push(event);
-          debugLogEvmEvents(debug, event);
+          debug('Stored opcode event:', jsonStr(event));
         }
 
-        debug('functionIndex or pcLocationIndex not found for event, skipping...', { pc: evmEvent.pc });
+        // debug('functionIndex or pcLocationIndex not found for event, skipping...', { pc: evmEvent.pc });
 
         break;
       }

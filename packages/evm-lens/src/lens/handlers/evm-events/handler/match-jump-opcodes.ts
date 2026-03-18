@@ -11,34 +11,70 @@ export type FunctionEntry = { jumpDest: OpcodeStoreEntry; jumpIn: OpcodeStoreEnt
 export function matchJumpOpcodes(entries: OpcodeStoreEntry[]): FunctionEntry[] {
   const jumpDestEntryPointsPerDepth: FunctionEntry[] = [];
 
+  // context ids
+  let nextContextId = 0;
+  let callContextId = 0;
+  const contextStack: number[] = [];
+  const callContextIds: number[] = [];
+
+  for (let i = 0; i < entries.length; i++) {
+    const depth = entries[i].evmEvent.depth;
+    const nextDepth = entries[i + 1]?.evmEvent.depth ?? depth;
+
+    callContextIds[i] = callContextId;
+
+    if (nextDepth > depth) {
+      for (let d = depth; d < nextDepth; d++) {
+        contextStack.push(callContextId);
+        callContextId = ++nextContextId;
+      }
+    } else if (nextDepth < depth) {
+      for (let d = depth; d > nextDepth; d--) {
+        callContextId = contextStack.pop()!;
+      }
+    }
+  }
+
   // index
   const jumpInJumpDestCandidates = new NestedMap<
-    [depth: number, jumpDestCandidatePc: number],
+    [depth: number, ctxId: number, jumpDestCandidatePc: number],
     { entry: OpcodeStoreEntry; matched: boolean }[]
   >();
   const jumpOutJumpDestCandidates = new NestedMap<
-    [depth: number, jumpDestCandidatePc: number],
+    [depth: number, ctxId: number, jumpDestCandidatePc: number],
     { entry: OpcodeStoreEntry; matched: boolean }[]
   >();
 
-  for (const entry of entries) {
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
     const depth = entry.evmEvent.depth;
+    const ctxId = callContextIds[i];
+
     if (isJumpOpcode(entry.evmEvent.name) && entry.pcLocationIndex.jumpType === 'i') {
       const jumpInJumpDestCandidatePc = parseInt(entry.evmEvent.stack[entry.evmEvent.stack.length - 1]);
-      jumpInJumpDestCandidates.push(depth, jumpInJumpDestCandidatePc, { entry, matched: false });
+      jumpInJumpDestCandidates.push(depth, ctxId, jumpInJumpDestCandidatePc, { entry, matched: false });
     }
     if (isJumpOpcode(entry.evmEvent.name) && entry.pcLocationIndex.jumpType === 'o') {
       const jumpOutJumpDestCandidatePc = parseInt(entry.evmEvent.stack[entry.evmEvent.stack.length - 1]);
-      jumpOutJumpDestCandidates.push(depth, jumpOutJumpDestCandidatePc, { entry, matched: false });
+      jumpOutJumpDestCandidates.push(depth, ctxId, jumpOutJumpDestCandidatePc, { entry, matched: false });
     }
   }
 
   // jump-i -> jumpDest -> jump-o, opcode sequence pattern detection
-  for (const jumpDest of entries.filter((it) => isJumpDestOpcode(it.evmEvent.name))) {
-    // match JUMPDEST with JUMP-i and JUMP-o candidates - based on JUMPDEST address match
-    const candidateJumpInEntries = jumpInJumpDestCandidates.get(jumpDest.evmEvent.depth, jumpDest.evmEvent.pc);
+  for (let i = 0; i < entries.length; i++) {
+    const jumpDest = entries[i];
+    if (!isJumpDestOpcode(jumpDest.evmEvent.name)) continue;
+
+    const jumpDestCtxId = callContextIds[i];
+
+    const candidateJumpInEntries = jumpInJumpDestCandidates.get(
+      jumpDest.evmEvent.depth,
+      jumpDestCtxId,
+      jumpDest.evmEvent.pc
+    );
     const candidateJumpOutEntries = jumpOutJumpDestCandidates.get(
       jumpDest.evmEvent.depth,
+      jumpDestCtxId,
       parseInt(jumpDest.evmEvent.stack[jumpDest.evmEvent.stack.length - 1 - jumpDest.functionIndex.parameterSlots])
     );
 
@@ -69,8 +105,9 @@ export function matchJumpOpcodes(entries: OpcodeStoreEntry[]): FunctionEntry[] {
       });
       debug('jumpDestEntryPointsPerDepth', {
         depth: jumpDest.evmEvent.depth,
-        jumpDestPc: match.jumpIn.entry.evmEvent.pc,
-        jumpInPc: match.jumpOut.entry.evmEvent.pc,
+        jumpDestPc: jumpDest.evmEvent.pc,
+        jumpIn: match.jumpIn.entry.evmEvent.pc,
+        jumpOut: match.jumpOut.entry.evmEvent.pc,
       });
     }
   }

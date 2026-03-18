@@ -5,7 +5,6 @@ import { createLensTracerTestSetup } from './_setup/lensTracerTestSetup.ts';
 import type { GetContractReturnType } from 'viem';
 import type { Address, LensArtifactsMap } from '../src/lens/types.ts';
 import type { LensArtifactsMapSlice } from '../src/client-utils/type-helpers.ts';
-import { inspect } from './_setup/utils/inspect.ts';
 
 describe('internal-calls', () => {
   let lensClient: LensClient<LensArtifactsMapSlice<LensArtifactsMap<ArtifactMap>, 'test-contracts', 'internal-calls'>>;
@@ -107,7 +106,6 @@ describe('internal-calls', () => {
       to,
       9999999999n, // deadline
     ]);
-    const trace = lensClient.getTracedTx(result);
-    inspect(trace);
+    expect(lensClient.getSucceeded(result)).toMatchSnapshot();
   });
 });

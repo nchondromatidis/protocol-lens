@@ -55,9 +55,15 @@ export function isExternalCallOpcode(opcodeName: string): boolean {
   return externalCallOpcodes.includes(opcodeName);
 }
 
+const externalCallReturnOpcodes = ['RETURN', 'REVERT'];
+
+export function isExternalCalReturnOpcode(opcodeName: string): boolean {
+  return externalCallReturnOpcodes.includes(opcodeName);
+}
+
 //*************************************** JUMP ***************************************//
 
-const jumpOpcodes = ['JUMP', 'JUMPI'];
+const jumpOpcodes = ['JUMP'];
 
 export function isJumpOpcode(opcodeName: string): boolean {
   return jumpOpcodes.includes(opcodeName);

@@ -37,11 +37,15 @@ export class FunctionEntryHandler extends EventsHandlerBase {
     const currentDepthExecutionContext = executionContext.get(internalCallEvent.opcodeStepEvent.depth)!;
     const depth = internalCallEvent.opcodeStepEvent.depth;
 
-    if (currentDepthExecutionContext.functionCallEvent.callType === 'DELEGATECALL')
+    let parentFunctionContractFQN = parentFunctionCallEvent.contractFQN;
+
+    if (currentDepthExecutionContext.functionCallEvent.callType === 'DELEGATECALL') {
       contractAddress = currentDepthExecutionContext.functionCallEvent.implAddress!;
+      parentFunctionContractFQN = parentFunctionCallEvent.implContractFQN!;
+    }
 
     const contractFQN = this.addressLabeler.getContractFqnForAddress(contractAddress);
-    if (!contractFQN) return undefined;
+    if (!contractFQN || !parentFunctionContractFQN) return undefined;
 
     const functionIndex = this.debugMetadata.pcLocations.getFunctionIndex(
       contractFQN,
@@ -52,18 +56,16 @@ export class FunctionEntryHandler extends EventsHandlerBase {
     const functionData = functionIndex;
     if (!functionData) return undefined;
 
-    // the first JUMPDEST on a new context must match external call calldata
+    // the first internal function call on a new context may accidentally match the external call calldata
     if (!executionContext.get(depth)!.isJumpDestReached) {
       const isJumpDestReached =
-        functionData.contractFQN === parentFunctionCallEvent.contractFQN &&
+        functionData.contractFQN === parentFunctionContractFQN &&
         functionData.name == parentFunctionCallEvent.functionName &&
         functionData.kind === parentFunctionCallEvent.functionType;
       if (isJumpDestReached) {
-        executionContext.get(depth)!.isJumpDestReached = true;
-
         return parentFunctionCallEvent;
       }
-      return undefined;
+      executionContext.get(depth)!.isJumpDestReached = true;
     }
 
     // handle internal calls

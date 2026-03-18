@@ -26,7 +26,8 @@ export function debugLogEvmEvents(debug: Debugger, event: EvmStoreEntry) {
       pcLocationIndex.OpcodeName,
       pcLocationIndex.jumpType,
       `${pcLocationIndex.sourceName}:${pcLocationIndex.startLine}:${pcLocationIndex.endLine}`,
-      functionIndex.name
+      functionIndex.name,
+      JSON.stringify(evmEvent.stack)
     );
   }
 }

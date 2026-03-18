@@ -55,7 +55,6 @@ contract CallerContract {
         return a;
     }
 
-    // Function with rich EVM stack to stress test the tracer
     function richStackFunction(
         uint256 amountIn,
         uint256 amountOutMin,

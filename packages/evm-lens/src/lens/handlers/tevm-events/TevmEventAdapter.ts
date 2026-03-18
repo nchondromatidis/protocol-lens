@@ -6,8 +6,12 @@ import type {
   ExternalCallResultEvmEvent,
   OpcodeStepEvent,
 } from '../evm-events/events/evm-events.ts';
-import { isJumpDestOpcode, isJumpOpcode } from '../../opcodes';
+import { isExternalCallOpcode, isExternalCalReturnOpcode, isJumpDestOpcode, isJumpOpcode } from '../../opcodes';
 import { bytesToHex } from 'viem';
+import createDebug from 'debug';
+import { DEBUG_PREFIX, jsonStr } from '../../../_common/debug.ts';
+
+const debug = createDebug(`${DEBUG_PREFIX}:TevmEventsAdapter`);
 
 export class TevmEventsAdapter {
   private currSequenceNum = 0;
@@ -54,6 +58,7 @@ export class TevmEventsAdapter {
             depth: event.depth,
             opcodeSequenceNum: this.currSequenceNum,
           };
+          debug('tevm event received:', jsonStr(evmEvent));
           this.currSequenceNum++;
           return evmEvent;
         }
@@ -69,6 +74,11 @@ export class TevmEventsAdapter {
   }
 
   private isSelectedOpcode(opcodeName: string) {
-    return isJumpOpcode(opcodeName) || isJumpDestOpcode(opcodeName);
+    return (
+      isJumpOpcode(opcodeName) ||
+      isJumpDestOpcode(opcodeName) ||
+      isExternalCallOpcode(opcodeName) ||
+      isExternalCalReturnOpcode(opcodeName)
+    );
   }
 }

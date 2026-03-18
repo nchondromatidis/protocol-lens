@@ -28,9 +28,9 @@ export class EvmEventHandler extends EventsHandlerBase {
     }
     const opcodeStepEvents = evmStoreEntries.filter((it) => it._type == 'Opcode');
     const matchedJumpsPerDepth = matchJumpOpcodes(opcodeStepEvents);
-    const functionCallEvents = this.generateFunctionCallEventsFromFunctionEntryJumpOpcodes(matchedJumpsPerDepth);
+    const internalFunctionCallEvents = this.generateInternalFunctionCallEvents(matchedJumpsPerDepth);
 
-    callTraceEvents.push(...functionCallEvents);
+    callTraceEvents.push(...internalFunctionCallEvents);
     callTraceEvents.sort((a, b) => a.opcodeSequenceNum - b.opcodeSequenceNum);
 
     debugLogFunctionCallEvents(debug, callTraceEvents);
@@ -38,9 +38,7 @@ export class EvmEventHandler extends EventsHandlerBase {
     return callTraceEvents;
   }
 
-  private generateFunctionCallEventsFromFunctionEntryJumpOpcodes(
-    functionEntries: FunctionEntry[]
-  ): InternalFunctionCallTraceEvent[] {
+  private generateInternalFunctionCallEvents(functionEntries: FunctionEntry[]): InternalFunctionCallTraceEvent[] {
     const events: InternalFunctionCallTraceEvent[] = [];
 
     for (const functionEntry of functionEntries) {
