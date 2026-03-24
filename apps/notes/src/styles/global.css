@@ -1,4 +1,4 @@
-@layer theme, base, components, vendor, utilities, starlight, nextjs, custom, tailwind;
+@layer theme, base, components, vendor, utilities, starlight, nextjs, custom, tailwind ;
 
 @import "tailwindcss";
 @import "tw-animate-css";
