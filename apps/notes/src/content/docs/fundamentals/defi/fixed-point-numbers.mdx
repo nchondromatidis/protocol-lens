@@ -88,16 +88,12 @@ uint256 sharesOut = FullMath.mulDiv(assets, totalShares, totalAssets); // 250
 - False sense of safety: overflow protection only covers the intermediate multiply, not scale correctness or unit mismatches.
 
 
-## Fixed-point libraries
 
-#### Overview
+## Fix-point numbers
 These libraries define a fixed `SCALE`, store values as integers, and provide helpers that preserve that scale across operations.
 
-#### What it does
 They represent Solidity integers as scaled real numbers by agreeing on a denominator and restoring it after multiplication or division.
 
-
-### General
 If the real value is $x$, the stored value usually is:
 
 <div className="text-center">$X = x \cdot SCALE$</div>
@@ -114,15 +110,27 @@ Fixed-point libraries mainly differ in the choice of `SCALE` and how they help m
 
 Some expose plain helpers, while others add stronger typed wrappers; PRBMath, for example, exposes typed decimal formats such as `UD60x18`.
 
-### Decimal fixed-point libraries
 
-#### Overview
-These libraries use a decimal scale of the form `10^n`, such as `1e18` or `1e27`, so the representation matches how humans think about decimals.
+## Decimal fixed-point numbers
+Use a decimal scale of the form `10^n`, such as `1e18` or `1e27`, so the representation matches how humans think about decimals.
+
+They implement fixed-point arithmetic in a decimal system that fits token decimals, percentages, rates, and other human-readable values.
+
+Unlike wad-style utility libraries, they define a formal `SCALE` abstraction and often expose typed wrappers that bind values to that scale.
 
 **Example libraries:** PRBMath decimal formats such as `UD60x18` and `SD59x18`
 
-#### Formats
-They implement fixed-point arithmetic in a decimal system that fits token decimals, percentages, rates, and other human-readable values. Unlike wad-style utility libraries, they define a formal `SCALE` abstraction and often expose typed wrappers that bind values to that scale.
+### Representation
+
+<div className='codeBlock'>
+  $$
+    \text{real\_value} = \frac{\text{stored\_value}}{10^n}
+  $$
+</div>
+- `real_value`: the actual decimal number you want to represent, such as 6.5
+- `stored_value`: the scaled integer that is actually stored in memory, such as 65000
+- `n`: the number of decimal places fixed to the right of the decimal point
+- `10^n`: the scale factor
 
 Typical scales:
 
@@ -130,19 +138,35 @@ Typical scales:
 - Ray: `10^27`
 - Typed decimal formats such as `UD60x18`, which use 18 decimal places
 
-### Binary representation
-**Example: Encode 6.5 in Decimal Fixed-Point (4.4):**
+### Encoding
 
-6.5 × 10⁴ = 6.5 × 10000 = **65000** → stored as binary `1111 1101 0110 1000`
+<div className='codeBlock'>
+  $$
+  \text{scale} = 10^n \\
+  \text{stored\_integer} = \text{round}(\text{real\_value} \times 10^n) \\
+  \text{store stored\_integer as binary}
+  $$
+</div>
 
-**Decode (binary → integer):** = **65000**
+**Example**: Encode 6.5 in Decimal Fixed-Point (4.4):
 
-**Descale:** 65000 ÷ 10⁴ = **6.5**
+6.5 × 10^4 = 6.5 × 10000 = **65000** → stored as binary `1111 1101 0110 1000`
 
-#### Rule
-> multiply by 10ⁿ to store · convert to/from binary · divide by 10ⁿ to read back
+### Decoding
 
-#### Example usage
+<div className='codeBlock'>
+ $$
+  \text{convert stored binary to integer} \\
+  \text{real\_value} = \text{stored\_integer} \div 10^n
+  $$
+</div>
+
+**Example**: Decode 65000 in Decimal Fixed-Point (4.4):
+
+retrieve `1111 1101 0110 1000` → 65000 ÷ 10⁴ = **6.5**
+
+
+### Example usage
 
 ```solidity
 // UD60x18 uses 18 decimal places (60 integer bits, 18 fractional bits, scale = 10^18)
@@ -177,7 +201,7 @@ UD60x18 price = ud(2e18);
 UD60x18 value = amount.mul(price);
 ```
 
-#### TradeOffs
+### TradeOffs
 Pros:
 - It matches the human decimal system, so values like `1.5`, `2.75%`, and token decimals are easier to reason about.
 - It is easier to debug because logs, tests, and documentation usually already use base-10 numbers.
@@ -187,23 +211,36 @@ Cons:
 - Decimal scaling does not align naturally with binary integer hardware, so scale restoration uses constants like `1e18` instead of power-of-two shifts.
 - Operations are more expensive than binary fixed-point arithmetic.
 
-#### Risks
+### Risks
 - Scale lock-in: forcing all protocol math into one decimal scale can hide cases where a different precision level is needed.
 - False confidence from readable helpers: `divWad(usdcAmount, totalShares)` is still wrong if `usdcAmount` was not normalized first.
 - Unit correctness is still manual unless stronger typing is added on top.
 
 
-### Binary fixed-point libraries
-
-#### Overview
-These libraries use a binary scale of the form `2^n`, so values live in a system aligned with binary integers rather than decimal notation.
+## Binary fixed-point numbers
+Use a binary scale of the form `2^n`, so values live in a system aligned with binary integers rather than decimal notation.
 
 **Example libraries:** `ABDKMath64x64`
 
-#### Formats and
+### Representation
+
+<div className='codeBlock'>
+  $$
+  \text{real\_value} = \frac{\text{stored\_value}}{2^n}
+  $$
+</div>
+
+Where:
+- `real_value`: the actual number you want to represent, such as 6.5
+- `stored_value`: the scaled integer stored in memory
+- `n`: the number of fractional bits
+- `2^n`: the binary scale factor
+
 Typical format is `Qm.n` and `UQm.n`, where `m` is the number of integer **bits**, `n` is the number of fractional **bits**, and `UQ` means unsigned while `Q` usually means signed.
 
-When you are selecting which Q format to use you exchange range for precision
+### Example ranges
+
+When you are selecting which Q format you you exchange range for precision
 
 **Bits are not decimal places**
 - Min value: $-2^{m-1}$
@@ -220,14 +257,53 @@ Below you can example **range** and **precision** from some Q formats
 | Q4.12  | 16         | −8        | ≈ 7.9998  | ≈ 0.000244           |
 | Q1.15  | 16         | −1        | ≈ 0.99997 | ≈ 0.0000305          |
 
-#### Binary representation
+
+### Encoding
+
+<div className='codeBlock'>
+  $$
+  \text{scale} = 2^n \\
+  \text{stored\_value} = \text{round}(\text{real\_value} \times 2^n) \\
+  \text{store stored\_value as binary}
+  $$
+</div>
+> store: multiply by 2^n = `<< n`
+
+Encoding Steps
+- Multiply decimal by $2^{n}$ (or left-shift integer part `<<` 64).
+- Round to the nearest uintX/intX (depends on library).
+- Store as a unsiged/signed X-bit value.
+
+**Example**: Encode `6.5` in binary fixed-point `Q4.4`:
+
+6.5 × 2^4 = 6.5 × 16 = **104** → stored as binary `0110 1000`
+
+
+### Decoding
+
+<div className='codeBlock'>
+  $$
+  \text{read stored bits as stored\_value} \\
+  \text{real\_value} = \frac{\text{stored\_value}}{2^n}
+  $$
+</div>
+> retrieve: divide by 2^n = `>> n`
+
+Decoding Steps
+- Divide stored uintX/intX by $2^{n}$
+- The result is the exact decimal (or approximation if non-exact).
+
+**Example**: Decode `0110 1000` in `Q4.4`:
+
+retrieve `0110 1000` → 104 ÷ 2^4 = 104 ÷ 16 = **6.5**
+
+
+### Bit Interpretation
 **Example 6.5 in Q4.4:**
 
 Q4.4
 - Range: −8 to 7.9375
 - Precision: 0.0625
-
-6.5 × 2⁴ = 6.5 × 16 = **104** → stored as binary `0110 1000`
 
 | ◄──────── Integer ────────►| ◄─────── Fractional ──────► |
 | Bit    | b7 | b6 | b5 | b4 | b3  | b2   | b1    | b0     |
@@ -235,26 +311,9 @@ Q4.4
 | Weight | 8  | 4  | 2  | 1  | 0.5 | 0.25 | 0.125 | 0.0625 |
 | Stored | 0  | 1  | 1  | 0  | 1   | 0    | 0     | 0      |
 
+The value is: 4 + 2 + 0.5 = 6.5
 
-**Decode:** 4 + 2 + 0.5 = **6.5**
-
-#### Encoding
-
-Encoding Steps (Decimal → int128)
-- Multiply decimal by $2^{64}$ (or left-shift integer part `<<` 64, add fractional scaled).
-- Round to the nearest int128 (depends on library).
-- Store as a signed 128-bit value.
-
-#### Decoding
-
-Decoding Steps (int128 → Decimal)
-- Divide stored int128 by $2^{64}$
-- The result is the exact decimal (or approximation if non-exact).
-
-#### Rule
-> multiply by 2ⁿ, or shift `<< n` to store · divide by 2ⁿ or `>> n` to read back
-
-#### Example usage
+### Example usage
 ```solidity
 // ABDKMath64x64 uses signed 64.64 binary fixed-point
 // Encoded:
@@ -285,9 +344,7 @@ int128 twoPointFive = ABDKMath64x64.divu(5, 2); // 2.5
 int128 result = ABDKMath64x64.mul(four, twoPointFive); // 10.0
 ```
 
-
-
-#### TradeOffs
+### TradeOffs
 Pros:
 - The scale is a power of two, so some scale-handling steps map naturally to bit shifts instead of decimal constants.
 - It matches power-of-two scaling and standard binary fixed-point formats such as `Qm.n`
@@ -297,7 +354,7 @@ Cons:
 - Binary formats are less intuitive for humans working with token decimals, fee percentages, and decimal-oriented protocol specs.
 - They usually require extra conversion at decimal-binary boundaries.
 
-#### Risks
+### Risks
 - Decimal-binary conversion errors: a token amount can be converted into binary fixed-point and later treated as if it were still decimal-scaled.
 - Lower economic readability: binary values are harder to inspect mentally than decimal ones.
 - Mixed-domain scale crossings: token decimals, oracle decimals, binary internals, and decimal outputs can drift badly after one bad conversion.
