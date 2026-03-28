@@ -179,6 +179,7 @@ That means:
 | 3   | USDC/UNI  | USDC               | UNI                   |
 | 4   | UNI/LINK  | UNI                | LINK                  |
 
+
 ## Contracts
 
 ### Pair: Swap method
@@ -187,7 +188,7 @@ All router swap methods call `UniswapV2Pair.swap()` method.
 - works for `either direction` on the same pair
 - `amount0Out`/`amount1Out` is how much `token0`/`token1` the pair should send out
 - usually `one is zero` and the other is the token you want to receive
-- the success criteria is that fee-adjusted k must not go down (fees break the equality)
+- the success criteria (invariant) is that fee-adjusted k must not go down (fees increase k)
 
 <Code
   code={extractProtocolCodeSlice([
@@ -196,22 +197,33 @@ All router swap methods call `UniswapV2Pair.swap()` method.
   lang="solidity"
 />
 
-**Example**
 
+#### Invariant
+In order for swap to be successful, the new balances must preserve or increase the old invariant ($xy=k$).
+
+<Code
+  code={extractProtocolCodeSlice([
+    ['contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 180 , 182]
+  ])}
+  lang="solidity"
+/>
+
+
+#### Example
 | Step | Value / check                   | Example                                                     |
 |------|---------------------------------|-------------------------------------------------------------|
-| 1    | Old reserves                    | reserve0 = 100, reserve1 = 200,000                          |
-| 2    | Old k                           | 100 * 200,000 = 20,000,000                                  |
-| 3    | Trader wants out                | amount0Out = 1, amount1Out = 0                              |
-| 4    | Pool sends out                  | 1 token0                                                    |
-| 5    | Balances after user sends input | balance0 = 99, balance1 = 202,100                           |
-| 6    | Compute input                   | amount0In = 99 - (100 - 1) = 0                              |
-| 7    | Compute input                   | amount1In = 202,100 - (200,000 - 0) = 2,100                 |
-| 8    | Fee-adjust balance0             | balance0Adjusted = 99 * 1000 - 0 * 3 = 99,000               |
-| 9    | Fee-adjust balance1             | balance1Adjusted = 202,100 * 1000 - 2,100 * 3 = 202,093,700 |
-| 10   | Check                           | 99,000 * 202,093,700 >= 100 * 200,000 * 1000^2              |
-| 11   | Result                          | True, so swap succeeds                                      |
-
+| 1    | Trader sends                    | sends 2,100 token1                                          |
+| 2    | Trader wants out                | amount0Out = 1, amount1Out = 0                              |
+| 3    | Old reserves                    | reserve0 = 100, reserve1 = 200,000                          |
+| 4    | Old k                           | 100 * 200,000 = 20,000,000                                  |
+| 5    | Pool sends out                  | 1 token0                                                    |
+| 6    | Balances after user sends input | balance0 = 99, balance1 = 202,100                           |
+| 7    | Compute input                   | amount0In = 99 - (100 - 1) = 0                              |
+| 8    | Compute input                   | amount1In = 202,100 - (200,000 - 0) = 2,100                 |
+| 9    | Fee-adjust balance0             | balance0Adjusted = 99 * 1000 - 0 * 3 = 99,000               |
+| 10   | Fee-adjust balance1             | balance1Adjusted = 202,100 * 1000 - 2,100 * 3 = 202,093,700 |
+| 11   | Check                           | 99,000 * 202,093,700 >= 100 * 200,000 * 1000^2              |
+| 12   | Result                          | True, so swap succeeds                                      |
 
 ### Router: Swap Methods
 `UniswapV2Router2` contract (periphery) provides multiple swap methods to support different combinations of swaps.

@@ -1,0 +1,124 @@
+---
+title: Advanced Swap
+sidebar:
+  order: 5200
+---
+
+import { Code } from '@astrojs/starlight/components';
+import { extractProtocolCodeSlice } from "@defi-notes/workflows/protocols/extract-code/protocol-sources";
+
+---
+
+Prereq: [Swap](/exchanges/uniswap-v2/trading/swap/)
+
+---
+
+This page covers the necessary concepts to understand **custom swap flows in Uniswap V2**.
+
+## Swap callback
+Swap is coded to support advanced/custom swap scenarios:
+- Uniswap V2 treats swaps as “optimistic”: the pair transfers out amount0Out or amount1Out before checking that it has been repaid by the end of the same transaction.
+- If your data.length == 0, it behaves like a normal swap,
+- If data.length > 0, the pair triggers `uniswapV2Call(address sender, uint amount0, uint amount1, bytes calldata data)` on the to contract.
+- At the end the pair must `satisfy its reserve invariant plus fees`, otherwise the whole transaction reverts
+
+<Code
+  code={extractProtocolCodeSlice([
+    ['contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 158, 187],
+  ])}
+  lang="solidity"
+/>
+
+## Callback swap steps
+The basic sequence is:
+- Your contract calls the pair’s `swap(...)` and asks for `token0` or `token1` `out`.
+- The pair `transfers the requested tokens to your contract`
+- Then calls `uniswapV2Call(...)`.
+- Inside `uniswapV2Call(...)`
+  - you make some recommended `checks`
+    - fetch token the addresses
+    - check the pair existence
+  - you run your `custom logic`, such as arbitrage, collateral swapping, or liquidation.
+  - you `transfer back enough tokens` so the pair `satisfies its reserve invariant plus fees`
+
+## Multi token swap
+This is the case where the `token withdrawn` is `different than the token returned`.
+
+<div className='codeBlock'>
+  $$
+  \begin{aligned}
+  amountIn &= \frac{reserveIn \cdot amountOut}{reserveOut - amountOut}
+  \\
+  \\
+  amountReturned &= \frac{reserveIn \cdot amountWithdrawn}{reserveOut - amountWithdrawn}
+  \end{aligned}
+  $$
+</div>
+
+### Effective fee
+Ordinary Uniswap V2 swap with a 0.3% fee on the input/returned token amount.
+
+No fees on output/withdrawn amount.
+
+## Single token swap
+This is the case where the `token withdrawn` is `the same as the token returned`.
+
+Let’s calculate the `minimum amount we need to return`, starting from the invariant:
+<div className='codeBlock'>
+  $$
+  \begin{aligned}
+  &(balance0 \cdot 1000 - 3 \cdot amount0In)(balance1 \cdot 1000 - 3 \cdot amount1In)\ge reserve0 \cdot reserve1 \cdot 1000^2 \\
+  &\text{with } amount1In=0,\; balance0=reserve0-amount0Out+amount0In,\; balance1=reserve1 \\
+  &\Rightarrow ((reserve0-amount0Out+amount0In)\cdot1000-3\cdot amount0In)(reserve1\cdot1000)\ge reserve0\cdot reserve1\cdot1000^2 \\
+  &\Rightarrow (reserve0-amount0Out+amount0In)\cdot1000-3\cdot amount0In \ge reserve0\cdot1000 \\
+  &\Rightarrow 1000\cdot reserve0-1000\cdot amount0Out+997\cdot amount0In \ge 1000\cdot reserve0 \\
+  &\Rightarrow 997\cdot amount0In \ge 1000\cdot amount0Out \\
+  &\Rightarrow 0.997\cdot amount0In \ge amount0Out \\
+  &\Rightarrow 0.997\cdot amountReturned \ge amountWithdrawn \\
+  &\Rightarrow amountReturned \ge \frac{amountWithdrawn}{0.997}
+  \end{aligned}
+  $$
+</div>
+
+- If you return more, you are donating
+- If you return less, tx reverts
+
+### Effective fee
+It expresses the extra repayment as a percentage of the amount you originally withdrew, not as a percentage of the amount you return.
+
+<div className='codeBlock'>
+  $$
+  \begin{aligned}
+  &0.997\cdot amount0In \ge amount0Out \\
+  &\Rightarrow amount0In_{\min} = \frac{amount0Out}{0.997} \\
+  &\Rightarrow fee = amount0In_{\min}-amount0Out
+  =amount0Out \left (\frac{1}{0.997}-1\right)
+  =amount0Out \left (\frac{0.003}{0.997}\right)
+  \end{aligned}
+  $$
+
+  amountReturned fee:
+  $$
+  \begin{aligned}
+  &\Rightarrow \frac{fee}{amount0In_{\min}} = 1 - 0.997 = 0.003 = 0.3\% \\
+  &\Rightarrow \frac{fee}{amountReturned} = 1 - 0.997 = 0.003 = 0.3\%
+  \end{aligned}
+  $$
+
+  amountWithdrawn fee:
+  $$
+  \begin{aligned}
+  &\Rightarrow \frac{fee}{amount0Out} = \frac{0.003}{0.997} \approx 0.3009027\% \\
+  &\Rightarrow \frac{fee}{amountWithdrawn} = \frac{0.003}{0.997} \approx 0.3009027\%
+  \end{aligned}
+  $$
+</div>
+
+- fee: 0.3% of the returned/input amount
+- effective fee: 0.3009027% of the withdrawn amount
+
+## Comparing fees
+
+Multitoken swap is `0,0009027% cheaper`, that single token swap.
+- 0.3009027% − 0.3000000% = 0.0009027% difference
+- 30.09 bps − 30.00 bps ≈ 0.09 bps

@@ -97,6 +97,10 @@ This is an enormous format
 - it gives you a range on the scale of $10^{33}$
 - while simultaneously resolving differences as small as $10^{-34}$
 
+#### Storage optimization
+
+For reserves, Uniswap stores `reserve0` and `reserve1` as `uint112` plus `blockTimestampLast` as `uint32` in one packed slot.
+
 #### Definition
 <div className="codeBlock">
 $\text{TWAP} = \frac{P_1T_1 + P_2T_2 + \cdots + P_nT_n} {\sum_{i=1}^{n} T_i}$
