@@ -81,7 +81,6 @@ A 0.3% fee is deducted from each swap and distributed to liquidity providers.
   lang="solidity"
 />
 
-
 Note: Notice both numerator and denominator are multiplied by 1000 to be able to remove 0.3% fees from the input amount
 
 ### Fees Increase K
@@ -163,22 +162,10 @@ Is the difference between the **quoted effective price** of a trade and the **fi
 
 This is because other trades might be executed before the trader's, changing spot price before the trade takes place.
 
-**Example path**
-
-Take this path: [DAI, WETH, USDC, UNI, LINK]
-
-That means:
-- Overall input token: DAI.
-- Overall output token: LINK.
-- Intermediate hops: WETH, then USDC, then UNI
-
-| Hop | Pair used | Input to that pair | Output from that pair |
-|-----|-----------|--------------------|-----------------------|
-| 1   | DAI/WETH  | DAI                | WETH                  |
-| 2   | WETH/USDC | WETH               | USDC                  |
-| 3   | USDC/UNI  | USDC               | UNI                   |
-| 4   | UNI/LINK  | UNI                | LINK                  |
-
+In Uniswap V2, slippage protection is at the router level, by parameters like:
+- `amountOutMin` for exact-input swaps
+- `amountInMax` for exact-output swaps
+- plus a `deadline` to avoid stale execution.
 
 ## Contracts
 
@@ -207,7 +194,6 @@ In order for swap to be successful, the new balances must preserve or increase t
   ])}
   lang="solidity"
 />
-
 
 #### Example
 | Step | Value / check                   | Example                                                     |
@@ -244,6 +230,23 @@ The order of the path **does** matter:
 - `path[0]` is the token you are paying with,
 - `path[path.length - 1]` is the token you want to receive
 - every `intermediate element` defines the hop sequence the router will follow
+
+**Example path**
+
+Take this path: [DAI, WETH, USDC, UNI, LINK]
+
+That means:
+- Overall input token: DAI.
+- Overall output token: LINK.
+- Intermediate hops: WETH, then USDC, then UNI
+
+| Hop | Pair used | Input to that pair | Output from that pair |
+|-----|-----------|--------------------|-----------------------|
+| 1   | DAI/WETH  | DAI                | WETH                  |
+| 2   | WETH/USDC | WETH               | USDC                  |
+| 3   | USDC/UNI  | USDC               | UNI                   |
+| 4   | UNI/LINK  | UNI                | LINK                  |
+
 
 ## Chart
 <DesmosChart graphId={uniswapV2ChartId} height="500px" client:load />
