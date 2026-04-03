@@ -24,12 +24,13 @@ after initial liquidity is added.
 ## Concepts
 
 ### Mint
+LP tokens are ERC20 tokens that are minted to the LP.
 
 Let's analyze the formula that calculates LP tokens to the LP.
 
 <Code
   code={extractProtocolCodeSlice([
-    ['contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 123  , 123]
+    ['contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 122  , 124]
   ])}
   lang="solidity"
 />
@@ -84,9 +85,6 @@ before passing to mint:
 ## Function Trace
 
 In this example we will increase the pool liquidity
-
-- deposited -> $tokenA=100$, $tokenB=200$
-- price remains the same -> $p=\frac{B}{A}=\frac{600}{300}=2$
 
 This is the code that runs to produce the function trace
 

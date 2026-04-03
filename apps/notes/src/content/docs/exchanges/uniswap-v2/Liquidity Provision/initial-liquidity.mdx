@@ -14,11 +14,9 @@ import { uniswapV2ChartId } from '@constants/charts';
 This page covers the necessary concepts for the reader to understand the **initial liquidity flow in Uniswap V2**.
 
 ## Concepts
-
 The theory behind a Uniswap pool, also known as a pair, is rooted in the concept of an **Automated Market Maker (AMM)**.
 
 ### Automated Market Makers
-
 Automated Market Maker (AMM) is the underlying architecture behind Uniswap V2
 - Alternative to ordering books, economically inefficient on-chain due to the **high gas costs**
 - Prices are determined by a **mathematical formulae** written into protocol code
@@ -26,7 +24,6 @@ Automated Market Maker (AMM) is the underlying architecture behind Uniswap V2
 - Provide **instant** execution on rates and slippage
 
 ### Constant Product Market Maker
-
 The specific type of AMM used by Uniswap v2 is the **Constant Product Market Maker** (CPMM), which is governed by the formula
 
 <div className="text-center">$x \cdot y = k$ </div>
@@ -41,7 +38,6 @@ The specific type of AMM used by Uniswap v2 is the **Constant Product Market Mak
 
 
 ### Liquidity Providers (LPs)
-
 Liquidity Providers are users or smart contracts that deposit an **equivalent value** of **two ERC-20 tokens** into a **specific pair contract**.
 In exchange, they get **LP tokens** that represent their **deposit share in the pool**.
 
@@ -53,7 +49,6 @@ LPs who add to an existing pool are incentivized to deposit tokens proportional 
 Depositing at an incorrect ratio creates an immediate arbitrage opportunity, which external parties will likely exploit.
 
 ### Initial Reserves
-
 When setting up the pool, the initial amounts of tokenA and tokenN can be in any proportion, since no prior balances exist for reference.
 
 <Code
@@ -64,6 +59,7 @@ When setting up the pool, the initial amounts of tokenA and tokenN can be in any
 />
 
 ### Mint
+LP tokens are ERC20 tokens that are minted to the LP.
 
 Let's analyze the formula that calculates LP tokens to the first LP.
 
@@ -81,7 +77,6 @@ The initial liquidity calculation contains two important elements
 Let's try to understand each part
 
 ##### Why square root of the token amount product
-
 Let's **try** to go into the mind of the creator and reach to the same formula.
 
 Our goal is to find a number that correctly measures the LP's token pair ownership in the pool.
@@ -131,13 +126,11 @@ Our goal is to find a number that correctly measures the LP's token pair ownersh
 
 
 ##### Why burn one thousand LP tokens
-
 Summary: it makes an initial inflation attack for initial liquidity very costly
 
 You can read more about it: <a href="/fundamentals/defi/vaults#defence-3-extemelly-lossy-attack">Burn Initial Shares</a>
 
 ### Price Oracle
-
 Summary: it makes oracle price resistant to manipulation
 
 You can read about it: <a href="/exchanges/uniswap-v2/price-oracle/">Price Oracle</a>
@@ -155,10 +148,7 @@ Each folder in the chart represents a concept that you can show or hide.
 <DesmosChart graphId={uniswapV2ChartId} height="500px" client:load />
 
 ## Function Trace
-In this example we will set the initial erc20 token deposits, and therefore the price to
-
-- $B=400$, $A=200$
-- $p=\frac{B}{A}=\frac{400}{200}=2$
+In this example we will set the initial erc20 token deposits.
 
 This is the code that runs to produce the function trace
 
