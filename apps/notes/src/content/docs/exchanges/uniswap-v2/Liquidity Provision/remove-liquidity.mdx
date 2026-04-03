@@ -4,3 +4,125 @@ description: Uniswap V2 workflows
 sidebar:
   order: 3200
 ---
+
+import { DesmosChart } from '@defi-notes/workflows/components/DesmosChart';
+import { ProtocolWorkflowTrace } from '@defi-notes/workflows/components/ProtocolWorkflowTrace';
+import { extractProtocolWorkflowCode } from "@defi-notes/workflows/protocols/extract-code/protocol-workflow";
+import { extractProtocolCodeSlice } from "@defi-notes/workflows/protocols/extract-code/protocol-sources";
+import { Code } from '@astrojs/starlight/components';
+import { uniswapV2ChartId } from '@constants/charts';
+
+---
+
+Prereq: [Add Liquidity](/exchanges/uniswap-v2/liquidity-provision/add-liquidity/)
+
+---
+
+This page covers the necessary concepts to understand the **remove liquidity flow in Uniswap V2**.
+
+## Concepts
+
+### Burn
+Removing liquidity tokens (ERC20) releases a proportional slice of the pool's current reserves to the provider.
+
+This is where LPs realize "Impermanent Loss" if the relative price of the assets has diverged from when they entered.
+
+Let's analyze the formula that calculates the returned amounts:
+
+<Code
+  code={extractProtocolCodeSlice([
+    ['contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 138, 145]
+  ])}
+  lang="solidity"
+/>
+
+It calculates the pro-rata distribution (no dilution) using:
+
+<div className='flex justify-center'>
+  $$
+  \begin{aligned}
+  x_{out} = \frac{ liquidity_{burned} } { liquidity_{total} } \cdot x_{reserve} \\[10pt]
+  y_{out} = \frac{ liquidity_{burned} } { liquidity_{total} } \cdot y_{reserve}
+  \end{aligned}
+  $$
+</div>
+
+The calculation uses actual token balances (not just reserves), which include accumulated fees
+
+### Protocol Fees
+The protocol fee is a mechanism designed to redirect a portion of the trading fees from liquidity providers to a designated beneficiary.
+
+Uniswap V2 collects accumulated fees only during liquidity events (mint or burn) for efficiency.
+
+The contract tracks the growth of the pool's invariant between these events to determine the protocol's share of the earnings
+
+The protocol fee is minted before burning liquidity via `_mintFee()`, to capture fees before liquidity removal.
+
+
+#### Formula
+The total collected fees are computed by measuring the growth in k (that is, x · y) since the last time fees were collected.
+
+- Once feeTo is defined,
+  - The protocol begins charging a 5-basis-point (0.05%) fee
+  - This is effectively a 1/6th cut of the standard 30-basis-point (0.30%) trading fee, leaving LPs with 25 basis points (0.25%) per trade
+
+
+<div className='codeBlock flex flex-col justify-center'>
+  Let:
+  - $s_1$ = the total number of LP tokens that already exist at the fee-accounting checkpoint..
+  - $s_m$ = the number of additional LP tokens created specifically for the protocol fee recipient during _mintFee. These are new ownership units that did not exist before and are added on top of the existing supply
+  - $L_1=\sqrt{k_1}$ = liquidity measured at the previous fee-accounting checkpoint.
+  - $L_2=\sqrt{k_2}$ = liquidity measured now, when the contract is deciding whether protocol fee LP tokens should be minted.
+
+  Therefore:
+  - $L_2 −L_1$ = growth in liquidity
+  - $s_1 +s_m$ = total LP supply
+
+  The protocol should get (1/6) of that growth, so after minting its share of the pool must satisfy:
+
+  $$
+  \begin{aligned}
+  \frac{s_m}{s_1+s_m}=\frac{1}{6}\cdot\frac{L_2-L_1}{L_2} \\[10pt]
+  s_m=\frac{\sqrt{k_2}-\sqrt{k_1}}{5\sqrt{k_2}+\sqrt{k_1}}\cdot s_1
+  \end{aligned}
+  $$
+</div>
+
+#### mintFee
+Called at the start of liquidity add/remove accounting, using the old reserves from getReserves(), before any new reserve update happens.
+
+<Code
+  code={extractProtocolCodeSlice([
+    ['contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 89, 107]
+  ])}
+  lang="solidity"
+/>
+
+- The Beneficiary (feeTo): the address collecting protocol fee
+- The Controller (feeToSetter): address (controlled by a private key or governance) that has the exclusive right to update the feeTo address and change the feeToSetter itself
+
+
+### Trading Fees
+You can verify that the burn formula uses actual token balances (not just reserves), which include accumulated fees.
+
+## Chart
+<DesmosChart graphId={uniswapV2ChartId} height="500px" client:load />
+
+## Function Trace
+In this example we will remove liquidity from a pool.
+
+This is the code that runs to produce the function trace:
+
+<Code
+  code={extractProtocolWorkflowCode([
+    ['UniswapV2Workflows', 'removeLiquidity'],
+    ['UniswapV2Workflows', '_removeLiquidity']
+  ])}
+  lang="ts"
+/>
+
+<ProtocolWorkflowTrace protocol="uniswapV2" workflow="removeLiquidity" header='Remove Liquidity' client:load />
+
+
+
+

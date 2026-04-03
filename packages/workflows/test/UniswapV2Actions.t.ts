@@ -27,5 +27,10 @@ describe('uniswap-v2', () => {
   test('swap', async () => {
     const a = await uniswapV2Actions.swap();
     printFunctionHierarchy(a.trace);
-  }, 99999);
+  });
+
+  test('removeLiquidity', async () => {
+    const a = await uniswapV2Actions.removeLiquidity();
+    printFunctionHierarchy(a.trace);
+  });
 });

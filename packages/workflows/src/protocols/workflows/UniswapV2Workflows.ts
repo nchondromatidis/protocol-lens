@@ -115,6 +115,61 @@ export class UniswapV2Workflows extends ProtocolWorkflowsBase<UniswapV2Artifacts
     return { trace, ercTokenA: erc20TokenA, ercTokenB: erc20TokenB };
   }
 
+  async swap({ user = USER_1.address, amountIn = 50n * _1e18, amountOutMin = 50n * _1e18 } = {}) {
+    const { erc20TokenA, erc20TokenB } = await this.initialLiquidity({
+      user: USER_1.address,
+      amountADesired: 200n * _1e18,
+      amountBDesired: 400n * _1e18,
+      traceTx: false,
+    });
+
+    const pairAddress = await this.calculatePairAddress(erc20TokenA, erc20TokenB);
+    this.lensClient.addressLabeler.markContractAddress(
+      pairAddress,
+      'contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair'
+    );
+
+    const path: Address[] = [erc20TokenA.address, erc20TokenB.address];
+    const trace = await this._swap(erc20TokenA, amountIn, amountOutMin, path, user, this.maxUint256(), user);
+
+    return { trace, erc20TokenA, erc20TokenB };
+  }
+
+  async removeLiquidity({
+    user = USER_1.address,
+    liquidityToRemove = 100n * _1e18,
+    amountAMin = 50n * _1e18,
+    amountBMin = 50n * _1e18,
+  } = {}) {
+    const { erc20TokenA, erc20TokenB } = await this.initialLiquidity({
+      user: USER_1.address,
+      amountADesired: 200n * _1e18,
+      amountBDesired: 400n * _1e18,
+      traceTx: false,
+    });
+
+    const pairAddress = await this.calculatePairAddress(erc20TokenA, erc20TokenB);
+    this.lensClient.addressLabeler.markContractAddress(
+      pairAddress,
+      'contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair'
+    );
+
+    const path: Address[] = [erc20TokenA.address, erc20TokenB.address];
+    await this._swap(erc20TokenA, 50n * _1e18, 50n * _1e18, path, user, this.maxUint256(), user, false);
+
+    const trace = await this._removeLiquidity(
+      erc20TokenA,
+      erc20TokenB,
+      liquidityToRemove,
+      amountAMin,
+      amountBMin,
+      user,
+      this.maxUint256()
+    );
+
+    return { trace, erc20TokenA, erc20TokenB };
+  }
+
   private async _addLiquidity(
     tokenA: UniswapV2ERC20,
     tokenB: UniswapV2ERC20,
@@ -144,26 +199,6 @@ export class UniswapV2Workflows extends ProtocolWorkflowsBase<UniswapV2Artifacts
     );
   }
 
-  async swap({ user = USER_1.address, amountIn = 50n * _1e18, amountOutMin = 50n * _1e18 } = {}) {
-    const { erc20TokenA, erc20TokenB } = await this.initialLiquidity({
-      user: USER_1.address,
-      amountADesired: 200n * _1e18,
-      amountBDesired: 400n * _1e18,
-      traceTx: false,
-    });
-
-    const pairAddress = await this.calculatePairAddress(erc20TokenA, erc20TokenB);
-    this.lensClient.addressLabeler.markContractAddress(
-      pairAddress,
-      'contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair'
-    );
-
-    const path: Address[] = [erc20TokenA.address, erc20TokenB.address];
-    const trace = await this._swap(erc20TokenA, amountIn, amountOutMin, path, user, this.maxUint256(), user);
-
-    return { trace, erc20TokenA, erc20TokenB };
-  }
-
   private async _swap(
     tokenIn: UniswapV2ERC20,
     amountIn: bigint,
@@ -183,6 +218,36 @@ export class UniswapV2Workflows extends ProtocolWorkflowsBase<UniswapV2Artifacts
       router2,
       'swapExactTokensForTokens',
       [amountIn, amountOutMin, path, to, deadline],
+      user,
+      undefined,
+      trace
+    );
+  }
+
+  private async _removeLiquidity(
+    tokenA: UniswapV2ERC20,
+    tokenB: UniswapV2ERC20,
+    liquidity: bigint,
+    amountAMin: bigint,
+    amountBMin: bigint,
+    user: Address,
+    deadline: bigint,
+    trace = true
+  ) {
+    const { router2 } = this.deployment;
+
+    const pairAddress = await this.calculatePairAddress(tokenA, tokenB);
+    const pair = this.lensClient.getContract(
+      pairAddress,
+      'contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair'
+    );
+
+    await this.lensClient.contract(pair, 'approve', [router2.address, liquidity], user, undefined, false);
+
+    return await this.lensClient.contract(
+      router2,
+      'removeLiquidity',
+      [tokenA.address, tokenB.address, liquidity, amountAMin, amountBMin, user, deadline],
       user,
       undefined,
       trace
