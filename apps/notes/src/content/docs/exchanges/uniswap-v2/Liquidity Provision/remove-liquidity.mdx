@@ -23,6 +23,15 @@ This page covers the necessary concepts to understand the **remove liquidity flo
 ## Concepts
 
 ### Burn
+What does burn do:
+- Caches current `k` (used to calculate fees)
+- Calculates `Protocol Fees` (optional)
+- Calculates `Trading Fees`
+- Transfers to user:
+  - `proportional slice of the pool's current reserves` + `trading fees` - `protocol fees`
+- Burns user's LP
+
+### LP
 Removing liquidity tokens (ERC20) releases a proportional slice of the pool's current reserves to the provider.
 
 This is where LPs realize "Impermanent Loss" if the relative price of the assets has diverged from when they entered.
