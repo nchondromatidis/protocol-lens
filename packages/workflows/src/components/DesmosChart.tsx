@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Maximize2, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Dialog, DialogClose, DialogContent, DialogTitle } from './ui/dialog';
@@ -30,10 +30,11 @@ const loadDesmosScript = (): Promise<void> => {
 };
 
 // Type for the calculator instance
-type DesmosCalculator = {
+interface DesmosCalculator {
   setState: (state: unknown) => void;
   destroy: () => void;
-};
+  updateSettings: (settings: { invertedColors?: boolean }) => void;
+}
 
 // Fetch graph state from Desmos
 const fetchGraphState = async (graphId: string): Promise<unknown> => {
@@ -45,20 +46,57 @@ const fetchGraphState = async (graphId: string): Promise<unknown> => {
   return data.state;
 };
 
+// Get current theme from document
+const getCurrentTheme = (): 'dark' | 'light' => {
+  if (typeof document === 'undefined') return 'dark';
+  const theme = document.documentElement.dataset.theme;
+  return theme === 'light' ? 'light' : 'dark';
+};
+
+// Determine invertedColors based on theme (dark theme = inverted colors)
+const getInvertedColorsFromTheme = (theme: 'dark' | 'light'): boolean => {
+  return theme === 'dark';
+};
+
 export const DesmosChart: React.FC<DesmosChartProps> = ({
   graphId,
   height = '500px',
   width = '100%',
-  invertedColors = true,
+  invertedColors: invertedColorsProp,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   const mainContainerRef = useRef<HTMLDivElement>(null);
   const modalContainerRef = useRef<HTMLDivElement>(null);
   const mainCalculatorRef = useRef<DesmosCalculator | null>(null);
   const modalCalculatorRef = useRef<DesmosCalculator | null>(null);
+  const graphStateRef = useRef<unknown>(null);
+  const observerRef = useRef<MutationObserver | null>(null);
+
+  // Determine invertedColors based on prop or theme
+  const invertedColors = invertedColorsProp ?? getInvertedColorsFromTheme(theme);
+
+  // Create calculator instance
+  const createCalculator = useCallback(
+    (container: HTMLDivElement, isModal: boolean): DesmosCalculator => {
+      // @ts-expect-error - Desmos is loaded globally
+      const calculator = window.Desmos.GraphingCalculator(container, {
+        expressions: isModal,
+        expressionsCollapsed: !isModal,
+        invertedColors,
+        keypad: false,
+        settingsMenu: false,
+        zoomButtons: isModal,
+        lockViewport: !isModal,
+      }) as DesmosCalculator;
+
+      return calculator;
+    },
+    [invertedColors]
+  );
 
   // Initialize main calculator
   useEffect(() => {
@@ -76,6 +114,7 @@ export const DesmosChart: React.FC<DesmosChartProps> = ({
 
         // Fetch graph state
         const state = await fetchGraphState(graphId);
+        graphStateRef.current = state;
 
         if (!isMounted || !mainContainerRef.current) return;
 
@@ -85,16 +124,7 @@ export const DesmosChart: React.FC<DesmosChartProps> = ({
         }
 
         // Create calculator
-        // @ts-expect-error - Desmos is loaded globally
-        const calculator = window.Desmos.GraphingCalculator(mainContainerRef.current, {
-          expressions: false,
-          expressionsCollapsed: true,
-          invertedColors,
-          keypad: false,
-          settingsMenu: false,
-          zoomButtons: false,
-          lockViewport: true,
-        });
+        const calculator = createCalculator(mainContainerRef.current, false);
 
         // Set the state
         calculator.setState(state);
@@ -118,7 +148,46 @@ export const DesmosChart: React.FC<DesmosChartProps> = ({
         mainCalculatorRef.current = null;
       }
     };
-  }, [graphId, invertedColors]);
+  }, [graphId, createCalculator]);
+
+  // Watch for theme changes
+  useEffect(() => {
+    // Set initial theme
+    setTheme(getCurrentTheme());
+
+    // Create observer to watch for theme attribute changes
+    observerRef.current = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+          const newTheme = getCurrentTheme();
+          setTheme(newTheme);
+        }
+      });
+    });
+
+    observerRef.current.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+
+    return () => {
+      observerRef.current?.disconnect();
+    };
+  }, []);
+
+  // Update calculator colors when theme changes
+  useEffect(() => {
+    if (!mainCalculatorRef.current) return;
+
+    try {
+      // Try to update settings dynamically
+      mainCalculatorRef.current.updateSettings({ invertedColors });
+    } catch (err) {
+      // Fallback: if updateSettings doesn't work, we need to recreate
+      // This shouldn't happen based on the API docs, but just in case
+      console.warn('Desmos updateSettings failed, colors may not update:', err);
+    }
+  }, [invertedColors]);
 
   // Initialize modal calculator when dialog opens
   useEffect(() => {
@@ -133,8 +202,12 @@ export const DesmosChart: React.FC<DesmosChartProps> = ({
       if (!isMounted || !modalContainerRef.current) return;
 
       try {
-        // Fetch graph state
-        const state = await fetchGraphState(graphId);
+        // Fetch graph state if not cached
+        let state = graphStateRef.current;
+        if (!state) {
+          state = await fetchGraphState(graphId);
+          graphStateRef.current = state;
+        }
 
         if (!isMounted || !modalContainerRef.current) return;
 
@@ -144,15 +217,7 @@ export const DesmosChart: React.FC<DesmosChartProps> = ({
         }
 
         // Create calculator for modal
-        // @ts-expect-error - Desmos is loaded globally
-        const calculator = window.Desmos.GraphingCalculator(modalContainerRef.current, {
-          expressions: true,
-          expressionsCollapsed: false,
-          invertedColors,
-          keypad: false,
-          settingsMenu: false,
-          zoomButtons: true,
-        });
+        const calculator = createCalculator(modalContainerRef.current, true);
 
         // Set the state
         calculator.setState(state);
@@ -172,7 +237,7 @@ export const DesmosChart: React.FC<DesmosChartProps> = ({
         modalCalculatorRef.current = null;
       }
     };
-  }, [isOpen, graphId, invertedColors]);
+  }, [isOpen, graphId, createCalculator]);
 
   return (
     <>
