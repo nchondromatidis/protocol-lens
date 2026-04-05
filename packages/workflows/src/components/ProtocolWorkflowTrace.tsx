@@ -3,7 +3,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Dialog, DialogClose, DialogContent, DialogTitle } from './ui/dialog';
-import { X } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { X, Info } from 'lucide-react';
 import {
   protocolWorkflowsRegistry,
   type ProtocolWorkflowsRegistry,
@@ -23,6 +24,8 @@ type ProtocolActionProps<
   workflow: M;
   args?: A;
   header: string;
+  infoMessages?: string[];
+  warnMessages?: string[];
 };
 
 export const ProtocolWorkflowTrace: React.FC<ProtocolActionProps<ProtocolWorkflowsRegistry>> = ({
@@ -30,6 +33,8 @@ export const ProtocolWorkflowTrace: React.FC<ProtocolActionProps<ProtocolWorkflo
   workflow,
   args = undefined,
   header,
+  infoMessages = [],
+  warnMessages = [],
 }) => {
   const [traceResult, setTraceResult] = useState<TraceResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -77,6 +82,28 @@ export const ProtocolWorkflowTrace: React.FC<ProtocolActionProps<ProtocolWorkflo
       <Card className="w-full gap-2 py-3">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
           <CardTitle className="text-base font-semibold">{header}</CardTitle>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info
+                className={`size-4 cursor-pointer ${warnMessages.length > 0 ? 'text-red-800' : 'text-muted-foreground'}`}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="left" className="max-w-xs">
+              <div className="flex flex-col gap-1">
+                <span>ethereumjs running in the browser</span>
+                <span>protocol is deployed client side</span>
+                <span>transaction is decoded client side</span>
+                {infoMessages.map((message, index) => (
+                  <span key={`info-${index}`}>{message}</span>
+                ))}
+                {warnMessages.map((message, index) => (
+                  <span key={`warn-${index}`} className="text-red-700">
+                    {message}
+                  </span>
+                ))}
+              </div>
+            </TooltipContent>
+          </Tooltip>
         </CardHeader>
         <CardContent className="pt-0 pb-1 text-sm text-muted-foreground">
           See the function trace and protocol source code

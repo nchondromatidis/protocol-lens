@@ -261,4 +261,10 @@ That means:
   lang="ts"
 />
 
-<ProtocolWorkflowTrace protocol="uniswapV2" workflow="swap" header='Swap' client:load />
+<ProtocolWorkflowTrace 
+  protocol="uniswapV2" 
+  workflow="swap" 
+  header='Swap'
+  warnMessages={['UniswapV2Pair uses solidity v0.5.16', 'Function traces are not supported for v0.5.16']}
+  client:load 
+/>

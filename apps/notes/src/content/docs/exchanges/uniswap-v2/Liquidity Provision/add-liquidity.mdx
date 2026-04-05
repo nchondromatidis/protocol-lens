@@ -96,4 +96,10 @@ This is the code that runs to produce the function trace
   lang="ts"
 />
 
-<ProtocolWorkflowTrace protocol="uniswapV2" workflow="addLiquidity" header='Add Liquidity' client:load />
+<ProtocolWorkflowTrace
+  protocol="uniswapV2"
+  workflow="addLiquidity"
+  header='Add Liquidity'
+  warnMessages={['UniswapV2Pair uses solidity v0.5.16', 'Function traces are not supported for v0.5.16']}
+  client:load
+/>
