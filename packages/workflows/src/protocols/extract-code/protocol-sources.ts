@@ -7,7 +7,20 @@ import * as fs from 'node:fs';
 import { trimFirstSpaces } from './_utils.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const PROTOCOLS_RESOURCES_PATH = path.join(__dirname, '..', '..', '..', '..', '..', 'packages', 'protocols');
+
+function findWorkspaceRoot(startDir: string): string {
+  let dir = startDir;
+  while (dir !== '/') {
+    if (fs.existsSync(path.join(dir, 'pnpm-workspace.yaml'))) {
+      return dir;
+    }
+    dir = path.dirname(dir);
+  }
+  throw new Error('Workspace root not found');
+}
+
+const workspaceRoot = findWorkspaceRoot(__dirname);
+export const PROTOCOLS_RESOURCES_PATH = path.join(workspaceRoot, 'packages', 'protocols');
 
 export type UniswapV2Artifacts = LensArtifactsMapSlice<LensArtifactsMap<ArtifactMap>, 'contracts', 'uniswap-v2'>;
 

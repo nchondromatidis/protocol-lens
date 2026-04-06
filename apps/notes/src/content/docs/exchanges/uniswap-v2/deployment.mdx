@@ -32,9 +32,9 @@ This architectural separation means the Core handles safety and the preservation
 - `WETH9`: is the canonical ETH ERC20 wrapper where you can exchange ETH to/from WETH (1:1)
 - `UniswapV2Factory`: creates `UniswapV2Pair` pool pairs
 - `UniswapV2Router02`
-  - stateless, therefore easily replaceable
+  - stateless, therefore, easily replaceable
   - main user-facing contract
   - extra helper functions
-- `UniswapV2Router01`: replaced by `UniswapV2Router02` because of a low severity bug
+- `UniswapV2Router01`: replaced by `UniswapV2Router02` because of a low-severity bug
 
 <Code code={extractProtocolWorkflowCode([['UniswapV2Workflows', 'deploy']])} lang="ts" />

@@ -1,12 +1,25 @@
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import fs from 'node:fs';
 import { Project } from 'ts-morph';
 import { trimFirstSpaces } from './_utils.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const ACTIONS_DIR = path.join(__dirname, '..', 'workflows');
+function findWorkspaceRoot(startDir: string): string {
+  let dir = startDir;
+  while (dir !== '/') {
+    if (fs.existsSync(path.join(dir, 'pnpm-workspace.yaml'))) {
+      return dir;
+    }
+    dir = path.dirname(dir);
+  }
+  throw new Error('Workspace root not found');
+}
+
+const workspaceRoot = findWorkspaceRoot(__dirname);
+export const ACTIONS_DIR = path.join(workspaceRoot, 'packages', 'workflows', 'src', 'protocols', 'workflows');
 
 export function extractProtocolWorkflowCode(
   workflows: Array<[protocolWorkflowClassName: string, methodNames: string]>

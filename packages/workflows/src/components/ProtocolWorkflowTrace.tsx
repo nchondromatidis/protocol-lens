@@ -6,7 +6,7 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from './ui/dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { X, Info } from 'lucide-react';
 import {
-  protocolWorkflowsRegistry,
+  getProtocolWorkflowsRegistry,
   type ProtocolWorkflowsRegistry,
   runWorkflow,
   type MethodArgs,
@@ -48,10 +48,12 @@ export const ProtocolWorkflowTrace: React.FC<ProtocolActionProps<ProtocolWorkflo
       try {
         setLoading(true);
         setError(null);
-        const { trace } = await runWorkflow(protocolWorkflowsRegistry, protocol, workflow, args);
-        const result = await protocolWorkflowsRegistry[protocol].toTraceResult(trace);
+        const registry = await getProtocolWorkflowsRegistry();
+        const { trace } = await runWorkflow(registry, protocol, workflow, args);
+        const result = await registry[protocol].toTraceResult(trace);
         setTraceResult(result ?? null);
       } catch (err) {
+        console.error('[ProtocolWorkflowTrace] Error:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch trace'));
       } finally {
         setLoading(false);
@@ -63,15 +65,15 @@ export const ProtocolWorkflowTrace: React.FC<ProtocolActionProps<ProtocolWorkflo
 
   const renderContent = () => {
     if (loading) {
-      return <div>Loading...</div>;
+      return <div>Loading workflow...</div>;
     }
 
     if (error) {
-      return <div>Error: {error.message}</div>;
+      return <div style={{ color: 'red', padding: '20px' }}>Error: {error.message}</div>;
     }
 
     if (!traceResult) {
-      return null;
+      return <div>No trace result available</div>;
     }
 
     return <TraceViewerClient trace={traceResult} />;

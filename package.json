@@ -16,5 +16,10 @@
     "deps:fix": "pnpm dlx syncpack@14.3.0 fix",
     "deps:update:patch": "pnpm dlx syncpack@14.3.0 update --target patch",
     "unsafe:deps:update:latest": "pnpm dlx syncpack@14.3.0 update --target latest"
+  },
+  "pnpm": {
+    "overrides": {
+      "zod": "4.3.6"
+    }
   }
 }

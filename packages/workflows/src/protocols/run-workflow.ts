@@ -2,16 +2,33 @@ import { UniswapV2Workflows } from './workflows/UniswapV2Workflows.ts';
 import { HardhatEvmLensHttpRL } from '@defi-notes/evm-lens/src/adapters/resource-loader/HardhatEvmLensHttpRL.ts';
 import type { ReadOnlyFunctionCallEvent } from '@defi-notes/evm-lens/src/lens/pipeline/4_function-trace/FunctionTraceBuilder.ts';
 
-// TODO: remove singleton, not an issue yet because of astros-js-islands
-export const protocolWorkflowsRegistry = {
-  uniswapV2: await UniswapV2Workflows.create(new HardhatEvmLensHttpRL('http://localhost:4321', 'contracts')),
-} as const;
+export type ProtocolWorkflowsRegistryType = {
+  uniswapV2: UniswapV2Workflows;
+};
+
+// Singleton instance - lazily initialized
+let protocolWorkflowsRegistryInstance: ProtocolWorkflowsRegistryType | null = null;
+
+export async function getProtocolWorkflowsRegistry(
+  resourcesUri: string = 'http://localhost:4321',
+  contractsFolder: string = 'contracts'
+): Promise<ProtocolWorkflowsRegistryType> {
+  if (protocolWorkflowsRegistryInstance) {
+    return protocolWorkflowsRegistryInstance;
+  }
+
+  protocolWorkflowsRegistryInstance = {
+    uniswapV2: await UniswapV2Workflows.create(new HardhatEvmLensHttpRL(resourcesUri, contractsFolder)),
+  };
+
+  return protocolWorkflowsRegistryInstance;
+}
 
 type HasTrace = {
   trace: ReadOnlyFunctionCallEvent | undefined;
 };
 
-export type ProtocolWorkflowsRegistry = typeof protocolWorkflowsRegistry;
+export type ProtocolWorkflowsRegistry = ProtocolWorkflowsRegistryType;
 export type MethodArgs<T, M extends keyof T> = T[M] extends (...args: infer A) => any ? A : never;
 export type MethodReturn<T, M extends keyof T> = T[M] extends (...args: any[]) => infer R ? R : never;
 export type WorkflowNames<T> = {

@@ -149,9 +149,11 @@ Typical scales:
 
 <div className='codeBlock'>
   $$
+  \begin{aligned}
   \text{scale} = 10^n \\
   \text{stored\_integer} = \text{round}(\text{real\_value} \times 10^n) \\
   \text{store stored\_integer as binary}
+  \end{aligned}
   $$
 </div>
 
@@ -163,8 +165,10 @@ Typical scales:
 
 <div className='codeBlock'>
  $$
+  \begin{aligned}
   \text{convert stored binary to integer} \\
   \text{real\_value} = \text{stored\_integer} \div 10^n
+  \end{aligned}
   $$
 </div>
 
@@ -273,9 +277,11 @@ Below you can example **range** and **precision** from some Q formats
 
 <div className='codeBlock'>
   $$
+  \begin{aligned}
   \text{scale} = 2^n \\
   \text{stored\_value} = \text{round}(\text{real\_value} \times 2^n) \\
   \text{store stored\_value as binary}
+  \end{aligned}
   $$
 </div>
 > store: multiply by 2^n = `<< n`
@@ -294,8 +300,10 @@ Encoding Steps
 
 <div className='codeBlock'>
   $$
+  \begin{aligned}
   \text{read stored bits as stored\_value} \\
   \text{real\_value} = \frac{\text{stored\_value}}{2^n}
+  \end{aligned}
   $$
 </div>
 > retrieve: divide by 2^n = `>> n`

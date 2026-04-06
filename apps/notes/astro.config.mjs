@@ -6,6 +6,7 @@ import starlightThemeNext from 'starlight-theme-next';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import { astroMultipleAssets } from 'vite-multiple-assets';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 import react from '@astrojs/react';
 
@@ -39,12 +40,35 @@ export default defineConfig({
     rehypePlugins: [rehypeKatex],
   },
   vite: {
-    plugins: [tailwindcss()],
-    ssr: {
-      noExternal: ['@defi-notes/workflows'],
+    define: {
+      __filename: JSON.stringify('/virtual/file.ts'),
+      __dirname: JSON.stringify('/virtual'),
     },
-    optimizeDeps: {
-      exclude: ['@defi-notes/workflows'],
-    },
+    plugins: [
+      tailwindcss(),
+      {
+        name: 'buffer-constants-polyfill',
+        enforce: 'post',
+        renderChunk(code) {
+          // Replace buffer.constants.MAX_STRING_LENGTH with actual value
+          return code.replace(
+            /buffer\.constants\.MAX_STRING_LENGTH/g,
+            '536870888'
+          );
+        },
+      },
+      {
+        ...nodePolyfills({
+          include: ['events', 'buffer', 'constants', 'stream', 'util', 'process'],
+          globals: {
+            Buffer: true,
+            global: true,
+            process: false,
+          },
+          protocolImports: true,
+        }),
+        apply: 'build',
+      },
+    ],
   },
 });
