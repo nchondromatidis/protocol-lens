@@ -3,10 +3,10 @@
 import {
   expandAllFeature,
   hotkeysCoreFeature,
+  type ItemInstance,
   searchFeature,
   selectionFeature,
   syncDataLoaderFeature,
-  type ItemInstance,
   type TreeState,
 } from '@headless-tree/core';
 import { useTree } from '@headless-tree/react';
@@ -15,25 +15,21 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Input } from './ui/input.tsx';
 import { Tree, TreeItem, TreeItemLabel } from './ui/tree.tsx';
+import type { ProjectFileItem } from './types/ProjectFileItem.ts';
 
 export const DEFAULT_INDENT = 20;
 
-export interface Item {
-  name: string;
-  children?: string[];
-}
-
-export interface ProjectFilesViewerProps {
-  items: Record<string, Item>;
+export type ProjectFilesViewerProps = {
+  items: Record<string, ProjectFileItem>;
   rootItemId: string;
   initialExpandedItems: string[];
   onSelectFileFromTree: (fileId: string) => void;
   onScrollToFile?: (fileId: string) => void;
   scrollToFileId?: string;
   indent?: number;
-}
+};
 
-const getItemIcon = (item: ItemInstance<Item>) => {
+const getItemIcon = (item: ItemInstance<ProjectFileItem>) => {
   if (!item.isFolder()) return <FileIcon className="pointer-events-none size-4 text-muted-foreground" />;
   const Icon = item.isExpanded() ? FolderOpenIcon : FolderIcon;
   return <Icon className="pointer-events-none size-4 text-muted-foreground" />;
@@ -48,11 +44,11 @@ export const ProjectFilesViewer: React.FC<ProjectFilesViewerProps> = ({
   onScrollToFile,
   scrollToFileId,
 }) => {
-  const [state, setState] = useState<Partial<TreeState<Item>>>({});
+  const [state, setState] = useState<Partial<TreeState<ProjectFileItem>>>({});
   const treeRef = useRef<HTMLDivElement>(null);
   const processedScrollToFileId = useRef<string | null>(null);
 
-  const tree = useTree<Item>({
+  const tree = useTree<ProjectFileItem>({
     dataLoader: {
       getChildren: (itemId) => items[itemId]?.children ?? [],
       getItem: (itemId) => items[itemId],

@@ -1,5 +1,5 @@
-import type { Message } from 'tevm/actions';
-import type { EvmResult, InterpreterStep } from 'tevm/evm';
+import type { Message } from '@tevm/actions';
+import type { EvmResult, InterpreterStep } from '@tevm/evm';
 
 export type TEvmEvent = Message | EvmResult | InterpreterStep;
 

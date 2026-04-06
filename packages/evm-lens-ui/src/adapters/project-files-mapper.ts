@@ -1,11 +1,11 @@
-import type { Item } from '../components/ProjectFilesViewer.tsx';
+import type { ProjectFileItem } from '../components/types/ProjectFileItem.ts';
 
 export function contractFQNListToProjectFiles(contractFQNList: string[]): {
-  items: Record<string, Item>;
+  items: Record<string, ProjectFileItem>;
   rootItemId: string;
   firstLevelFolderNames: string[];
 } {
-  const items: Record<string, Item> = {};
+  const items: Record<string, ProjectFileItem> = {};
 
   const sourcePaths = [...new Set(contractFQNList.map((fqn) => fqn.split(':')[0]).filter(Boolean))];
 

@@ -6,10 +6,9 @@ sidebar:
 
 [ERC4626](https://eips.ethereum.org/EIPS/eip-4626) is the implementation of a standard API for tokenized Vaults representing shares of a single underlying EIP-20 token.
 
-
 ## Inflation Attack
 
-Even though the latest Open Zeppelin ERC4626 implementation has taken some precautions about inflation attack, 
+Even though the latest Open Zeppelin ERC4626 implementation has taken some precautions about inflation attack,
 it is important to analyze because it is a critical aspect of security for tokenized vaults.
 
 ### Attack principle
@@ -18,6 +17,7 @@ What the attack really needs is a large change in $totalAssets/totalShares$ rela
 that’s easier when the vault is empty, but “empty” here just means “low liquidity,” not strictly zero.
 
 If the vault has modest liquidity (e.g., early stages), the attacker can still front‑run a victim by:
+
 - acquiring some shares (possibly with a non‑trivial deposit),
 - making a donation large compared to existing assets,
 - then letting the victim deposit at the inflated price so the victim receives fewer shares and the attacker exits later at a profit
@@ -36,7 +36,7 @@ function convertToAssets(uint256 shares) public view returns (uint256) {
 ```
 
 | Step | Action                                                | Total Assets | Total Shares | Notes                                                                |
-|:-----|:------------------------------------------------------|:-------------|:-------------|:---------------------------------------------------------------------|
+| :--- | :---------------------------------------------------- | :----------- | :----------- | :------------------------------------------------------------------- |
 | 1.   | Vault is empty.                                       | 0            | 0            | Vulnerable new vault.                                                |
 | 2.   | Attacker deposits 0.1 token.                          | 0.1 token    | 1 share      | Attacker owns 100% of shares.                                        |
 | 3.   | Frontrun: Donates 100 tokens (no shares minted).      | 100.1 tokens | 1 share      | **Inflates asset value per share.**                                  |
@@ -57,7 +57,7 @@ function deposit(uint256 assets) public {
 ```
 
 | Step | Action                                             | Total Assets  | Total Shares | Notes                                                                |
-|:-----|:---------------------------------------------------|:--------------|:-------------|:---------------------------------------------------------------------|
+| :--- | :------------------------------------------------- | :------------ | :----------- | :------------------------------------------------------------------- |
 | 1.   | Vault is empty.                                    | 0             | 0            | Vulnerable new vault.                                                |
 | 2.   | Attacker deposits 0.1 token.                       | 0.1 tokens    | 1 share      | Attacker owns 100% of shares.                                        |
 | 3.   | Frontrun: Donates 500 tokens (no shares minted).   | 500.1 tokens  | 1 share      | **Inflates asset value per share.**                                  |
@@ -78,18 +78,18 @@ uint constant NUMBER_OF_DEAD_SHARES = 100;
 function deposit(uint256 assets) public {
     asset.transferFrom(msg.sender, address(this), assets);
     uint shares = convertToShares(assets);
-    
+
     if (totalShares() == 0) {
         _mint(address(0), NUMBER_OF_DEAD_SHARES);
         shares -= NUMBER_OF_DEAD_SHARES;
     }
-    
+
     _mint(msg.sender, shares);
 }
 ```
 
 | Step | Action                                            | Total Assets | Total Shares | Notes                                                          |
-|:-----|:--------------------------------------------------|:-------------|:-------------|:---------------------------------------------------------------|
+| :--- | :------------------------------------------------ | :----------- | :----------- | :------------------------------------------------------------- |
 | 1.   | Vault is empty.                                   | 0            | 0            | Vulnerable new vault.                                          |
 | 2.   | Attacker deposits 100 token.                      | 100 tokens   | 0 share      | Attacker owns 100-100=0. 0% of shares.                         |
 | 3.   | Frontrun: Donates 2000 tokens (no shares minted). | 2100 tokens  | 0 share      | Attacker burns 2000 tokens.                                    |
@@ -100,7 +100,7 @@ function deposit(uint256 assets) public {
 
 **Vault** in increases the shares accuracy by multiplying with a big number.
 
-This is the implementation that [OZ ERC4626](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.6.1/contracts/token/ERC20/extensions/ERC4626.sol) 
+This is the implementation that [OZ ERC4626](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.6.1/contracts/token/ERC20/extensions/ERC4626.sol)
 currently uses, but you must manually override the `_decimalsOffset` function to increase the precision.
 
 ```solidity
@@ -120,18 +120,15 @@ function _decimalsOffset() internal view virtual returns (uint8) {
 ```
 
 | Step | Action                                                | Total Assets   | Total Shares | Notes                                                                           |
-|:-----|:------------------------------------------------------|:---------------|:-------------|:--------------------------------------------------------------------------------|
+| :--- | :---------------------------------------------------- | :------------- | :----------- | :------------------------------------------------------------------------------ |
 | 1.   | Vault is empty.                                       | 0              | 0            | Vulnerable new vault.                                                           |
 | 2.   | Attacker deposits 1 token.                            | 1 token        | 1 share      | Attacker owns 100% of shares.                                                   |
 | 3.   | Frontrun: Donates 1000000 tokens (no shares minted).  | 1000001 tokens | 1 share      | **Inflates asset value per share.**                                             |
 | 4.   | Victim deposits 1 tokens                              | 1000002 tokens | 1 share      | shares = 1/1000001 → 0.999999 (rounds down). Victim gets 0 shares.              |
 | 5.   | Attacker redeems 1 share, takes entire vault balance. | 0              | 0            | Attacker gets 1000002 tokens. Steals victim's 1 tokens and uses 1000001 tokens. |
 
-
 The more you increase the decimal offset, the more expensive it is for the attacker.
 
 ## Precautions
 
 - **Client** should revert if the amount received is not within a slippage tolerance regardless.
-
-

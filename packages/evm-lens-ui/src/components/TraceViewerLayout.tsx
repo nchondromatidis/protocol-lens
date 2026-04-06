@@ -4,8 +4,9 @@ import { ResizablePanelGroup, ResizablePanel, type Layout } from './ui/resizable
 import type { ReadOnlyFunctionCallEvent } from '@defi-notes/evm-lens/src/lens/pipeline/4_function-trace/FunctionTraceBuilder.ts';
 import { FunctionTraceViewer } from './FunctionTraceViewer.tsx';
 import { SourceCodeViewer } from './SourceCodeViewer.tsx';
-import { ProjectFilesViewer, type Item } from './ProjectFilesViewer.tsx';
+import { ProjectFilesViewer } from './ProjectFilesViewer.tsx';
 import React, { useMemo, useCallback } from 'react';
+import type { ProjectFileItem } from './types/ProjectFileItem.ts';
 
 const MAIN_LAYOUT_KEY = 'evm-lens-trace-viewer-main';
 const TOP_LAYOUT_KEY = 'evm-lens-trace-viewer-top';
@@ -33,9 +34,9 @@ function getSavedLayout(key: string, defaultLayout: Layout): Layout {
   return defaultLayout;
 }
 
-interface TraceViewerLayoutProps {
+type TraceViewerLayoutProps = {
   functionTrace: ReadOnlyFunctionCallEvent;
-  projectFiles: Record<string, Item>;
+  projectFiles: Record<string, ProjectFileItem>;
   rootItemId: string;
   initialExpandedItems: string[];
   onSelectFileFromTree: (fileId: string) => void;
@@ -44,7 +45,7 @@ interface TraceViewerLayoutProps {
   scrollToFileId?: string;
   sourceCode?: string;
   highlightedLine?: number;
-}
+};
 
 const DEFAULT_MAIN_LAYOUT: Layout = { top: 60, bottom: 40 };
 const DEFAULT_TOP_LAYOUT: Layout = { files: 30, source: 70 };

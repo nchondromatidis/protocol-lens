@@ -69,11 +69,11 @@ const getBadgeClassName = (callType: string, isError: boolean) => {
 
 // --- Sub-components ---
 
-interface ExpandCollapseIconProps {
+type ExpandCollapseIconProps = {
   isError: boolean;
   hasChildren: boolean;
   isExpanded: boolean;
-}
+};
 
 const ExpandCollapseIcon: React.FC<ExpandCollapseIconProps> = ({ isError, hasChildren, isExpanded }) => {
   if (isError) {
@@ -89,14 +89,14 @@ const ExpandCollapseIcon: React.FC<ExpandCollapseIconProps> = ({ isError, hasChi
   );
 };
 
-interface TraceNodeProps {
+type TraceNodeProps = {
   event: ReadOnlyFunctionCallEvent;
   path: string;
   depth: number;
   expandedPaths: Set<string>;
   onToggle: (path: string) => void;
   onSelectTraceNode?: (event: ReadOnlyFunctionCallEvent) => void;
-}
+};
 
 const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths, onToggle, onSelectTraceNode }) => {
   const isExpanded = expandedPaths.has(path);
@@ -210,11 +210,11 @@ const TraceNode: React.FC<TraceNodeProps> = ({ event, path, depth, expandedPaths
 
 // --- Main Export Component ---
 
-interface TransactionTraceViewerProps {
+type TransactionTraceViewerProps = {
   functionTrace: ReadOnlyFunctionCallEvent;
   className?: string;
   onSelectTraceNode?: (event: ReadOnlyFunctionCallEvent) => void;
-}
+};
 
 export const FunctionTraceViewer: React.FC<TransactionTraceViewerProps> = ({
   functionTrace,

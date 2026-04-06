@@ -7,8 +7,8 @@ sidebar:
 import { Code } from '@astrojs/starlight/components';
 import { DesmosChart } from '@defi-notes/workflows/components/DesmosChart';
 import { ProtocolWorkflowTrace } from '@defi-notes/workflows/components/ProtocolWorkflowTrace';
-import { extractProtocolWorkflowCode } from "@defi-notes/workflows/protocols/extract-code/protocol-workflow";
-import { extractProtocolCodeSlice } from "@defi-notes/workflows/protocols/extract-code/protocol-sources";
+import { extractProtocolWorkflowCode } from '@defi-notes/workflows/protocols/extract-code/protocol-workflow';
+import { extractProtocolCodeSlice } from '@defi-notes/workflows/protocols/extract-code/protocol-sources';
 import { uniswapV2ChartId } from '@constants/charts';
 
 This page covers the necessary concepts to understand token **swap flow in Uniswap V2**.
@@ -16,6 +16,7 @@ This page covers the necessary concepts to understand token **swap flow in Unisw
 ## Concepts
 
 ### Exchange Amounts
+
 A swap is the **exchange of one token for another** through an automated liquidity pool in a single transaction, with no need for a traditional order book or counterparty.
 
 You specify either an exact amount to send or an exact amount to receive, and the pool calculates the other side using its current reserves.
@@ -32,36 +33,40 @@ Suppose that a trader wants to buy an amount $x_{swap}$ of token X. To do so, th
   \end{aligned}
   $$
 
-  $$
-  \begin{aligned}
-  \text{amountIn is known, amountOut is unknown:} \\
-  amountOut &= \frac{reserveOut \cdot amountIn}{reserveIn + amountIn} & (1) \\
-  \\
-  \text{amountOut is known, amountIn is unknown:} \\
-  amountIn &= \frac{reserveIn \cdot amountOut}{reserveOut - amountOut} & (2)
-  \end{aligned}
-  $$
+$$
+\begin{aligned}
+\text{amountIn is known, amountOut is unknown:} \\
+amountOut &= \frac{reserveOut \cdot amountIn}{reserveIn + amountIn} & (1) \\
+\\
+\text{amountOut is known, amountIn is unknown:} \\
+amountIn &= \frac{reserveIn \cdot amountOut}{reserveOut - amountOut} & (2)
+\end{aligned}
+$$
+
 </div>
 
 Interpreting the equations:
+
 - (1) trader wants to deposit $amountIn$ of token A => will receive $amountOut$ of token B
 - (2) trader wants to receive $amountOut$ of token A => should deposit $amountIn$ of token B
 
 ### Adding Fees
+
 Uniswap v2 charges **fees on trader deposits**, and then the remaining amount is actually traded.
 
 A 0.3% fee is deducted from each swap and distributed to liquidity providers.
 
 - Applying fees to (1)
+
 <div className='codeBlock'>
-  $$
-  amountOut = \frac{reserveOut \cdot 0.97 \cdot amountIn}{reserveIn + 0.97 \cdot amountIn}
-  $$
+$$
+amountOut = \frac{reserveOut \cdot 0.97 \cdot amountIn}{reserveIn + 0.97 \cdot amountIn}
+$$
 </div>
 
 <Code
   code={extractProtocolCodeSlice([
-    ['contracts/uniswap-v2/v2-periphery/contracts/libraries/UniswapV2Library.sol:UniswapV2Library.sol', 42, 50]
+    ['contracts/uniswap-v2/v2-periphery/contracts/libraries/UniswapV2Library.sol:UniswapV2Library.sol', 42, 50],
   ])}
   lang="solidity"
 />
@@ -76,7 +81,7 @@ A 0.3% fee is deducted from each swap and distributed to liquidity providers.
 
 <Code
   code={extractProtocolCodeSlice([
-    ['contracts/uniswap-v2/v2-periphery/contracts/libraries/UniswapV2Library.sol:UniswapV2Library.sol', 52, 59]
+    ['contracts/uniswap-v2/v2-periphery/contracts/libraries/UniswapV2Library.sol:UniswapV2Library.sol', 52, 59],
   ])}
   lang="solidity"
 />
@@ -101,6 +106,7 @@ The swap is priced using only 99.7% of the input, but 100% enters the pool, the 
 </div>
 
 ### Effective Price
+
 Because the pool balances must move along a CPMM curve, every trade shifts the balance of reserves and results in a new price.
 
 So the effective price is the **actual exchange rate** the trader pays:
@@ -110,14 +116,16 @@ So the effective price is the **actual exchange rate** the trader pays:
   p_{effective} = \frac{ y_{after} - y_{before} } { x_{before} - x_{after} }
   $$
 
-  $y_{before}$ / $y_{after}$ reserve balance of token Y before/after trade
+$y_{before}$ / $y_{after}$ reserve balance of token Y before/after trade
 
-  $x_{before}$ / $x_{after}$ reserve balance of token X before/after trade
+$x_{before}$ / $x_{after}$ reserve balance of token X before/after trade
+
 </div>
 
 The effective price is always higher (worse) than the starting spot price.
 
 ### Spot Price
+
 The **theoretical exchange rate** for an **infinitely small trade** (compared to the reserves).
 
 <div className='codeBlock flex flex-col items-center'>
@@ -125,27 +133,32 @@ The **theoretical exchange rate** for an **infinitely small trade** (compared to
   p_{spot} = \frac{y_{before}}{x_{before}}
   $$
 
-  $y_{before}$ / $x_{before}$ reserve balance of token Y/X before trade
+$y_{before}$ / $x_{before}$ reserve balance of token Y/X before trade
+
 </div>
 
 ### Price Impact
+
 Is the difference between
+
 - the amount that a trader pays (or deposits) because of **effective price**
 - the amount that the trader would have paid at **spot price**
 
 #### Initial Reserve Ratio
+
 - **Effective price increase** depends on the **starting spot price**
   - When you push the reserves towards the edges, the curve becomes much steeper in price terms
 
 **Example**: Assume the trader always inputs 10,000 USDC to buy ETH. k = 4,000,000
 
 | Case | Initial USDC reserve | Initial ETH reserve | Starting spot price | amountIn (USDC) | amountOut (ETH) | Effective price       | Final USDC reserve | Final ETH reserve | Spot price after trade |
-|------|----------------------|---------------------|---------------------|-----------------|-----------------|-----------------------|--------------------|-------------------|------------------------|
+| ---- | -------------------- | ------------------- | ------------------- | --------------- | --------------- | --------------------- | ------------------ | ----------------- | ---------------------- |
 | A    | 2,000,000            | 2                   | 1,000,000 USDC/ETH  | 10,000          | 0.00995025      | 1,005,000.00 USDC/ETH | 2,010,000          | 1.99004975        | 1,010,025.00 USDC/ETH  |
 | B    | 200,000              | 20                  | 10,000 USDC/ETH     | 10,000          | 0.95238095      | 10,500.00 USDC/ETH    | 210,000            | 19.04761905       | 11,025.00 USDC/ETH     |
 | C    | 20,000               | 200                 | 100 USDC/ETH        | 10,000          | 66.66666667     | 150.00 USDC/ETH       | 30,000             | 133.33333333      | 225.00 USDC/ETH        |
 
 #### Relative Trade Size
+
 - **Effective price increase** depends on the **fraction of the pool being swapped**
   - in a deep pool, buying a token mount might barely move the price,
   - in a shallow pool, the same trade can move the price noticeably
@@ -153,16 +166,18 @@ Is the difference between
 **Example**: Assume both pools start at the same spot price: 4,000 USDC per ETH.
 
 | Pool         | Initial USDC reserve | Initial ETH reserve | Starting spot price | ETH bought | Fraction of ETH pool bought | USDC paid | Effective price   | Final USDC reserve | Final ETH reserve | Spot price after trade |
-|--------------|----------------------|---------------------|---------------------|------------|-----------------------------|-----------|-------------------|--------------------|-------------------|------------------------|
+| ------------ | -------------------- | ------------------- | ------------------- | ---------- | --------------------------- | --------- | ----------------- | ------------------ | ----------------- | ---------------------- |
 | Deep pool    | 40,000,000           | 10,000              | 4,000.00 USDC/ETH   | 10         | 0.1%                        | 40,040.04 | 4,004.00 USDC/ETH | 40,040,040.04      | 9,990             | 4,008.01 USDC/ETH      |
 | Shallow pool | 400,000              | 100                 | 4,000.00 USDC/ETH   | 10         | 10%                         | 44,444.44 | 4,444.44 USDC/ETH | 444,444.44         | 90                | 4,938.27 USDC/ETH      |
 
 ### Slippage
+
 Is the difference between the **quoted effective price** of a trade and the **final execution price**.
 
 This is because other trades might be executed before the trader's, changing spot price before the trade takes place.
 
 In Uniswap V2, slippage protection is at the router level, by parameters like:
+
 - `amountOutMin` for exact-input swaps
 - `amountInMax` for exact-output swaps
 - plus a `deadline` to avoid stale execution.
@@ -170,6 +185,7 @@ In Uniswap V2, slippage protection is at the router level, by parameters like:
 ## Contracts
 
 ### Pair: Swap method
+
 All router swap methods call `UniswapV2Pair.swap()` method.
 
 - works for `either direction` on the same pair
@@ -179,54 +195,59 @@ All router swap methods call `UniswapV2Pair.swap()` method.
 
 <Code
   code={extractProtocolCodeSlice([
-    ['contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 158 , 187]
+    ['contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 158, 187],
   ])}
   lang="solidity"
 />
 
-
 #### Invariant
+
 In order for swap to be successful, the new balances must preserve or increase the old invariant ($xy=k$).
 
 <Code
   code={extractProtocolCodeSlice([
-    ['contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 180 , 182]
+    ['contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 180, 182],
   ])}
   lang="solidity"
 />
 
 #### Example
+
 | Step | Value / check                   | Example                                                     |
-|------|---------------------------------|-------------------------------------------------------------|
+| ---- | ------------------------------- | ----------------------------------------------------------- |
 | 1    | Trader sends                    | sends 2,100 token1                                          |
 | 2    | Trader wants out                | amount0Out = 1, amount1Out = 0                              |
 | 3    | Old reserves                    | reserve0 = 100, reserve1 = 200,000                          |
-| 4    | Old k                           | 100 * 200,000 = 20,000,000                                  |
+| 4    | Old k                           | 100 \* 200,000 = 20,000,000                                 |
 | 5    | Pool sends out                  | 1 token0                                                    |
 | 6    | Balances after user sends input | balance0 = 99, balance1 = 202,100                           |
 | 7    | Compute input                   | amount0In = 99 - (100 - 1) = 0                              |
 | 8    | Compute input                   | amount1In = 202,100 - (200,000 - 0) = 2,100                 |
-| 9    | Fee-adjust balance0             | balance0Adjusted = 99 * 1000 - 0 * 3 = 99,000               |
-| 10   | Fee-adjust balance1             | balance1Adjusted = 202,100 * 1000 - 2,100 * 3 = 202,093,700 |
-| 11   | Check                           | 99,000 * 202,093,700 >= 100 * 200,000 * 1000^2              |
+| 9    | Fee-adjust balance0             | balance0Adjusted = 99 _ 1000 - 0 _ 3 = 99,000               |
+| 10   | Fee-adjust balance1             | balance1Adjusted = 202,100 _ 1000 - 2,100 _ 3 = 202,093,700 |
+| 11   | Check                           | 99,000 _ 202,093,700 >= 100 _ 200,000 \* 1000^2             |
 | 12   | Result                          | True, so swap succeeds                                      |
 
 ### Router: Swap Methods
+
 `UniswapV2Router2` contract (periphery) provides multiple swap methods to support different combinations of swaps.
 
 It calculates **optimal amounts** before calling `UniswapV2Pair.swap()` method.
 
 The core distinction across all functions is:
+
 - who fixes what (exact input vs. exact output)
 - whether ETH or ERC-20 tokens are on either end
 - tokens whose balance decreases on transfer (SupportingFeeOnTransferTokens)
 
 #### Multihop swap
+
 One trade can pass through multiple token pairs/pools in sequence instead of using one direct swap.
 
 Router uses `path` argument to support this type of trade.
 
 The order of the path **does** matter:
+
 - `path[0]` is the token you are paying with,
 - `path[path.length - 1]` is the token you want to receive
 - every `intermediate element` defines the hop sequence the router will follow
@@ -236,19 +257,20 @@ The order of the path **does** matter:
 Take this path: [DAI, WETH, USDC, UNI, LINK]
 
 That means:
+
 - Overall input token: DAI.
 - Overall output token: LINK.
 - Intermediate hops: WETH, then USDC, then UNI
 
 | Hop | Pair used | Input to that pair | Output from that pair |
-|-----|-----------|--------------------|-----------------------|
+| --- | --------- | ------------------ | --------------------- |
 | 1   | DAI/WETH  | DAI                | WETH                  |
 | 2   | WETH/USDC | WETH               | USDC                  |
 | 3   | USDC/UNI  | USDC               | UNI                   |
 | 4   | UNI/LINK  | UNI                | LINK                  |
 
-
 ## Chart
+
 <DesmosChart graphId={uniswapV2ChartId} height="500px" client:load />
 
 ## Function trace
@@ -256,15 +278,15 @@ That means:
 <Code
   code={extractProtocolWorkflowCode([
     ['UniswapV2Workflows', 'swap'],
-    ['UniswapV2Workflows', '_swap']
+    ['UniswapV2Workflows', '_swap'],
   ])}
   lang="ts"
 />
 
-<ProtocolWorkflowTrace 
-  protocol="uniswapV2" 
-  workflow="swap" 
-  header='Swap'
+<ProtocolWorkflowTrace
+  protocol="uniswapV2"
+  workflow="swap"
+  header="Swap"
   warnMessages={['UniswapV2Pair uses solidity v0.5.16', 'Function traces are not supported for v0.5.16']}
-  client:load 
+  client:load
 />

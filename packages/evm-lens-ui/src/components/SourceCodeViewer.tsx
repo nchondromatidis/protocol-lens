@@ -7,11 +7,11 @@ import { EditorView } from '@codemirror/view';
 import { EditorSelection } from '@codemirror/state';
 import React from 'react';
 
-interface SourceCodeViewerProps {
+type SourceCodeViewerProps = {
   sourceCode?: string;
   highlightedLine?: number;
   theme?: 'dark' | 'light';
-}
+};
 
 const SOLIDITY_EXTENSIONS = [solidity];
 

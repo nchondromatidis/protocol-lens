@@ -1,0 +1,4 @@
+{
+  "extends": "@defi-notes/config/tsconfig.web.json",
+  "include": ["src/**/*"]
+}

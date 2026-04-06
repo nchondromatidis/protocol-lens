@@ -1,4 +1,7 @@
 {
   "extends": "@defi-notes/config/tsconfig.node.json",
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  },
   "include": ["test/**/*", "./vite.config.ts", "./vitest.config.js", "eslint.config.js", "prettier.config.js"]
 }

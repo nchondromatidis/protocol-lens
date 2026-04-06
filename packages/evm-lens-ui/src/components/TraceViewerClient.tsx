@@ -7,9 +7,9 @@ import { contractFQNListToProjectFiles } from '../adapters/project-files-mapper.
 import { getSourceContractFqQN } from '@defi-notes/evm-lens/src/client-utils/names.ts';
 import type { TraceResult, TraceResultError } from '../types/TraceResult.ts';
 
-export interface TraceViewerClientProps {
+export type TraceViewerClientProps = {
   trace: TraceResult;
-}
+};
 
 function isTraceResultError(result: TraceResult): result is TraceResultError {
   return 'error' in result;

@@ -1,14 +1,15 @@
-import { type ContractFunctionName, tevmContract, tevmDeploy, tevmSetAccount, type TevmTransport } from 'tevm';
+import { tevmContract, tevmDeploy, tevmSetAccount, type TevmTransport } from '@tevm/memory-client';
 import {
   type Abi,
   type AbiStateMutability,
   type Account,
   type ContractConstructorArgs,
   type ContractFunctionArgs,
+  type ContractFunctionName,
   getContract,
 } from 'viem';
-import type { Message } from 'tevm/actions';
-import type { EvmResult, InterpreterStep } from 'tevm/evm';
+import type { Message } from '@tevm/actions';
+import type { EvmResult, InterpreterStep } from '@tevm/evm';
 import { AddressLabeler } from './indexes/AddressLabeler.ts';
 import { InvalidArgument, InvariantError } from '../_common/errors.ts';
 import type { Address, Hex, LensArtifactsMap } from './types.ts';

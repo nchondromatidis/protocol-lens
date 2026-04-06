@@ -7,35 +7,40 @@ sidebar:
 import { Aside } from '@astrojs/starlight/components';
 
 ## Share tokens
+
 In DeFi shares are very often represented as tokens (mostly commonly ERC20).
 
 ### Acquiring share tokens
+
 - You get share tokens when you deposit assets to a vault (primary market).
 - You could also buy share tokens on secondary markets.
 
 ### Redeeming share tokens
+
 - You can redeem the vault assets that your share tokens worth from the vault (primary market).
 - You could also sell your share tokens on secondary markets.
 
 ### Properties
+
 - Your share token track a `proportional` right to withdraw assets from the vault.
 - When you add or remove funds, shares mint or burn to keep proportions fair, `ensuring no one dilutes others unfairly`.
 
 eg if you hold 1% of total shares, you claim 1% of the pool's value or earnings.
 
 ### Number
+
 The share token number that represents the proportion does not matter, as long as the proportion is correct.
+
 - 10 share tokens in 100 total circulating = 10%
 - 100 share tokens in 1000 total circulating = 10%
 
 ### Value
+
 What is the value (in token assets) of your share:
 
 $ \normalsize{\text{1 Share token value in vault assets}} =
 \frac { \normalsize{\text{total vault assets}} } { \normalsize{\text{total circulating supply of share tokens}} } $
 
-
 <Aside type="caution">Integer division looses fractional part. Increase precision or take other measurements.</Aside>
 
 <Aside type="caution">Take care for division by zero.</Aside>
-

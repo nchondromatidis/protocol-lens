@@ -1,4 +1,5 @@
-import { createClient, createTevmTransport, tevmReady, type TevmTransport } from 'tevm';
+import { createClient } from 'viem';
+import { createTevmTransport, tevmReady, type TevmTransport } from '@tevm/memory-client';
 import {
   type Account,
   testActions,
@@ -10,7 +11,7 @@ import {
   type Chain,
 } from 'viem';
 import { localhost } from 'viem/chains';
-import { createEvm } from 'tevm/evm';
+import { createEvm } from '@tevm/evm';
 
 export type PublicTestClient<
   TTransport extends Transport = Transport,

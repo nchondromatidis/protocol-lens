@@ -1,5 +1,5 @@
 {
-  "extends": "@defi-notes/config/tsconfig.web.json",
+  "extends": "@defi-notes/config/tsconfig.node.json",
   "compilerOptions": {
     "rootDir": "."
   },

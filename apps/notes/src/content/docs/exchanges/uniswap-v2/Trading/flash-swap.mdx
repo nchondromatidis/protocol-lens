@@ -5,7 +5,7 @@ sidebar:
 ---
 
 import { Code } from '@astrojs/starlight/components';
-import { extractProtocolCodeSlice } from "@defi-notes/workflows/protocols/extract-code/protocol-sources";
+import { extractProtocolCodeSlice } from '@defi-notes/workflows/protocols/extract-code/protocol-sources';
 
 ---
 
@@ -18,7 +18,9 @@ This page covers the necessary concepts to understand **flash swap flows in Unis
 With flash swap, you can make **capital-free and collateral-free trades** as long as you return your borrowed amount plus fees in the same tx.
 
 ## Callback
+
 Swap is coded to support advanced/custom swap scenarios:
+
 - Uniswap V2 treats swaps as “optimistic”: the pair transfers out amount0Out or amount1Out before checking that it has been repaid by the end of the same transaction.
 - If your data.length == 0, it behaves like a normal swap,
 - If data.length > 0, the pair triggers `uniswapV2Call(address sender, uint amount0, uint amount1, bytes calldata data)` on the to contract.
@@ -32,7 +34,9 @@ Swap is coded to support advanced/custom swap scenarios:
 />
 
 ## Callback steps
+
 The basic sequence is:
+
 - Your contract calls the pair’s `swap(...)` and asks for `token0` or `token1` `out`.
 - The pair `transfers the requested tokens to your contract`
 - Then calls `uniswapV2Call(...)`.
@@ -65,6 +69,7 @@ function uniswapV2Call(
 ```
 
 ## Multi token swap
+
 This is the case where the `token withdrawn` is `different than the token returned`.
 
 <div className='codeBlock'>
@@ -79,6 +84,7 @@ This is the case where the `token withdrawn` is `different than the token return
 </div>
 
 ### Effective fee
+
 Ordinary Uniswap V2 swap with a 0.3% fee on the input/returned token amount.
 
 No fees on output/withdrawn amount.
@@ -112,9 +118,11 @@ function uniswapV2Call(
 ```
 
 ## Single token swap
+
 This is the case where the `token withdrawn` is `the same as the token returned`.
 
 Let’s calculate the `minimum amount we need to return`, starting from the invariant:
+
 <div className='codeBlock'>
   $$
   \begin{aligned}
@@ -135,6 +143,7 @@ Let’s calculate the `minimum amount we need to return`, starting from the inva
 - If you return less, tx reverts
 
 ### Effective fee
+
 It expresses the extra repayment as a percentage of the amount you originally withdrew, not as a percentage of the amount you return.
 
 <div className='codeBlock'>
@@ -148,21 +157,24 @@ It expresses the extra repayment as a percentage of the amount you originally wi
   \end{aligned}
   $$
 
-  amountReturned fee:
-  $$
-  \begin{aligned}
-  &\Rightarrow \frac{fee}{amount0In_{\min}} = 1 - 0.997 = 0.003 = 0.3\% \\
-  &\Rightarrow \frac{fee}{amountReturned} = 1 - 0.997 = 0.003 = 0.3\%
-  \end{aligned}
-  $$
+amountReturned fee:
 
-  amountWithdrawn fee:
-  $$
-  \begin{aligned}
-  &\Rightarrow \frac{fee}{amount0Out} = \frac{0.003}{0.997} \approx 0.3009027\% \\
-  &\Rightarrow \frac{fee}{amountWithdrawn} = \frac{0.003}{0.997} \approx 0.3009027\%
-  \end{aligned}
-  $$
+$$
+\begin{aligned}
+&\Rightarrow \frac{fee}{amount0In_{\min}} = 1 - 0.997 = 0.003 = 0.3\% \\
+&\Rightarrow \frac{fee}{amountReturned} = 1 - 0.997 = 0.003 = 0.3\%
+\end{aligned}
+$$
+
+amountWithdrawn fee:
+
+$$
+\begin{aligned}
+&\Rightarrow \frac{fee}{amount0Out} = \frac{0.003}{0.997} \approx 0.3009027\% \\
+&\Rightarrow \frac{fee}{amountWithdrawn} = \frac{0.003}{0.997} \approx 0.3009027\%
+\end{aligned}
+$$
+
 </div>
 
 - fee: 0.3% of the returned/input amount
@@ -195,13 +207,14 @@ function uniswapV2Call(
 ## Comparing fees
 
 Multitoken swap is `0,0009027% cheaper`, that single token swap.
+
 - 0.3009027% − 0.3000000% = 0.0009027% difference
 - 30.09 bps − 30.00 bps ≈ 0.09 bps
-
 
 ## Use cases
 
 Most real uses fall into these buckets:
+
 - Arbitrage — buy on one venue, sell on another, keep spread.
 - Liquidation — borrow asset, liquidate unhealthy position elsewhere, receive bonus, repay.
 - Collateral swap / debt refinance — use borrowed funds to change a position’s collateral or debt composition in one transaction.

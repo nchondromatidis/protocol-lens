@@ -5,8 +5,7 @@
   "type": "module",
   "description": "React component for visualising tevm transactions",
   "scripts": {
-    "check:types": "tsc --noEmit",
-    "build": "tsc",
+    "check:types": "tsc --build --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test:contracts:build:clean": "rm -rf test/_setup/artifacts && rm -rf cache",
@@ -17,23 +16,26 @@
   },
   "dependencies": {
     "debug": "^4.4.3",
-    "tevm": "^1.0.0-next.149",
-    "viem": "2.37.9"
+    "@tevm/memory-client": "^1.0.0-next.148",
+    "@tevm/evm": "^1.0.0-next.148",
+    "@tevm/actions": "^1.0.0-next.148",
+    "viem": "2.37.13"
   },
   "devDependencies": {
     "@defi-notes/config": "workspace:*",
     "@defi-notes/evm-lens-indexer": "workspace:*",
     "@defi-notes/protocols": "workspace:*",
-    "@eslint/js": "^9.39.2",
-    "@types/debug": "^4.1.12",
-    "eslint": "^9.39.2",
+    "@eslint/js": "^10.0.1",
+    "@types/debug": "^4.1.13",
+    "@types/node": "^25.5.2",
+    "eslint": "^10.2.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
-    "globals": "^17.2.0",
-    "hardhat": "^3.1.5",
+    "globals": "^17.4.0",
+    "hardhat": "^3.3.0",
     "prettier": "3.8.1",
-    "typescript": "~5.9.3",
-    "typescript-eslint": "^8.54.0",
-    "vitest": "^4.0.18"
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.58.0",
+    "vitest": "^4.1.2"
   }
 }

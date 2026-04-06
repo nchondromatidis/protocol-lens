@@ -1,6 +1,6 @@
-import type { Item } from '../../src/components/ProjectFilesViewer.tsx';
+import type { ProjectFileItem } from '../../src/components/types/ProjectFileItem.ts';
 
-export const DEFAULT_ITEMS: Record<string, Item> = {
+export const DEFAULT_ITEMS: Record<string, ProjectFileItem> = {
   apis: { name: 'APIs' },
   backend: { children: ['apis', 'infrastructure'], name: 'Backend' },
   company: {

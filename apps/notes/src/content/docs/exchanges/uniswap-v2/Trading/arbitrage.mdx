@@ -7,7 +7,6 @@ sidebar:
 
 This page covers the necessary concepts for the reader to understand **arbitrage and impermanent loss in Uniswap V2**.
 
-
 ## Definition
 
 For a specific token pair there are multiple markets (CEXs, DEXs, etc.) with their own local exchange price.
@@ -16,10 +15,10 @@ Arbitrage means profiting from a price difference between two or multiple market
 
 Arbitrage traders help push a specific market price toward the broader market price.
 
-
 ## Trade-offs
 
 Arbitrage is a double-edge sword:
+
 - It is essential for maintaining market price (stale price kills pools),
 - It might drain a pool (if it goes beyond its tolerance),
   - Draining means significant pool value loss and inability to trade.
@@ -27,20 +26,20 @@ Arbitrage is a double-edge sword:
 ## Uniswap V2
 
 ### CPMM
+
 - Drainage resistant: one side cannot be cleanly drained to zero by a finite trade under the ideal CPMM curve, because marginal price rises sharply as a reserve shrinks.
 - Passive rebalancing: the pool does not observe external prices directly; arbitrage is what updates it after outside prices move.
 
-
 ### Arbitrage steps
+
 We will showcase a basic arbitrage scenario to reveal important info:
 
 | Step | Description                                                              | Reserve ratio      | Price              |
-|------|--------------------------------------------------------------------------|--------------------|--------------------|
+| ---- | ------------------------------------------------------------------------ | ------------------ | ------------------ |
 | 1    | Pool1: has 10 ETH and 0.25 WBTC                                          | 10 ETH : 0.25 WBTC | 0.025 WBTC per ETH |
 | 2    | Market2: ETH is priced at 0.03 WBTC                                      |                    | 0.03 WBTC per ETH  |
 | 3    | Pool1: Arbitrageurs buy ETH from Pool1 using WBTC                        | ETH down, WBTC up  | 0.03 WBTC per ETH  |
 | 4    | Market2: Arbitrageurs sell the ETH bought from Pool1 in Market2 for WBTC |                    |                    |
-
 
 ### Pool Value
 
@@ -55,11 +54,12 @@ LPs do not change the ratio (therefore, the balance), they add/remove liquidity 
 Pool has 10 ETH and 0.25 WBTC, then the pool-implied price is 0.025 WBTC per ETH,
 
 | Side | Amount    | Value at pool price |
-|------|-----------|---------------------|
+| ---- | --------- | ------------------- |
 | ETH  | 10 ETH    | 0.25 WBTC           |
 | WBTC | 0.25 WBTC | 0.25 WBTC           |
 
 Therefore, when arbitraged, the pool value in terms of tokenY or tokenX is:
+
 $$
 PoolValue_{y}=2y \\
 PoolValue_{x}=2x
@@ -67,14 +67,15 @@ $$
 
 > 50:50 token value balance is not as a hard guarantee from the contract itself, it's the result of arbitrage
 
-
 ### Pool USD Value
 
 Internal token ratio does not determine USD value;
+
 - it determines relative token pricing inside the pool
 - you still need an outside USD reference to convert that into dollars
 
 The UniswapV2 pool value in terms of dollars is:
+
 $$
 PoolValue_{\$}= 2y P_{y,\$} \\
 PoolValue_{\$}= 2x P_{x,\$}
@@ -90,10 +91,10 @@ When the AMM rebalances, it exchanges some of the outperforming tokens with unde
 
 The difference goes into the `arbitrageur` as an `incentive` to keep the pool at market price, therefore, active.
 
-
 #### Formula
 
 Impermanent loss depends on
+
 - the entry price ratio at which you added liquidity
 - how far the later market price ratio drifts from that entry ratio (one-time snapshot, does not compound)
   - the direction does not matter for IL magnitude in the symmetric 50/50 formula
@@ -125,12 +126,11 @@ $$
 $$
 IL(r)=\frac{V_\text{LP}}{V_\text{HODL}}-1=\frac{2\sqrt{r}}{1+r}-1
 $$
+
 </div>
 
-
-
 | Price Change | rrr  | IL(r)   |
-|--------------|------|---------|
+| ------------ | ---- | ------- |
 | 0%           | 1.0  | 0.00%   |
 | +10%         | 1.1  | -0.47%  |
 | +25%         | 1.25 | -0.53%  |
@@ -139,46 +139,42 @@ $$
 | +200%        | 3.0  | -13.40% |
 | +400%        | 5.0  | -25.48% |
 
-
 #### Pool value reduction
 
 Trading (including arbitrage) in UnisWay does not reduce the total token reserves; it only changes their composition.
+
 - Reserves (quantities): Tokens are swapped in a zero‑sum way between traders and the pool, following the CPMM rule
 - Dollar‑value composition: Liquidity providers lose dollar‑value exposure to the more appreciating token and gain exposure to the more depreciating one, which can reduce the dollar value of their LP position relative to simply holding the two tokens.
-
 
 #### Example
 
 Below there is a basic example (no fees) that shows that arbitrageur's monetary profit is the impermanent loss
 
 **Arbitrage**
-| Step | Event                | ETH Reserve    | USDC Reserve  | Value @ $2,200  | Notes                       |
+| Step | Event | ETH Reserve | USDC Reserve | Value @ $2,200 | Notes |
 |------|----------------------|----------------|---------------|-----------------|-----------------------------|
-| 0    | Deposit              | 100.00000000   | 200,000.00000 | $400,000.00     | k = 20,000,000              |
-| 1    | Market → $2,200      | 100.00000000   | 200,000.00000 | $400,000.00     | Hold value = $420,000       |
-| 2    | Arb adds 10,000 USDC | 100.00000000   | 210,000.00000 | $422,000.00     | temp k = 21,000,000         |
-| 3    | CPMM: k/210,000      | 95.23809524    | 210,000.00000 | $419,523.81     | IL = -$476.19               |
-| 4    | Arb output           | 4.76190476 ETH | -10,000.00    | +$476.19 profit | 10k/4.76190476 = $2,100 avg |
+| 0 | Deposit | 100.00000000 | 200,000.00000 | $400,000.00 | k = 20,000,000 |
+| 1 | Market → $2,200 | 100.00000000 | 200,000.00000 | $400,000.00 | Hold value = $420,000 |
+| 2 | Arb adds 10,000 USDC | 100.00000000 | 210,000.00000 | $422,000.00 | temp k = 21,000,000 |
+| 3 | CPMM: k/210,000 | 95.23809524 | 210,000.00000 | $419,523.81 | IL = -$476.19 |
+| 4 | Arb output | 4.76190476 ETH | -10,000.00 | +$476.19 profit | 10k/4.76190476 = $2,100 avg |
 
 **Holding**
-| Step | Event           | ETH          | USDC          | Value @ $2,200 | Notes      |
+| Step | Event | ETH | USDC | Value @ $2,200 | Notes |
 |------|-----------------|--------------|---------------|----------------|------------|
-| 0    | Deposit         | 100.00000000 | 200,000.00000 | $400,000.00    | Same start |
-| 1    | Market → $2,200 | 100.00000000 | 200,000.00000 | $420,000.00    | +5.00%     |
-| 2    | No trades       | 100.00000000 | 200,000.00000 | $420,000.00    | Perfect    |
+| 0 | Deposit | 100.00000000 | 200,000.00000 | $400,000.00 | Same start |
+| 1 | Market → $2,200 | 100.00000000 | 200,000.00000 | $420,000.00 | +5.00% |
+| 2 | No trades | 100.00000000 | 200,000.00000 | $420,000.00 | Perfect |
 
 Arbitrage profit = LP impermanent loss exactly.
 
 **Hypothetical arbitrage with market prices**
-| Step | Event                | ETH Reserve    | USDC Reserve  | Value @ $2,200 | Notes      |
+| Step | Event | ETH Reserve | USDC Reserve | Value @ $2,200 | Notes |
 |------|----------------------|----------------|---------------|----------------|------------|
-| 0    | Deposit              | 100.00000000   | 200,000.00000 | $400,000.00    | Same       |
-| 1    | Market → $2,200      | 100.00000000   | 200,000.00000 | $400,000.00    | Stale      |
-| 2    | Arb adds 10,000 USDC | 100.00000000   | 210,000.00000 | $422,000.00    | Same input |
-| 3    | Market: 210k/2,200   | 95.45454545    | 210,000.00000 | $420,000.00    | IL = $0    |
-| 4    | Arb output           | 4.54545455 ETH | -10,000.00    | $0 profit      | Fair price |
+| 0 | Deposit | 100.00000000 | 200,000.00000 | $400,000.00 | Same |
+| 1 | Market → $2,200 | 100.00000000 | 200,000.00000 | $400,000.00 | Stale |
+| 2 | Arb adds 10,000 USDC | 100.00000000 | 210,000.00000 | $422,000.00 | Same input |
+| 3 | Market: 210k/2,200 | 95.45454545 | 210,000.00000 | $420,000.00 | IL = $0 |
+| 4 | Arb output | 4.54545455 ETH | -10,000.00 | $0 profit | Fair price |
 
 Market-price rebalancing keeps the $476.19 in the pool instead of transferring it to arbitrageurs.
-
-
-

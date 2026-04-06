@@ -12,9 +12,9 @@
     "lint:fix": "pnpm -r run lint:fix",
     "preinstall": "npx only-allow pnpm",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deps:list:verbose": "pnpm dlx syncpack@alpha list --show instances",
-    "deps:fix": "pnpm dlx syncpack@alpha fix",
-    "deps:update:patch": "pnpm dlx syncpack@alpha update --target patch",
-    "unsafe:deps:update:latest": "pnpm dlx syncpack@alpha update --target latest"
+    "deps:list:verbose": "pnpm dlx syncpack@14.3.0 list --show instances",
+    "deps:fix": "pnpm dlx syncpack@14.3.0 fix",
+    "deps:update:patch": "pnpm dlx syncpack@14.3.0 update --target patch",
+    "unsafe:deps:update:latest": "pnpm dlx syncpack@14.3.0 update --target latest"
   }
 }

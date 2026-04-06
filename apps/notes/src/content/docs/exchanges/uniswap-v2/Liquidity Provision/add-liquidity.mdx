@@ -7,8 +7,8 @@ sidebar:
 
 import { DesmosChart } from '@defi-notes/workflows/components/DesmosChart';
 import { ProtocolWorkflowTrace } from '@defi-notes/workflows/components/ProtocolWorkflowTrace';
-import { extractProtocolWorkflowCode } from "@defi-notes/workflows/protocols/extract-code/protocol-workflow";
-import { extractProtocolCodeSlice } from "@defi-notes/workflows/protocols/extract-code/protocol-sources";
+import { extractProtocolWorkflowCode } from '@defi-notes/workflows/protocols/extract-code/protocol-workflow';
+import { extractProtocolCodeSlice } from '@defi-notes/workflows/protocols/extract-code/protocol-sources';
 import { Code } from '@astrojs/starlight/components';
 import { uniswapV2ChartId } from '@constants/charts';
 
@@ -24,13 +24,14 @@ after initial liquidity is added.
 ## Concepts
 
 ### Mint
+
 LP tokens are ERC20 tokens that are minted to the LP.
 
 Let's analyze the formula that calculates LP tokens to the LP.
 
 <Code
   code={extractProtocolCodeSlice([
-    ['contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 122  , 124]
+    ['contracts/uniswap-v2/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair', 122, 124],
   ])}
   lang="solidity"
 />
@@ -50,14 +51,13 @@ It calculates the pro-rata shares (no dilution) and sends them to the LP using t
 Let's look at an example:
 
 | Item                         |         Balanced deposit |      Unbalanced deposit |
-|:-----------------------------|-------------------------:|------------------------:|
+| :--------------------------- | -----------------------: | ----------------------: |
 | Pool reserves                |   100 ETH + 200,000 USDC |  100 ETH + 200,000 USDC |
 | Total LP shares              |                    1,000 |                   1,000 |
 | Deposit                      |     10 ETH + 20,000 USDC |    10 ETH + 10,000 USDC |
 | Implied increase from X side |             10/100 = 10% |            10/100 = 10% |
 | Implied increase from Y side |     20,000/200,000 = 10% |     10,000/200,000 = 5% |
 | Shares minted                | $\min(10\%,10\%) = 10\%$ | $\min(10\%,5\%)  = 5\%$ |
-
 
 ### Amounts
 
@@ -73,7 +73,7 @@ before passing to mint:
 
 <Code
   code={extractProtocolCodeSlice([
-    ['contracts/uniswap-v2/v2-periphery/contracts/libraries/UniswapV2Library.sol:UniswapV2Pair', 37 , 39]
+    ['contracts/uniswap-v2/v2-periphery/contracts/libraries/UniswapV2Library.sol:UniswapV2Pair', 37, 39],
   ])}
   lang="solidity"
 />
@@ -91,7 +91,7 @@ This is the code that runs to produce the function trace
 <Code
   code={extractProtocolWorkflowCode([
     ['UniswapV2Workflows', 'addLiquidity'],
-    ['UniswapV2Workflows', '_addLiquidity']
+    ['UniswapV2Workflows', '_addLiquidity'],
   ])}
   lang="ts"
 />
@@ -99,7 +99,7 @@ This is the code that runs to produce the function trace
 <ProtocolWorkflowTrace
   protocol="uniswapV2"
   workflow="addLiquidity"
-  header='Add Liquidity'
+  header="Add Liquidity"
   warnMessages={['UniswapV2Pair uses solidity v0.5.16', 'Function traces are not supported for v0.5.16']}
   client:load
 />
