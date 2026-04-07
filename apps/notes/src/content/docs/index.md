@@ -8,7 +8,7 @@ Welcome to the DeFi Notes.
 
 Each protocol will be analyzed per workflows combining `source code`, `workflow function trace`, `whitepaper concepts` and `math`.
 
-[How to read this guide](/how-to-read)
+[How to read this guide](/defi-notes/how-to-read)
 
 ## Fundamentals
 
