@@ -16,15 +16,15 @@
 
 This is a PNPM monorepo with the following packages:
 
-| Package                        | Description                                        |
-|--------------------------------|----------------------------------------------------|
-| `@defi-notes/notes`            | DeFi protocol analysis app                         |
-| `@defi-notes/evm-lens`         | EVM transaction call tracer (browser-native)       |
-| `@defi-notes/evm-lens-indexer` | Hardhat plugin for building trace indexes          |
-| `@defi-notes/evm-lens-ui`      | React UI components for call trace visualization   |
-| `@defi-notes/protocols`        | DeFi protocol source code and pre-built indexes    |
-| `@defi-notes/workflows`        | Workflow logic and UI components for DeFi analysis |
-| `@defi-notes/config`           | Shared ESLint, Prettier, and TSConfig              |
+| Package | Description |
+|---------|-------------|
+| [`@defi-notes/notes`](apps/notes/) | DeFi protocol analysis app |
+| [`@defi-notes/evm-lens`](packages/evm-lens/) | EVM transaction call tracer (browser-native) |
+| [`@defi-notes/evm-lens-indexer`](packages/evm-lens-indexer/) | Hardhat plugin for building trace indexes |
+| [`@defi-notes/evm-lens-ui`](packages/evm-lens-ui/) | React UI components for call trace visualization |
+| [`@defi-notes/protocols`](packages/protocols/) | DeFi protocol source code and pre-built indexes |
+| [`@defi-notes/workflows`](packages/workflows/) | Workflow logic and UI components for DeFi analysis |
+| [`@defi-notes/config`](packages/config/) | Shared ESLint, Prettier, and TSConfig |
 
 
 ## Prerequisites
