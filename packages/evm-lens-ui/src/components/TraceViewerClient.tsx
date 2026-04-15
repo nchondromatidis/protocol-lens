@@ -1,25 +1,19 @@
-'use client';
-
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { TraceViewerLayout } from './TraceViewerLayout.tsx';
-import type { ReadOnlyFunctionCallEvent } from '@defi-notes/evm-lens/src/lens/pipeline/4_function-trace/FunctionTraceBuilder.ts';
 import { contractFQNListToProjectFiles } from '../adapters/project-files-mapper.ts';
-import { getSourceContractFqQN } from '@defi-notes/evm-lens/src/client-utils/names.ts';
 import type { TraceResult, TraceResultError } from '../types/TraceResult.ts';
+import { useTraceViewerState } from './hooks/useTraceViewerState.ts';
+import { serializeBigInt } from './lib/serialize-bigint.ts';
 
-export type TraceViewerClientProps = {
+type TraceViewerClient2Props = Readonly<{
   trace: TraceResult;
-};
+}>;
 
 function isTraceResultError(result: TraceResult): result is TraceResultError {
   return 'error' in result;
 }
 
-export function TraceViewerClient({ trace }: TraceViewerClientProps) {
-  const [sourceCode, setSourceCode] = useState<string | undefined>(undefined);
-  const [highlightedLine, setHighlightedLine] = useState<number | undefined>(undefined);
-  const [scrollToFileId, setScrollToFileId] = useState<string | undefined>(undefined);
-
+export function TraceViewerClient({ trace }: TraceViewerClient2Props) {
   const isError = isTraceResultError(trace);
 
   const {
@@ -29,58 +23,41 @@ export function TraceViewerClient({ trace }: TraceViewerClientProps) {
   } = isError ? { resourceLoader: null, trace: null, contractFqnList: [] } : trace;
 
   const projectFiles = isError ? null : contractFQNListToProjectFiles(contractFqnList);
+  const safeTrace = useMemo(() => serializeBigInt(functionTrace), [functionTrace]);
 
-  const handleSelectFileFromTree = useCallback(
+  const { state, actions } = useTraceViewerState(resourceLoader);
+
+  const handleSelectTab = useCallback(
     async (fileId: string) => {
-      if (!resourceLoader) return;
-      const source = await resourceLoader.getSource(fileId);
-      setSourceCode(source);
-      setHighlightedLine(undefined);
-      setScrollToFileId(undefined);
+      await actions.handleSelectFileFromTree(fileId);
     },
-    [resourceLoader]
+    [actions]
   );
-
-  const handleSelectFileFromTraceNode = useCallback(
-    async (event: ReadOnlyFunctionCallEvent) => {
-      if (!resourceLoader) return;
-      const contractFqn = getSourceContractFqQN(event);
-      if (!contractFqn) return;
-
-      const fileId = contractFqn.split(':')[0];
-      if (!fileId) return;
-
-      const source = await resourceLoader.getSource(fileId);
-      setSourceCode(source);
-      setScrollToFileId(fileId);
-
-      if (event.functionLineStart) {
-        setHighlightedLine(event.functionLineStart);
-      }
-    },
-    [resourceLoader]
-  );
-
-  const handleScrollToFile = useCallback((fileId: string) => {
-    setScrollToFileId(fileId);
-  }, []);
 
   if (isError) {
-    return <div>Error: {trace.error}</div>;
+    return <div className="p-4 text-destructive">Error: {trace.error}</div>;
   }
 
   return (
     <TraceViewerLayout
-      functionTrace={functionTrace!}
+      functionTrace={safeTrace!}
       projectFiles={projectFiles!.items}
       rootItemId={projectFiles!.rootItemId}
       initialExpandedItems={projectFiles!.firstLevelFolderNames}
-      onSelectFileFromTree={handleSelectFileFromTree}
-      onSelectFileFromTraceNode={handleSelectFileFromTraceNode}
-      onScrollToFile={handleScrollToFile}
-      scrollToFileId={scrollToFileId}
-      sourceCode={sourceCode}
-      highlightedLine={highlightedLine}
+      onSelectFileFromTree={actions.handleSelectFileFromTree}
+      onSelectFileFromTraceNode={actions.handleSelectFileFromTraceNode}
+      onScrollToFile={actions.handleScrollToFile}
+      scrollToFileId={state.scrollToFileId}
+      sourceCode={state.sourceCode}
+      highlightedLine={state.highlightedLine}
+      openTabs={state.openTabs}
+      activeTabFileId={state.activeTabFileId}
+      onCloseTab={actions.handleCloseTab}
+      onSelectTab={handleSelectTab}
+      sidebarCollapsed={state.sidebarCollapsed}
+      onToggleSidebar={actions.handleToggleSidebar}
+      tracePanelCollapsed={state.tracePanelCollapsed}
+      onToggleTracePanel={actions.handleToggleTracePanel}
     />
   );
 }

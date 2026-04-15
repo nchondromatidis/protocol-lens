@@ -56,6 +56,19 @@ export function contractFQNListToProjectFiles(contractFQNList: string[]): {
     });
   });
 
+  Object.keys(items).forEach((path) => {
+    const item = items[path];
+    if (item.children && item.children.length > 1) {
+      item.children.sort((a, b) => {
+        const aFolder = !!items[a]?.children;
+        const bFolder = !!items[b]?.children;
+        if (aFolder && !bFolder) return -1;
+        if (!aFolder && bFolder) return 1;
+        return a.localeCompare(b);
+      });
+    }
+  });
+
   const firstLevelFolderNames = Object.keys(items)
     .filter((path) => path.split('/').length === 2 && items[path].children)
     .sort();

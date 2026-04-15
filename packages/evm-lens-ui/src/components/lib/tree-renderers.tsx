@@ -17,7 +17,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({ item, children }) => {
       data-item-id={item.getId()}
       className={cn(
         'flex items-center gap-2 py-1 px-2 cursor-pointer group',
-        isFolder ? 'hover:bg-zinc-900/50' : 'hover:bg-zinc-900/50'
+        isFolder ? 'hover:bg-muted' : 'hover:bg-muted'
       )}
     >
       {children}
@@ -49,12 +49,12 @@ export const TreeNodeLabel: React.FC<TreeNodeLabelProps> = ({ item, onClick, isS
       >
         <MaterialIcon
           name={isExpanded ? 'expand_more' : 'chevron_right'}
-          className="text-zinc-600 group-hover:text-zinc-400"
+          className="text-muted-foreground group-hover:text-foreground"
           size={16}
           weight={400}
         />
-        <MaterialIcon name="folder" className="text-zinc-500" size={16} />
-        <span className="text-zinc-300 truncate">{item.getItemName()}</span>
+        <MaterialIcon name="folder" className="text-muted-foreground" size={16} />
+        <span className="text-foreground truncate">{item.getItemName()}</span>
       </div>
     );
   }
@@ -63,12 +63,16 @@ export const TreeNodeLabel: React.FC<TreeNodeLabelProps> = ({ item, onClick, isS
     <div
       className={cn(
         'flex items-center gap-2 w-full py-1 pl-2',
-        isSelected ? 'bg-violet-500/5 text-violet-400 border-r-2 border-violet-500/50' : 'hover:bg-zinc-900/50'
+        isSelected
+          ? 'bg-violet-500/5 text-violet-500 dark:text-violet-400 border-r-2 border-violet-500/50'
+          : 'hover:bg-muted'
       )}
       onClick={onClick}
     >
-      <MaterialIcon name="description" className={isSelected ? 'text-violet-500' : 'text-zinc-600'} size={16} />
-      <span className={isSelected ? 'text-violet-400' : 'text-zinc-400'}>{item.getItemName()}</span>
+      <MaterialIcon name="description" className={isSelected ? 'text-violet-500' : 'text-muted-foreground'} size={16} />
+      <span className={isSelected ? 'text-violet-500 dark:text-violet-400' : 'text-muted-foreground'}>
+        {item.getItemName()}
+      </span>
     </div>
   );
 };

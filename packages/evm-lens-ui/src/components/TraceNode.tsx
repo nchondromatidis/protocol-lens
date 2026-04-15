@@ -3,7 +3,7 @@ import { cn } from './lib/utils.ts';
 import type { ReadOnlyFunctionCallEvent } from '@defi-notes/evm-lens/src/lens/pipeline/4_function-trace/FunctionTraceBuilder.ts';
 import { getContractName } from '@defi-notes/evm-lens/src/client-utils/names.ts';
 import { MaterialIcon } from './lib/MaterialIcon.tsx';
-import { formatArgs, formatResult, getCallTypeStyle } from './lib/trace-utils.ts';
+import { formatAggregates, getCallTypeStyle } from './lib/trace-utils.ts';
 import { TraceNodeDetail } from './TraceNodeDetail.tsx';
 
 type TraceNodeProps = Readonly<{
@@ -34,74 +34,97 @@ export const TraceNode: React.FC<TraceNodeProps> = ({
 
   let contractName = getContractName(event.contractFQN) || event.to || 'Unknown';
   const method = event.functionName || event.functionType;
-  const argsText = formatArgs(event.args);
-  const resultText = event.result?.returnValue ? formatResult(event.result.returnValue) : '';
+  const aggregates = formatAggregates(event.args, event.result?.returnValue, event.result?.logs);
 
   if (['CREATE', 'CREATE2'].includes(event.callType)) {
     contractName = getContractName(event.createdContractFQN) || 'Unknown';
   }
 
-  const handleExpandClick = (e: React.MouseEvent) => {
+  const handleRowClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onToggle(path);
+    onSelectTraceNode?.(event);
   };
 
-  const handleRowClick = (e: React.MouseEvent) => {
+  const handleArrowClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (hasChildren) onToggle(path);
+  };
+
+  const handleDetailClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+  const handleAggregatesClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onSelectTraceNode?.(event);
     onSelectPath(isSelected ? '' : path);
   };
 
+  const indentPx = 16;
+  const borderLeftPx = indentPx + 10;
+
   return (
     <div className="relative">
       <div
-        className={cn(
-          'flex items-center gap-2 py-1 px-2 transition-colors border-l-2',
-          'hover:bg-surface-container-high cursor-pointer',
-          isSelected ? 'bg-violet-500/10 border-violet-500' : 'border-transparent'
-        )}
+        className={cn('flex items-center gap-2 py-1 pr-2 transition-colors relative', 'hover:bg-muted cursor-pointer')}
+        style={{ paddingLeft: `${indentPx}px` }}
         onClick={handleRowClick}
       >
+        {isSelected && (
+          <>
+            <div
+              className="absolute top-0 bottom-0 right-0 bg-violet-500/10 pointer-events-none"
+              style={{ left: `${borderLeftPx}px` }}
+            />
+          </>
+        )}
+
         <div
-          className="flex items-center justify-center w-5 h-5 shrink-0 hover:bg-surface-container-high cursor-pointer"
-          onClick={handleExpandClick}
+          className={cn(
+            'flex items-center justify-center w-5 h-5 shrink-0',
+            hasChildren && 'hover:bg-muted cursor-pointer'
+          )}
+          onClick={hasChildren ? handleArrowClick : undefined}
         >
           {isError ? (
-            <MaterialIcon name="warning" className="text-error" size={14} />
+            <MaterialIcon name="warning" className="text-destructive" size={14} />
           ) : hasChildren ? (
-            <MaterialIcon name={isExpanded ? 'expand_more' : 'chevron_right'} className="text-zinc-500" size={14} />
+            <MaterialIcon
+              name={isExpanded ? 'expand_more' : 'chevron_right'}
+              className="text-muted-foreground"
+              size={14}
+            />
           ) : (
-            <div className="w-4 h-4" />
+            <span className="text-muted-foreground text-[10px]">—</span>
           )}
         </div>
 
         <span className={getCallTypeStyle(event.callType, isError)}>{isError ? 'REVERT' : String(event.callType)}</span>
 
-        <span className={cn('truncate', isError ? 'text-error' : 'text-zinc-300')}>
+        <span className={cn('truncate', isError ? 'text-destructive' : 'text-foreground')}>
           {contractName}.{method}
         </span>
 
-        {argsText && (
-          <>
-            <span className="text-zinc-600">(</span>
-            <span className="text-zinc-500 truncate italic">{argsText}</span>
-            <span className="text-zinc-600">)</span>
-          </>
-        )}
-
-        {resultText && <span className="text-zinc-600 ml-auto code-font text-[10px]">{resultText}</span>}
+        <span
+          className="text-muted-foreground font-normal ml-1 font-mono cursor-pointer hover:text-foreground"
+          onClick={handleAggregatesClick}
+        >
+          {aggregates}
+        </span>
       </div>
 
       {isSelected && (
-        <div className="bg-surface-container/50 border-y border-zinc-800 my-1">
-          <div className="bg-violet-500/10 border-l-2 border-violet-500">
-            <TraceNodeDetail event={event} />
-          </div>
+        <div
+          className="bg-card/50 border-y border-border my-1 cursor-pointer"
+          style={{ marginLeft: `${borderLeftPx}px` }}
+          onClick={handleDetailClick}
+        >
+          <TraceNodeDetail event={event} />
         </div>
       )}
 
       {hasChildren && isExpanded && (
-        <div className="ml-8 border-l border-zinc-800">
+        <div className="border-l border-border" style={{ marginLeft: `${borderLeftPx}px` }}>
           {event.called?.map((childEvent, idx) => (
             <TraceNode
               key={`${path}-${idx}`}

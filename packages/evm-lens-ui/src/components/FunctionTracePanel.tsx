@@ -49,52 +49,50 @@ export const FunctionTracePanel: React.FC<FunctionTracePanelProps> = ({
   if (collapsed) {
     return (
       <div
-        className="h-10 border-t border-zinc-800 bg-zinc-950 flex items-center px-3 cursor-pointer hover:bg-surface-container relative z-20"
+        className="h-10 border-t border-border bg-background flex items-center px-3 cursor-pointer hover:bg-card relative z-20"
         onClick={onToggleCollapse}
       >
-        <MaterialIcon name="keyboard_double_arrow_up" className="text-zinc-500 hover:text-zinc-300" size={16} />
-        <span className="label-font text-[10px] font-bold text-zinc-400 tracking-widest uppercase ml-2">TRACE</span>
+        <MaterialIcon
+          name="keyboard_double_arrow_up"
+          className="text-muted-foreground hover:text-foreground"
+          size={16}
+        />
+        <span className="font-sans text-[10px] font-bold text-muted-foreground tracking-widest uppercase ml-2">
+          TRACE
+        </span>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
-      <div className="h-10 px-4 flex items-center justify-between border-b border-zinc-800 bg-surface-container shrink-0">
+    <div className="flex flex-col h-full bg-background">
+      <div className="h-10 px-4 flex items-center justify-between border-b border-border bg-card shrink-0">
         <div className="flex items-center gap-4">
-          <span className="label-font text-[11px] font-bold text-zinc-400 tracking-widest uppercase">
+          <span className="font-sans text-[11px] font-bold text-muted-foreground tracking-widest uppercase">
             FUNCTION Trace
           </span>
         </div>
         <div className="flex gap-2">
-          <button className="p-1 hover:bg-surface-container-high cursor-pointer" title="Filter Traces">
-            <MaterialIcon name="filter_list" className="text-zinc-500 hover:text-zinc-300" size={16} />
+          <button className="p-1 hover:bg-muted cursor-pointer" title="Filter Traces">
+            <MaterialIcon name="filter_list" className="text-muted-foreground hover:text-foreground" size={16} />
           </button>
-          <button
-            className="p-1 hover:bg-surface-container-high cursor-pointer"
-            onClick={handleCollapseAll}
-            title="Collapse All"
-          >
-            <MaterialIcon name="unfold_less" className="text-zinc-500 hover:text-zinc-300" size={16} />
+          <button className="p-1 hover:bg-muted cursor-pointer" onClick={handleCollapseAll} title="Collapse All">
+            <MaterialIcon name="unfold_less" className="text-muted-foreground hover:text-foreground" size={16} />
           </button>
-          <button
-            className="p-1 hover:bg-surface-container-high cursor-pointer"
-            onClick={handleExpandAll}
-            title="Expand All"
-          >
-            <MaterialIcon name="unfold_more" className="text-zinc-500 hover:text-zinc-300" size={16} />
+          <button className="p-1 hover:bg-muted cursor-pointer" onClick={handleExpandAll} title="Expand All">
+            <MaterialIcon name="unfold_more" className="text-muted-foreground hover:text-foreground" size={16} />
           </button>
-          <button
-            className="p-1 hover:bg-surface-container-high cursor-pointer"
-            onClick={onToggleCollapse}
-            title="Collapse Panel"
-          >
-            <MaterialIcon name="keyboard_double_arrow_down" className="text-zinc-500 hover:text-zinc-300" size={16} />
+          <button className="p-1 hover:bg-muted cursor-pointer" onClick={onToggleCollapse} title="Collapse Panel">
+            <MaterialIcon
+              name="keyboard_double_arrow_down"
+              className="text-muted-foreground hover:text-foreground"
+              size={16}
+            />
           </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto code-font text-[11px]">
+      <div className="flex-1 overflow-auto font-mono text-[11px]">
         <div className="p-2">
           <TraceNode
             event={functionTrace}

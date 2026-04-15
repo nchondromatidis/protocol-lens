@@ -4,6 +4,7 @@ import { solidity } from '@replit/codemirror-lang-solidity';
 import { EditorView } from '@codemirror/view';
 import { EditorSelection } from '@codemirror/state';
 import { MaterialIcon } from './lib/MaterialIcon.tsx';
+import { useIsDarkMode } from './lib/useIsDarkMode.ts';
 
 type SourceCodeTabsProps = Readonly<{
   sourceCode?: string;
@@ -37,6 +38,7 @@ const getFolderPath = (filePath: string): string[] => {
 export const SourceCodeTabs: React.FC<SourceCodeTabsProps> = ({ sourceCode, highlightedLine, activeTabFileId }) => {
   const editorRef = useRef<EditorView | null>(null);
   const pendingLineRef = useRef<number | null>(null);
+  const isDark = useIsDarkMode();
 
   const extensions = useMemo(() => SOLIDITY_EXTENSIONS, []);
 
@@ -61,39 +63,41 @@ export const SourceCodeTabs: React.FC<SourceCodeTabsProps> = ({ sourceCode, high
   const activeFileName = activeTabFileId ? getFileName(activeTabFileId) : undefined;
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
-      <div className="h-10 flex border-b border-zinc-800 bg-zinc-950 shrink-0">
+    <div className="h-full flex flex-col bg-background overflow-hidden">
+      <div className="h-10 flex border-b border-border bg-background shrink-0">
         {activeTabFileId && (
-          <div className="px-4 border-r border-zinc-800 flex items-center gap-2 text-xs select-none bg-zinc-900 text-zinc-200">
+          <div className="px-4 border-r border-border flex items-center gap-2 text-xs select-none bg-card text-foreground">
             <MaterialIcon name="description" className="text-violet-500" size={16} />
             <span>{getFileName(activeTabFileId)}</span>
           </div>
         )}
       </div>
 
-      <div className="h-8 px-4 flex items-center justify-between text-[10px] text-zinc-500 border-b border-zinc-800 bg-zinc-950 shrink-0">
+      <div className="h-8 px-4 flex items-center justify-between text-[10px] text-muted-foreground border-b border-border bg-background shrink-0">
         <div className="flex items-center gap-2">
           {breadcrumbParts.map((part, idx) => (
             <React.Fragment key={idx}>
-              {idx > 0 && <MaterialIcon name="chevron_right" size={12} className="text-zinc-500" />}
+              {idx > 0 && <MaterialIcon name="chevron_right" size={12} className="text-muted-foreground" />}
               <span>{part}</span>
             </React.Fragment>
           ))}
           {activeFileName && (
             <>
-              {breadcrumbParts.length > 0 && <MaterialIcon name="chevron_right" size={12} className="text-zinc-500" />}
-              <span className="text-zinc-300">{activeFileName}</span>
+              {breadcrumbParts.length > 0 && (
+                <MaterialIcon name="chevron_right" size={12} className="text-muted-foreground" />
+              )}
+              <span className="text-foreground">{activeFileName}</span>
             </>
           )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto bg-[#0d0d0d] min-h-0">
+      <div className="flex-1 overflow-y-auto bg-background min-h-0">
         {sourceCode ? (
           <CodeMirror
             value={sourceCode}
             extensions={extensions}
-            theme="dark"
+            theme={isDark ? 'dark' : 'light'}
             readOnly={true}
             basicSetup={{
               lineNumbers: true,
@@ -101,11 +105,11 @@ export const SourceCodeTabs: React.FC<SourceCodeTabsProps> = ({ sourceCode, high
               highlightSelectionMatches: true,
               foldGutter: true,
             }}
-            className="h-full code-font text-[13px] leading-relaxed"
+            className="h-full font-mono text-[13px] leading-relaxed"
             onCreateEditor={handleCreateEditor}
           />
         ) : (
-          <div className="flex items-center justify-center h-full text-on-surface-variant text-sm">
+          <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
             Select a file to view source code
           </div>
         )}

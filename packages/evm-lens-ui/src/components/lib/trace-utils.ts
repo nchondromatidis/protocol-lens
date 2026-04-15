@@ -51,13 +51,38 @@ export const getAllPaths = (
 };
 
 export const getCallTypeStyle = (callType: string, isError: boolean): string => {
-  if (isError) return 'text-error font-bold uppercase tracking-tight';
+  if (isError) return 'text-destructive font-bold uppercase tracking-tight';
   const type = callType.toUpperCase();
-  if (type.includes('JUMP') || type === 'INTERNAL') return 'text-emerald-400 font-bold uppercase tracking-tight';
-  if (type === 'STATICCALL') return 'text-purple-400 font-bold uppercase tracking-tight';
-  if (type === 'DELEGATECALL') return 'text-orange-400 font-bold uppercase tracking-tight';
-  if (type === 'CREATE' || type === 'CREATE2') return 'text-yellow-400 font-bold uppercase tracking-tight';
-  return 'text-violet-400 font-bold uppercase tracking-tight';
+  if (type.includes('JUMP') || type === 'INTERNAL')
+    return 'text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-tight';
+  if (type === 'STATICCALL') return 'text-purple-600 dark:text-purple-400 font-bold uppercase tracking-tight';
+  if (type === 'DELEGATECALL') return 'text-orange-600 dark:text-orange-400 font-bold uppercase tracking-tight';
+  if (type === 'CREATE' || type === 'CREATE2')
+    return 'text-yellow-600 dark:text-yellow-400 font-bold uppercase tracking-tight';
+  return 'text-violet-600 dark:text-violet-400 font-bold uppercase tracking-tight';
+};
+
+export const countArgs = (args: unknown): number => {
+  if (!args || typeof args !== 'object') return 0;
+  if (Array.isArray(args)) return args.length;
+  return Object.keys(args as Record<string, unknown>).length;
+};
+
+export const countReturnValues = (returnValue: unknown): number => {
+  if (returnValue === undefined || returnValue === null) return 0;
+  if (typeof returnValue === 'object') {
+    if (Array.isArray(returnValue)) return returnValue.length;
+    return Object.keys(returnValue as Record<string, unknown>).length;
+  }
+  return 1;
+};
+
+export const formatAggregates = (args: unknown, returnValue: unknown, logs?: readonly LensLog[]): string => {
+  const argc = countArgs(args);
+  const retc = countReturnValues(returnValue);
+  const logc = logs?.length ?? 0;
+  if (argc === 0 && retc === 0 && logc === 0) return '';
+  return `(args: ${argc}, ret: ${retc}, logs: ${logc})`;
 };
 
 export function formatValue(value: unknown): string {

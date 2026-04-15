@@ -1,7 +1,6 @@
 import {
   expandAllFeature,
   hotkeysCoreFeature,
-  type ItemInstance,
   selectionFeature,
   syncDataLoaderFeature,
   type TreeState,
@@ -24,13 +23,6 @@ type ProjectExplorerProps = Readonly<{
 }>;
 
 const DEFAULT_INDENT = 24;
-
-const getItemIcon = (item: ItemInstance<ProjectFileItem>, isSelected: boolean) => {
-  if (!item.isFolder()) {
-    return <MaterialIcon name="description" className={isSelected ? 'text-violet-500' : 'text-zinc-600'} size={16} />;
-  }
-  return <MaterialIcon name="folder" className="text-zinc-500" size={16} />;
-};
 
 export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
   items,
@@ -117,30 +109,26 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
   if (collapsed) {
     return (
       <div
-        className="w-10 h-full border-r border-zinc-800 bg-[#0c0c0c] flex flex-col items-center pt-2 cursor-pointer hover:bg-surface-container-high"
+        className="w-10 h-full border-r border-border bg-background flex flex-col items-center pt-2 cursor-pointer hover:bg-muted"
         onClick={onToggleCollapse}
       >
         <button className="p-1.5" title="Expand Sidebar">
-          <MaterialIcon name="dock_to_left" className="text-zinc-500 hover:text-zinc-300" size={16} />
+          <MaterialIcon name="dock_to_left" className="text-muted-foreground hover:text-foreground" size={16} />
         </button>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#0c0c0c]">
-      <div className="h-10 px-3 flex items-center justify-between border-b border-zinc-800 shrink-0">
-        <span className="label-font text-[10px] font-bold text-zinc-400 tracking-wider">PROJECT EXPLORER</span>
-        <button
-          onClick={onToggleCollapse}
-          className="p-1 hover:bg-surface-container-high cursor-pointer"
-          title="Collapse Sidebar"
-        >
-          <MaterialIcon name="dock_to_left" className="text-zinc-500 hover:text-zinc-300" size={16} />
+    <div className="flex flex-col h-full bg-background">
+      <div className="h-10 px-3 flex items-center justify-between border-b border-border shrink-0">
+        <span className="font-sans text-[10px] font-bold text-muted-foreground tracking-wider">PROJECT EXPLORER</span>
+        <button onClick={onToggleCollapse} className="p-1 hover:bg-muted cursor-pointer" title="Collapse Sidebar">
+          <MaterialIcon name="dock_to_left" className="text-muted-foreground hover:text-foreground" size={16} />
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-2 text-[12px] font-medium text-zinc-400" ref={treeRef}>
+      <div className="flex-1 overflow-y-auto py-2 text-[12px] font-medium text-muted-foreground" ref={treeRef}>
         {treeItems.map((item) => {
           const isFolder = item.isFolder();
           const isExpanded = isFolder && item.isExpanded();
@@ -153,18 +141,18 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
               <div
                 key={item.getId()}
                 data-item-id={item.getId()}
-                className="py-1 flex items-center gap-2 hover:bg-zinc-900/50 cursor-pointer group"
+                className="py-1 flex items-center gap-2 hover:bg-muted cursor-pointer group"
                 style={{ paddingLeft: indentPx + 8 }}
                 onClick={() => (isExpanded ? item.collapse() : item.expand())}
               >
                 <MaterialIcon
                   name={isExpanded ? 'expand_more' : 'chevron_right'}
-                  className="text-zinc-600 group-hover:text-zinc-400"
+                  className="text-muted-foreground group-hover:text-foreground"
                   size={16}
                   weight={400}
                 />
-                <MaterialIcon name="folder" className="text-zinc-500" size={16} />
-                <span className="text-zinc-300">{item.getItemName()}</span>
+                <MaterialIcon name="folder" className="text-muted-foreground" size={16} />
+                <span className="text-foreground">{item.getItemName()}</span>
               </div>
             );
           }
@@ -174,7 +162,9 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
               key={item.getId()}
               data-item-id={item.getId()}
               className={`py-1 flex items-center gap-2 cursor-pointer ${
-                isSelected ? 'bg-violet-500/5 text-violet-400 border-r-2 border-violet-500/50' : 'hover:bg-zinc-900/50'
+                isSelected
+                  ? 'bg-violet-500/5 text-violet-500 dark:text-violet-400 border-r-2 border-violet-500/50'
+                  : 'hover:bg-muted'
               }`}
               style={{ paddingLeft: indentPx + 8 }}
               onClick={() => {
@@ -182,8 +172,14 @@ export const ProjectExplorer: React.FC<ProjectExplorerProps> = ({
                 setState((prev) => ({ ...prev, selectedItems: [item.getId()] }));
               }}
             >
-              {getItemIcon(item, isSelected)}
-              <span className={isSelected ? 'text-violet-400' : 'text-zinc-400'}>{item.getItemName()}</span>
+              <MaterialIcon
+                name="description"
+                className={isSelected ? 'text-violet-500' : 'text-muted-foreground'}
+                size={16}
+              />
+              <span className={isSelected ? 'text-violet-500 dark:text-violet-400' : 'text-muted-foreground'}>
+                {item.getItemName()}
+              </span>
             </div>
           );
         })}
