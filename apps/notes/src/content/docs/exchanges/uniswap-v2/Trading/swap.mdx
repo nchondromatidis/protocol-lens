@@ -33,15 +33,15 @@ Suppose that a trader wants to buy an amount $x_{swap}$ of token X. To do so, th
   \end{aligned}
   $$
 
-$$
-\begin{aligned}
-\text{amountIn is known, amountOut is unknown:} \\
-amountOut &= \frac{reserveOut \cdot amountIn}{reserveIn + amountIn} & (1) \\
-\\
-\text{amountOut is known, amountIn is unknown:} \\
-amountIn &= \frac{reserveIn \cdot amountOut}{reserveOut - amountOut} & (2)
-\end{aligned}
-$$
+  $$
+  \begin{aligned}
+  \text{amountIn is known, amountOut is unknown:} \\
+  amountOut &= \frac{reserveOut \cdot amountIn}{reserveIn + amountIn} & (1) \\
+  \\
+  \text{amountOut is known, amountIn is unknown:} \\
+  amountIn &= \frac{reserveIn \cdot amountOut}{reserveOut - amountOut} & (2)
+  \end{aligned}
+  $$
 
 </div>
 
@@ -92,7 +92,7 @@ Note: Notice both numerator and denominator are multiplied by 1000 to be able to
 
 The swap is priced using only 99.7% of the input, but 100% enters the pool, the extra 0.3% stays with LPs and **increases k**.
 
-<div className='codeBlock flex flex-col items-center'>
+<div className='codeBlock'>
   $$
   (x+\Delta x)(y-\Delta y)
   =
@@ -111,7 +111,7 @@ Because the pool balances must move along a CPMM curve, every trade shifts the b
 
 So the effective price is the **actual exchange rate** the trader pays:
 
-<div className='codeBlock flex flex-col items-center'>
+<div className='codeBlock'>
   $$
   p_{effective} = \frac{ y_{after} - y_{before} } { x_{before} - x_{after} }
   $$
@@ -128,7 +128,7 @@ The effective price is always higher (worse) than the starting spot price.
 
 The **theoretical exchange rate** for an **infinitely small trade** (compared to the reserves).
 
-<div className='codeBlock flex flex-col items-center'>
+<div className='codeBlock'>
   $$
   p_{spot} = \frac{y_{before}}{x_{before}}
   $$
