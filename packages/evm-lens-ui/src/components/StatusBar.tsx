@@ -6,11 +6,7 @@ type StatusBarProps = Readonly<{
   solcVersion?: string;
 }>;
 
-export const StatusBar: React.FC<StatusBarProps> = ({
-  networkStatus = 'ONLINE',
-  vmLabel = 'BROWSER VM',
-  solcVersion = '0.8.20',
-}) => {
+export const StatusBar: React.FC<StatusBarProps> = ({ networkStatus = 'ONLINE', vmLabel = 'BROWSER VM' }) => {
   return (
     <footer className="h-6 bg-background border-t border-border flex items-center px-3 justify-between shrink-0">
       <div className="flex items-center gap-4">
@@ -23,7 +19,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
         </div>
       </div>
       <div className="flex items-center gap-4 text-[9px] font-bold text-muted-foreground">
-        <span>SOLC: {solcVersion}</span>
+        <span>EVM LENS library</span>
       </div>
     </footer>
   );

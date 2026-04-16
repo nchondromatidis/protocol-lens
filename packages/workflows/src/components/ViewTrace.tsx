@@ -58,7 +58,8 @@ export const ViewTrace: React.FC<Readonly<ViewTraceProps>> = ({
           <Button
             onClick={onStartTrace}
             disabled={disabled}
-            className="mt-3 w-full tracking-[0.12em] font-extrabold shadow-md shadow-primary/5"
+            variant="outline"
+            className="mt-3 w-full tracking-[0.12em] font-extrabold shadow-none"
           >
             View Trace
           </Button>
