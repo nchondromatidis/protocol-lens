@@ -97,32 +97,51 @@ const ReturnSection: React.FC<{ returnValue?: unknown; isError: boolean; path: s
   path,
   ctx,
 }) => {
-  if (returnValue == null || typeof returnValue !== 'object') {
+  let args: Record<string, unknown>;
+  if (returnValue == null) {
+    args = {};
+  } else if (typeof returnValue !== 'object') {
+    args = { '0': returnValue };
+  } else {
+    args = returnValue as Record<string, unknown>;
+  }
+
+  const entries = Object.entries(args);
+  if (entries.length === 0 && !isError) {
+    return <div className="text-muted-foreground text-[10px]">No returns</div>;
+  }
+  if (entries.length === 0 && isError) {
     return (
       <div className="space-y-1">
-        {returnValue != null && (
-          <div className="flex justify-between gap-2">
-            <ValueSpan value={returnValue} path={path} ctx={ctx} />
-          </div>
-        )}
-        {isError && <span className="text-destructive font-bold">REVERT</span>}
+        <span className="text-destructive font-bold">REVERT</span>
       </div>
     );
   }
 
-  const entries = Object.entries(returnValue as Record<string, unknown>);
+  const nested = entries.filter(([, v]) => v && typeof v === 'object' && !Array.isArray(v));
+  const simple = entries.filter(([, v]) => !(v && typeof v === 'object' && !Array.isArray(v)));
 
   return (
     <div className="space-y-1">
-      <div className="text-muted-foreground text-[10px] mb-1">RESPONSE:</div>
-      <div className="pl-2 space-y-0.5">
-        {entries.map(([key, value]) => (
-          <div key={key} className="flex justify-between gap-2">
-            <span className="text-muted-foreground shrink-0">{key}:</span>
-            <ValueSpan value={value} path={`${path}.${key}`} ctx={ctx} />
+      {simple.map(([key, value]) => (
+        <div key={key} className="flex justify-between gap-2">
+          <span className="text-muted-foreground shrink-0">{key}:</span>
+          <ValueSpan value={value} path={`${path}.${key}`} ctx={ctx} />
+        </div>
+      ))}
+      {nested.map(([key, value]) => (
+        <div key={key} className="mt-3 pt-2 border-t border-border/50">
+          <div className="text-muted-foreground text-[10px] mb-1 uppercase">{key}:</div>
+          <div className="pl-2 space-y-0.5">
+            {Object.entries(value as Record<string, unknown>).map(([nk, nv]) => (
+              <div key={nk} className="flex justify-between gap-2">
+                <span className="text-muted-foreground shrink-0">{nk}:</span>
+                <ValueSpan value={nv} path={`${path}.${key}.${nk}`} ctx={ctx} />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
       {isError && (
         <div className="mt-2">
           <span className="text-destructive font-bold">REVERT</span>
