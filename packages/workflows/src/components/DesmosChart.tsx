@@ -276,7 +276,7 @@ export const DesmosChart: React.FC<DesmosChartProps> = ({
             <Button
               variant="ghost"
               size="icon-sm"
-              className="absolute top-34 right-2 z-50 bg-background/80 backdrop-blur-sm opacity-70 hover:opacity-100 transition-opacity"
+              className="absolute top-2 right-12 z-50 bg-background/80 backdrop-blur-sm opacity-70 hover:opacity-100 transition-opacity"
               aria-label="Close"
             >
               <X className="size-4" />
