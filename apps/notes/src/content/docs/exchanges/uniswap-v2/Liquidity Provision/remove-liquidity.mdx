@@ -67,7 +67,7 @@ The protocol fee is a mechanism designed to redirect a portion of the trading fe
 
 Uniswap V2 collects accumulated fees only during liquidity events (mint or burn) for efficiency.
 
-The contract tracks the growth of the pool's invariant between these events to determine the protocol's share of the earnings
+The contract tracks the growth of the pool's invariant between these events to determine the protocol's share of the earnings.
 
 The protocol fee is minted before burning liquidity via `_mintFee()`, to capture fees before liquidity removal.
 
@@ -81,7 +81,7 @@ The total collected fees are computed by measuring the growth in k (that is, x Â
 
 <div className='codeBlock flex flex-col justify-center'>
   Let:
-  - $s_1$ = the total number of LP tokens that already exist at the fee-accounting checkpoint..
+  - $s_1$ = the total number of LP tokens that already exist at the fee-accounting checkpoint.
   - $s_m$ = the number of additional LP tokens created specifically for the protocol fee recipient during _mintFee. These are new ownership units that did not exist before and are added on top of the existing supply
   - $L_1=\sqrt{k_1}$ = liquidity measured at the previous fee-accounting checkpoint.
   - $L_2=\sqrt{k_2}$ = liquidity measured now, when the contract is deciding whether protocol fee LP tokens should be minted.

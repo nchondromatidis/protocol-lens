@@ -7,7 +7,7 @@ sidebar:
 import { Code } from '@astrojs/starlight/components';
 import { extractProtocolCodeSlice } from '@defi-notes/workflows/protocols/extract-code/protocol-sources';
 
-Uniswap V2's price oracle mechanism is designed to provide highly decentralized, manipulation-resistant on-chain price feeds by shifting from spot price lookups to Time-Weighted Average Prices (TWAP)
+Uniswap V2's price oracle mechanism is designed to provide highly decentralized, manipulation-resistant on-chain price feeds by shifting from spot price lookups to Time-Weighted Average Prices (TWAP).
 
 ## Uniswap V1 Issue
 
@@ -42,7 +42,7 @@ V2 mitigates this by
     - To manipulate the measured price, two things must happen:
       - The attacker executes a bad trade **near the end of one block**, taking on slippage and fees.
       - **the first state-changing interaction with the pair in the next block** updates the oracle price using the manipulated carried-over reserves carried over from the previous block.
-        - The attacker would prefer to commit the first tx in the next block, which is highly unlikely unless they controls ordering or consecutive blocks,
+        - The attacker would prefer to commit the first tx in the next block, which is highly unlikely unless they control ordering or consecutive blocks,
         - During that time, arbitrageurs can trade against the mispricing.
     - (Optional) The attacker may then exploit a victim protocol.
     - (Optional) The attacker may then unwind / recovery trade
@@ -70,7 +70,7 @@ Let's see how it achieves those defenses
   - price is added into the oracle accumulator in block $N+1$ based on reserves on block $N$
   - `block.timestamp` increases when block increases
   - it updates its price only when `block.timestamp` increases
-  - blockTimestamp stored is crops `block.timestamp` (`uint256`) to a `uint32` to achieve `storage packing`
+  - blockTimestamp stores a cropped version of `block.timestamp` (uint256), truncated to uint32 for storage packing efficiency.
     - $2^{32} = 4,294,967,296$ seconds after the Unix epoch (January 1, 1970)
     - $4,294,967,296$ seconds after epoch = February 7, 2106, at 06:28:16 UTC
 
@@ -85,18 +85,18 @@ Let's see how it achieves those defenses
 
 Reference [Fixed Point Binary Numbers](/fundamentals/defi/fixed-point-numbers/#binary-fixed-point-libraries)
 
-Uses Q112.112 to store TWAP
+Uses UQ112.112 to store TWAP
 
-| Property   | Value                                       |
-| ---------- | ------------------------------------------- |
-| Total bits | 224                                         |
-| Min value  | $−2^{111} \approx −2.596×1033-2^{111}$      |
-| Max value  | $2^{111} − 2^{−112} \approx +2.596×10^{33}$ |
-| Resolution | $2^{−112} \approx 1.926×10^{-34}$           |
+| Property   | Value                                      |
+| ---------- | ------------------------------------------ |
+| Total bits | 224                                        |
+| Min value  | $0$                                        |
+| Max value  | $2^{112} − 2^{−112} \approx +5.19×10^{33}$ |
+| Resolution | $2^{−112} \approx 1.926×10^{-34}$          |
 
 This is an enormous format
 
-- it gives you a range on the scale of $10^{33}$
+- it gives you a range on the scale of $5×10^{33}$
 - while simultaneously resolving differences as small as $10^{-34}$
 
 #### Storage optimization

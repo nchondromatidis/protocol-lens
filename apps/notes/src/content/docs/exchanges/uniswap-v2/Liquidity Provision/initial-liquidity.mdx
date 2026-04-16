@@ -22,8 +22,8 @@ The theory behind a Uniswap pool, also known as a pair, is rooted in the concept
 
 Automated Market Maker (AMM) is the underlying architecture behind Uniswap V2
 
-- Alternative to ordering books, economically inefficient on-chain due to the **high gas costs**
-- Prices are determined by a **mathematical formulae** written into protocol code
+- Alternative to order books, economically inefficient on-chain due to the **high gas costs**
+- Prices are determined by a **mathematical formula** written into protocol code
 - Enable **permissionless**, **middleman-free** trading
 - Provide **instant** execution on rates and slippage
 
@@ -55,7 +55,7 @@ Depositing at an incorrect ratio creates an immediate arbitrage opportunity, whi
 
 ### Initial Reserves
 
-When setting up the pool, the initial amounts of tokenA and tokenN can be in any proportion, since no prior balances exist for reference.
+When setting up the pool, the initial amounts of tokenA and tokenB can be in any proportion, since no prior balances exist for reference.
 
 <Code
   code={extractProtocolCodeSlice([
@@ -137,15 +137,15 @@ Our goal is to find a number that correctly measures the LP's token pair ownersh
 
 ##### Why burn one thousand LP tokens
 
-Summary: it makes an initial inflation attack for initial liquidity very costly
+Summary: it makes an inflation attack on initial liquidity very costly
 
-You can read more about it: <a href="/fundamentals/defi/vaults#defence-3-extemelly-lossy-attack">Burn Initial Shares</a>
+You can read more about it: <a href="/defi-notes/fundamentals/defi/vaults#defence-2-burn-initial-shares">Burn Initial Shares</a>
 
 ### Price Oracle
 
 Summary: it makes oracle price resistant to manipulation
 
-You can read about it: <a href="/exchanges/uniswap-v2/price-oracle/">Price Oracle</a>
+You can read about it: <a href="/defi-notes/exchanges/uniswap-v2/price-oracle/">Price Oracle</a>
 
 ## Ecosystem
 

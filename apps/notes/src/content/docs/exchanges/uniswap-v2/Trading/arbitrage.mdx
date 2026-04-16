@@ -17,7 +17,7 @@ Arbitrage traders help push a specific market price toward the broader market pr
 
 ## Trade-offs
 
-Arbitrage is a double-edge sword:
+Arbitrage is a double-edged sword:
 
 - It is essential for maintaining market price (stale price kills pools),
 - It might drain a pool (if it goes beyond its tolerance),
@@ -43,7 +43,7 @@ We will showcase a basic arbitrage scenario to reveal important info:
 
 ### Pool Value
 
-A Uniswap V2 pool, when is arbitraged, its tokens are balanced 50/50 by token value, not by token counts.
+A Uniswap V2 pool, when it is arbitraged, its tokens are balanced 50/50 by token value, not by token counts.
 
 It means that at the current pool price, the two sides have equal market value.
 
@@ -67,7 +67,7 @@ PoolValue_{x} &= 2x
 \end{aligned}
 $$
 
-> 50:50 token value balance is not as a hard guarantee from the contract itself, it's the result of arbitrage
+> 50:50 token value balance is not a hard guarantee from the contract itself, it's the result of arbitrage
 
 ### Pool USD Value
 
@@ -91,7 +91,7 @@ Impermanent loss is the difference in value between holding your deposited asset
 
 #### Why
 
-When the AMM rebalances, it exchanges some of the outperforming tokens with underperming tokens in `local price`, `not market price`.
+When the AMM rebalances, it exchanges some of the outperforming tokens with underperforming tokens in `local price`, `not market price`.
 
 The difference goes into the `arbitrageur` as an `incentive` to keep the pool at market price, therefore, active.
 
@@ -145,7 +145,7 @@ $$
 
 #### Pool value reduction
 
-Trading (including arbitrage) in UnisWay does not reduce the total token reserves; it only changes their composition.
+Trading (including arbitrage) in Uniswap does not reduce the total token reserves; it only changes their composition.
 
 - Reserves (quantities): Tokens are swapped in a zero‑sum way between traders and the pool, following the CPMM rule
 - Dollar‑value composition: Liquidity providers lose dollar‑value exposure to the more appreciating token and gain exposure to the more depreciating one, which can reduce the dollar value of their LP position relative to simply holding the two tokens.

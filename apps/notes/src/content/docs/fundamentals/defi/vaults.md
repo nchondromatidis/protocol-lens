@@ -113,7 +113,7 @@ function _convertToAssets(uint256 shares, Math.Rounding rounding) internal view 
     return shares.mulDiv(totalAssets() + 1, totalSupply() + 10 ** _decimalsOffset(), rounding);
 }
 
-// YOU MUST OVERRIDE THIS FUNCTION TO INCREASE PRECISION
+// WE HAVE OVERRIDDEN HIS FUNCTION TO INCREASE PRECISION
 function _decimalsOffset() internal view virtual returns (uint8) {
     return 6;
 }

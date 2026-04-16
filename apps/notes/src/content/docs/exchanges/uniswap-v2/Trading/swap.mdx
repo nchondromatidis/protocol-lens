@@ -60,7 +60,7 @@ A 0.3% fee is deducted from each swap and distributed to liquidity providers.
 
 <div className='codeBlock'>
 $$
-amountOut = \frac{reserveOut \cdot 0.97 \cdot amountIn}{reserveIn + 0.97 \cdot amountIn}
+amountOut = \frac{reserveOut \cdot 0.997 \cdot amountIn}{reserveIn + 0.997 \cdot amountIn}
 $$
 </div>
 
@@ -75,7 +75,7 @@ $$
 
 <div className='codeBlock'>
   $$
-  amountIn = \frac{reserveIn \cdot amountOut}{ 0.97 \cdot (reserveOut - amountOut)}
+  amountIn = \frac{reserveIn \cdot amountOut}{ 0.997 \cdot (reserveOut - amountOut)}
   $$
 </div>
 
@@ -86,11 +86,11 @@ $$
   lang="solidity"
 />
 
-Note: Notice both numerator and denominator are multiplied by 1000 to be able to remove 0.3% fees from the input amount
+Note: Notice both numerator and denominator are multiplied by 1000 to account for 0.3% fees from the input amount
 
 ### Fees Increase K
 
-The swap is priced using only 99.7% of the input, but 100% enters the pool, the extra 0.3% stays with LPs and **increases k**.
+The swap is priced using only 99.7% of the input, but 100% enters the pool; the extra 0.3% stays with LPs and **increases k**.
 
 <div className='codeBlock'>
   $$
@@ -139,7 +139,7 @@ $y_{before}$ / $x_{before}$ reserve balance of token Y/X before trade
 
 ### Price Impact
 
-Is the difference between
+It is the difference between
 
 - the amount that a trader pays (or deposits) because of **effective price**
 - the amount that the trader would have paid at **spot price**
@@ -160,7 +160,7 @@ Is the difference between
 #### Relative Trade Size
 
 - **Effective price increase** depends on the **fraction of the pool being swapped**
-  - in a deep pool, buying a token mount might barely move the price,
+  - in a deep pool, buying a token amount might barely move the price,
   - in a shallow pool, the same trade can move the price noticeably
 
 **Example**: Assume both pools start at the same spot price: 4,000 USDC per ETH.
@@ -172,7 +172,7 @@ Is the difference between
 
 ### Slippage
 
-Is the difference between the **quoted effective price** of a trade and the **final execution price**.
+It is the difference between the **quoted effective price** of a trade and the **final execution price**.
 
 This is because other trades might be executed before the trader's, changing spot price before the trade takes place.
 
@@ -230,7 +230,7 @@ In order for swap to be successful, the new balances must preserve or increase t
 
 ### Router: Swap Methods
 
-`UniswapV2Router2` contract (periphery) provides multiple swap methods to support different combinations of swaps.
+`UniswapV2Router02` contract (periphery) provides multiple swap methods to support different combinations of swaps.
 
 It calculates **optimal amounts** before calling `UniswapV2Pair.swap()` method.
 
