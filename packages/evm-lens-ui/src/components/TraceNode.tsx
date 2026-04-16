@@ -60,7 +60,7 @@ export const TraceNode: React.FC<TraceNodeProps> = ({
     onSelectPath(isSelected ? '' : path);
   };
 
-  const indentPx = 16;
+  const indentPx = 0;
   const borderLeftPx = indentPx + 10;
 
   return (
@@ -106,10 +106,17 @@ export const TraceNode: React.FC<TraceNodeProps> = ({
         </span>
 
         <span
-          className="text-muted-foreground font-normal ml-1 font-mono cursor-pointer hover:text-foreground"
+          className="text-muted-foreground font-normal ml-1 font-mono cursor-pointer hover:text-foreground flex items-center gap-0.5"
           onClick={handleAggregatesClick}
         >
-          {aggregates}
+          <span className="hidden sm:inline">{aggregates}</span>
+          {aggregates && (
+            <MaterialIcon
+              name="search"
+              className={cn('!block sm:!hidden text-muted-foreground', isSelected && 'text-foreground')}
+              size={14}
+            />
+          )}
         </span>
       </div>
 

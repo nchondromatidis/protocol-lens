@@ -58,6 +58,8 @@ export function TraceViewerClient({ trace }: TraceViewerClient2Props) {
       onToggleSidebar={actions.handleToggleSidebar}
       tracePanelCollapsed={state.tracePanelCollapsed}
       onToggleTracePanel={actions.handleToggleTracePanel}
+      mobileExpandedPanels={state.mobileExpandedPanels}
+      onToggleMobilePanel={actions.handleToggleMobilePanel}
     />
   );
 }

@@ -11,6 +11,7 @@ export type TraceViewerState = {
   activeTabFileId: string | undefined;
   sidebarCollapsed: boolean;
   tracePanelCollapsed: boolean;
+  mobileExpandedPanels: Set<string>;
 };
 
 export type TraceViewerActions = {
@@ -20,6 +21,7 @@ export type TraceViewerActions = {
   handleScrollToFile: (fileId: string) => void;
   handleToggleSidebar: () => void;
   handleToggleTracePanel: () => void;
+  handleToggleMobilePanel: (panelId: string) => void;
 };
 
 export function useTraceViewerState(resourceLoader: IResourceLoader | null) {
@@ -31,6 +33,7 @@ export function useTraceViewerState(resourceLoader: IResourceLoader | null) {
     activeTabFileId: undefined,
     sidebarCollapsed: false,
     tracePanelCollapsed: false,
+    mobileExpandedPanels: new Set(['trace']),
   });
 
   const handleSelectFileFromTree = useCallback(
@@ -102,6 +105,18 @@ export function useTraceViewerState(resourceLoader: IResourceLoader | null) {
     setState((prev) => ({ ...prev, tracePanelCollapsed: !prev.tracePanelCollapsed }));
   }, []);
 
+  const handleToggleMobilePanel = useCallback((panelId: string) => {
+    setState((prev) => {
+      const next = new Set(prev.mobileExpandedPanels);
+      if (next.has(panelId)) {
+        next.delete(panelId);
+      } else {
+        next.add(panelId);
+      }
+      return { ...prev, mobileExpandedPanels: next };
+    });
+  }, []);
+
   return {
     state,
     actions: {
@@ -111,6 +126,7 @@ export function useTraceViewerState(resourceLoader: IResourceLoader | null) {
       handleScrollToFile,
       handleToggleSidebar,
       handleToggleTracePanel,
+      handleToggleMobilePanel,
     },
   };
 }

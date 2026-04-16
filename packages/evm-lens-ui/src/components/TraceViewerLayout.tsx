@@ -1,14 +1,31 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle, type Layout } from './lib/resizable.ts';
 import type { ReadOnlyFunctionCallEvent } from '@defi-notes/evm-lens/src/lens/pipeline/4_function-trace/FunctionTraceBuilder.ts';
 import { FunctionTracePanel } from './FunctionTracePanel.tsx';
 import { SourceCodeTabs } from './SourceCodeTabs.tsx';
 import { ProjectExplorer } from './ProjectExplorer.tsx';
 import { StatusBar } from './StatusBar.tsx';
+import { MaterialIcon } from './lib/MaterialIcon.tsx';
 import type { ProjectFileItem } from './types/ProjectFileItem.ts';
 
 const MAIN_LAYOUT_KEY = 'evm-lens-trace-viewer-v2-main';
 const TOP_LAYOUT_KEY = 'evm-lens-trace-viewer-v2-top';
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(max-width: 767px)').matches;
+  });
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 767px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
+
+  return isMobile;
+}
 
 function saveLayout(key: string, layout: Layout): void {
   try {
@@ -52,6 +69,8 @@ type TraceViewerLayout2Props = Readonly<{
   onToggleSidebar: () => void;
   tracePanelCollapsed: boolean;
   onToggleTracePanel: () => void;
+  mobileExpandedPanels: Set<string>;
+  onToggleMobilePanel: (panelId: string) => void;
 }>;
 
 const DEFAULT_MAIN_LAYOUT: Layout = { top: 60, bottom: 40 };
@@ -76,7 +95,10 @@ export const TraceViewerLayout: React.FC<TraceViewerLayout2Props> = ({
   onToggleSidebar,
   tracePanelCollapsed,
   onToggleTracePanel,
+  mobileExpandedPanels,
+  onToggleMobilePanel,
 }) => {
+  const isMobile = useIsMobile();
   const mainLayout = useMemo(() => getSavedLayout(MAIN_LAYOUT_KEY, DEFAULT_MAIN_LAYOUT), []);
   const topLayout = useMemo(() => getSavedLayout(TOP_LAYOUT_KEY, DEFAULT_TOP_LAYOUT), []);
 
@@ -87,6 +109,65 @@ export const TraceViewerLayout: React.FC<TraceViewerLayout2Props> = ({
   const handleTopLayoutChange = useCallback((layout: Layout) => {
     saveLayout(TOP_LAYOUT_KEY, layout);
   }, []);
+
+  if (isMobile) {
+    return (
+      <div className="h-full flex flex-col bg-background text-foreground overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
+          <MobileAccordionSection
+            title="Explorer"
+            panelId="explorer"
+            expandedPanels={mobileExpandedPanels}
+            onToggle={onToggleMobilePanel}
+          >
+            <ProjectExplorer
+              items={projectFiles}
+              initialExpandedItems={initialExpandedItems}
+              rootItemId={rootItemId}
+              selectedFileId={activeTabFileId}
+              onSelectFileFromTree={onSelectFileFromTree}
+              onScrollToFile={onScrollToFile}
+              scrollToFileId={scrollToFileId}
+              collapsed={false}
+              onToggleCollapse={() => onToggleMobilePanel('explorer')}
+            />
+          </MobileAccordionSection>
+
+          <MobileAccordionSection
+            title="Source"
+            panelId="source"
+            expandedPanels={mobileExpandedPanels}
+            onToggle={onToggleMobilePanel}
+            extra={activeTabFileId ? activeTabFileId.split('/').pop() : undefined}
+          >
+            <SourceCodeTabs
+              sourceCode={sourceCode}
+              highlightedLine={highlightedLine}
+              openTabs={openTabs}
+              activeTabFileId={activeTabFileId}
+              onCloseTab={onCloseTab}
+              onSelectTab={onSelectTab}
+            />
+          </MobileAccordionSection>
+
+          <MobileAccordionSection
+            title="Function Trace"
+            panelId="trace"
+            expandedPanels={mobileExpandedPanels}
+            onToggle={onToggleMobilePanel}
+          >
+            <FunctionTracePanel
+              functionTrace={functionTrace}
+              onSelectTraceNode={onSelectFileFromTraceNode}
+              collapsed={false}
+              onToggleCollapse={() => onToggleMobilePanel('trace')}
+            />
+          </MobileAccordionSection>
+        </div>
+        <StatusBar />
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col bg-background text-foreground overflow-hidden">
@@ -177,6 +258,48 @@ export const TraceViewerLayout: React.FC<TraceViewerLayout2Props> = ({
       )}
 
       <StatusBar />
+    </div>
+  );
+};
+
+type MobileAccordionSectionProps = Readonly<{
+  title: string;
+  panelId: string;
+  expandedPanels: Set<string>;
+  onToggle: (panelId: string) => void;
+  extra?: string;
+  children: React.ReactNode;
+}>;
+
+const MobileAccordionSection: React.FC<MobileAccordionSectionProps> = ({
+  title,
+  panelId,
+  expandedPanels,
+  onToggle,
+  extra,
+  children,
+}) => {
+  const isExpanded = expandedPanels.has(panelId);
+
+  return (
+    <div className="border-b border-border">
+      <div
+        className="h-10 px-4 flex items-center justify-between bg-card cursor-pointer hover:bg-muted select-none"
+        onClick={() => onToggle(panelId)}
+      >
+        <div className="flex items-center gap-2">
+          <MaterialIcon
+            name="chevron_right"
+            className={`text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+            size={16}
+          />
+          <span className="font-sans text-[10px] font-bold text-muted-foreground tracking-widest uppercase">
+            {title}
+          </span>
+        </div>
+        {extra && <span className="text-[10px] text-muted-foreground truncate max-w-[50vw]">{extra}</span>}
+      </div>
+      {isExpanded && <div className="overflow-y-auto max-h-[40vh]">{children}</div>}
     </div>
   );
 };

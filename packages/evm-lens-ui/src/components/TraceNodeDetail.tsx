@@ -161,8 +161,8 @@ export const TraceNodeDetail: React.FC<TraceNodeDetailProps> = ({ event }) => {
   const copyCtx = useCopyFeedback();
 
   return (
-    <div className="grid grid-cols-3 gap-0 border-x border-border min-h-[140px]">
-      <div className="p-3 border-r border-border">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-x border-border min-h-[140px]">
+      <div className="p-3 border-b md:border-b-0 md:border-r border-border">
         <div className="font-sans text-[9px] text-muted-foreground font-bold uppercase mb-2">PARAMS</div>
         {argsText ? (
           <ParamSection args={event.args} path="params" ctx={copyCtx} />
@@ -170,7 +170,7 @@ export const TraceNodeDetail: React.FC<TraceNodeDetailProps> = ({ event }) => {
           <div className="text-muted-foreground text-[10px]">No params</div>
         )}
       </div>
-      <div className="p-3 border-r border-border">
+      <div className="p-3 border-b md:border-b-0 md:border-r border-border">
         <div className="font-sans text-[9px] text-muted-foreground font-bold uppercase mb-2">RETURN</div>
         <ReturnSection returnValue={event.result?.returnValue} isError={isError} path="return" ctx={copyCtx} />
       </div>
