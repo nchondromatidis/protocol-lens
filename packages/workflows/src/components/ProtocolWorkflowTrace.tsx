@@ -1,10 +1,9 @@
 import { TraceViewerClient } from '@defi-notes/evm-lens-ui/components/TraceViewerClient';
 import React, { useEffect, useRef, useState } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Dialog, DialogClose, DialogContent, DialogTitle } from './ui/dialog';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { X, Info } from 'lucide-react';
+import { X } from 'lucide-react';
+import { ViewTrace } from './ViewTrace';
 import {
   getProtocolWorkflowsRegistry,
   type ProtocolWorkflowsRegistry,
@@ -88,47 +87,13 @@ export const ProtocolWorkflowTrace: React.FC<ProtocolActionProps<ProtocolWorkflo
 
   return (
     <>
-      <Card className="w-full gap-2 py-3">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-          <CardTitle className="text-base font-semibold">{header}</CardTitle>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info
-                className={`size-4 cursor-pointer ${warnMessages.length > 0 ? 'text-red-800' : 'text-muted-foreground'}`}
-              />
-            </TooltipTrigger>
-            <TooltipContent side="left" className="max-w-xs">
-              <div className="flex flex-col gap-1">
-                <span>ethereumjs running in the browser</span>
-                <span>protocol is deployed client side</span>
-                <span>transaction is decoded client side</span>
-                {infoMessages.map((message, index) => (
-                  <span key={`info-${index}`}>{message}</span>
-                ))}
-                {warnMessages.map((message, index) => (
-                  <span key={`warn-${index}`} className="text-red-700">
-                    {message}
-                  </span>
-                ))}
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </CardHeader>
-        <CardContent className="pt-0 pb-1 text-sm text-muted-foreground">
-          See the function trace and protocol source code
-        </CardContent>
-        <CardFooter className="pt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() => setIsOpen(true)}
-            disabled={!traceResult || loading || !!error}
-          >
-            View Trace
-          </Button>
-        </CardFooter>
-      </Card>
+      <ViewTrace
+        workflowName={header}
+        infoMessages={infoMessages}
+        warnMessages={warnMessages}
+        disabled={!traceResult || loading || !!error}
+        onStartTrace={() => setIsOpen(true)}
+      />
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent
