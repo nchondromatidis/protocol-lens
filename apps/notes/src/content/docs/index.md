@@ -6,7 +6,10 @@ template: splash
 
 Welcome to the DeFi Notes.
 
-Each protocol will be analyzed per workflows combining `source code`, `workflow function trace`, `whitepaper concepts` and `math`.
+Analysis of core workflows—such as liquidity and swaps—across multiple protocols by combining
+- whitepaper concepts
+- source‑code explanation
+- function‑level traces
 
 [How to read this guide](/defi-notes/how-to-read)
 
