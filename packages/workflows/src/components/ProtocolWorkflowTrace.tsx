@@ -17,7 +17,7 @@ const getResourcesBaseUrl = (): string => {
   if (typeof window === 'undefined') {
     throw new Error('ProtocolWorkflowTrace must run in browser environment');
   }
-  return `${window.location.origin}/defi-notes`;
+  return `${window.location.origin}/protocol-lens`;
 };
 
 type ProtocolActionProps<
