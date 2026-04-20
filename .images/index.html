@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="color-scheme" content="light dark">
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        :root.dark {
+            color-scheme: dark;
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem;
+            transition: background-color 0.3s;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        body::before {
+            content: "Light Mode";
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        :root.dark body {
+            background-color: #1e1e1e;
+            color: #c8c8c8;
+        }
+
+        :root.dark body::before {
+            content: "Dark Mode";
+        }
+
+        button {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 6px;
+            border: 1px solid #999;
+            z-index: 1;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+<button onclick="toggle()">Toggle Dark/Light</button>
+<img src="structure.svg"/>
+<img src="architecture.svg"/>
+<script>
+  function toggle() {
+    document.documentElement.classList.toggle('dark');
+  }
+</script>
+</body>
+</html>

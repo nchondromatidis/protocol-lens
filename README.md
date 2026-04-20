@@ -6,49 +6,53 @@
 ---
 
 <div align="center">
-    <b>DeFi concepts, workflows, traces, and source analysis.</b>
+    <b>DeFi Protocol concepts, workflows, traces, and source analysis.</b>
 </div>
 
 ---
 
-## Project Structure
+### [Visit Protocol Lens](https://nchondromatidis.github.io/protocol-lens/)
 
-This is a PNPM monorepo with the following packages:
+### What is it
 
-| Package | Description |
-|---------|-------------|
-| [`@protocol-lens/notes`](apps/notes/) | DeFi protocol analysis app |
-| [`@protocol-lens/evm-lens`](packages/evm-lens/) | EVM transaction call tracer (browser-native) |
-| [`@protocol-lens/evm-lens-indexer`](packages/evm-lens-indexer/) | Hardhat plugin for building trace indexes |
-| [`@protocol-lens/evm-lens-ui`](packages/evm-lens-ui/) | React UI components for call trace visualization |
-| [`@protocol-lens/protocols`](packages/protocols/) | DeFi protocol source code and pre-built indexes |
-| [`@protocol-lens/workflows`](packages/workflows/) | Workflow logic and UI components for DeFi analysis |
-| [`@protocol-lens/config`](packages/config/) | Shared ESLint, Prettier, and TSConfig |
+Protocol Lens is a web app for analyzing defi protocols.
+
+It combines `classic docs` with `dynamic tx analysis in-browser`.
+
+### Protocol Analysis Structure
+
+- DeFi protocols are analyzed `per workflow`
+  - For each workflow the analysis consists of
+    - Whitepaper concepts (contains math)
+    - Interactive charts to reinforce concepts
+    - Source code analysis, matching concepts with implementation
+    - Lightweight editor that contains (tenderly style)
+      - Function Trace of the specific workflow 
+      - Protocol source code view
+      - Protocol file navigation
 
 
-## Prerequisites
+### Protocol Analysis Structure Diagram
 
-- Node.js 18+
-- PNPM 10.28.2+
+In the diagram below you can see each workflow's analysis structure
 
-## Installation
+<img src=".images/structure.svg" alt="analysis structure" style="max-width: 100%; width: 400px;">
 
-```bash
-git submodule update --init --recursive
-pnpm install
-pnpm --filter @protocol-lens/notes dev
-```
+### About the function tracer (`evm-lens`)
 
-## Development
+- Protocol is deployed in a test Ethereum node running in-browser using compilation artifacts
+- Workflow tx is committed in the test Ethereum node
+- Tx opcodes are then decoded to a function trace in-browser using pre-built indexes
 
-```bash
-pnpm run check:types    # Type check all packages
-pnpm run lint:fix       # Auto-fix lint issues
+### Main Packages
 
-# Run tests (evm-lens)
-pnpm --filter @protocol-lens/evm-lens test
-```
+| Package            | Description                                      |
+|--------------------|--------------------------------------------------|
+| `notes`            | DeFi protocol analysis app (uses evm lens)       |
+| `evm-lens-indexer` | Hardhat plugin for building trace indexes        |
+| `evm-lens`         | EVM transaction call tracer (browser-native)     |
+| `evm-lens-ui`      | React UI components for call trace visualization |
 
-## Tech Stack
+### Architecture
 
-TypeScript, PNPM workspaces, React, Tailwind CSS, shadcn/ui, Astro Starlight, tevm, viem, Hardhat
+<img src=".images/architecture.svg" alt="analysis structure" style="max-width: 100%; width: 1200px;">
