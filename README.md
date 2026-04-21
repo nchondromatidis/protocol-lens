@@ -16,7 +16,7 @@
 ### What is it
 Protocol Lens is a web app for analyzing defi protocols.
 
-It combines `classic docs` with `dynamic tx analysis in-browser`.
+It combines `classic docs` with `in-browser` `dynamic tx analysis`.
 
 ### Protocol Analysis Structure
 DeFi protocols are analyzed **per workflow**.
