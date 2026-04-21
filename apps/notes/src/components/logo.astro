@@ -1,0 +1,46 @@
+---
+import logo from '../assets/logo.svg'; // adjust path as needed
+---
+
+<div class="protocol-lens-header">
+  <img src={logo.src} alt="Protocol Lens" width="160" height="160" />
+  <span class="protocol-lens-title">PROTOCOL LENS</span>
+</div>
+
+<style>
+  .protocol-lens-header {
+    --header-bg:    #0c0d0f;
+    --header-color: #d8d4cc;
+
+    background-color: var(--header-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 48px;
+    transition: background-color 200ms ease, color 200ms ease;
+  }
+
+  .protocol-lens-title {
+    color: var(--header-color);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Light theme — via data-theme toggle */
+  :root[data-theme="light"] .protocol-lens-header {
+    --header-bg:    #f3f2f0;
+    --header-color: #1a1917;
+  }
+
+  /* Light theme — via system preference */
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme]) .protocol-lens-header {
+      --header-bg:    #f3f2f0;
+      --header-color: #1a1917;
+    }
+  }
+</style>

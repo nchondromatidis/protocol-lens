@@ -1,0 +1,38 @@
+---
+title: Protocol Lens
+description: DeFi protocol analysis and documentation
+template: splash
+---
+
+
+import Logo from '../../components/logo.astro';
+import { Card, CardGrid, LinkCard, LinkButton } from '@astrojs/starlight/components';
+
+<Logo />
+
+
+Protocol Lens is a DeFi analysis tool that bridges static protocol docs with real-time transaction data.
+
+<CardGrid>
+  <Card title="Classic Docs" icon="open-book">
+    Whitepaper concepts, math, source code analysis
+  </Card>
+  <Card title="Dynamic Docs" icon="magnifier">
+    Live function traces, source code navigation, interactive charts
+  </Card>
+</CardGrid>
+
+<LinkButton href="/protocol-lens/how-to-read/">How to read</LinkButton>
+<LinkButton href="/protocol-lens/architecture/" variant="secondary">Architecture</LinkButton>
+
+## Fundamentals
+
+<LinkCard title="DeFi" href="/protocol-lens/fundamentals/defi/" description="Fundamental DeFi Concepts" />
+
+## Exchanges
+
+<LinkCard title="Uniswap V2" href="/protocol-lens/exchanges/uniswap-v2/" description="Automated market maker protocol" />
+
+
+
+

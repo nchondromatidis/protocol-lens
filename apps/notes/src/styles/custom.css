@@ -22,4 +22,8 @@
         @apply p-4 border rounded-[9px];
         @apply flex flex-col justify-center-safe overflow-x-auto overflow-y-hidden max-w-full;
     }
+
+    .content-panel h1#_top {
+        display: none;
+    }
 }

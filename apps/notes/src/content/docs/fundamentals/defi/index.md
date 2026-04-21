@@ -4,4 +4,4 @@ sidebar:
   order: 2000
 ---
 
-Fundamental DeFi protocol concepts.
+In this section we will describe all fundamental cross-protocol concepts.
